@@ -19,4 +19,15 @@
     <color name="status_called">#E65100</color>
     <color name="status_served">#2E7D32</color>
     <color name="status_expired">#C62828</color>
+
+    <!-- Dark theme -->
+    <color name="teal_80">#7DD3C5</color>
+    <color name="teal_20">#003730</color>
+    <color name="teal_30">#005046</color>
+    <color name="surface_dark">#0E1513</color>
+    <color name="surface_variant_dark">#3F4947</color>
+    <color name="on_surface_dark">#DEE4E1</color>
+    <color name="on_surface_variant_dark">#BFC9C5</color>
+    <color name="outline_dark">#899390</color>
+    <color name="error_dark">#FFB4AB</color>
 </resources>
