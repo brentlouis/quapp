@@ -13,6 +13,7 @@
         android:theme="@style/Theme.Quapp">
         <activity
             android:name=".SplashActivity"
+            android:theme="@style/Theme.Quapp.Splash"
             android:exported="true"
             android:windowSoftInputMode="adjustResize">
             <intent-filter>

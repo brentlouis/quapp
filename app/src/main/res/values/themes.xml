@@ -19,4 +19,9 @@
         <item name="android:windowLightStatusBar">true</item>
         <item name="android:windowLightNavigationBar">true</item>
     </style>
+
+    <style name="Theme.Quapp.Splash" parent="Theme.Quapp">
+        <item name="android:windowBackground">@color/teal_40</item>
+        <item name="android:windowLightStatusBar">false</item>
+    </style>
 </resources>
