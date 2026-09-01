@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:paddingTop="@dimen/space_sm"
+    android:paddingBottom="@dimen/space_sm">
+
+    <TextView
+        android:id="@+id/waiting_number"
+        android:layout_width="48dp"
+        android:layout_height="wrap_content"
+        android:gravity="center"
+        android:textAppearance="?attr/textAppearanceTitleMedium"
+        android:textColor="?attr/colorPrimary"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        tools:text="#3" />
+
+    <TextView
+        android:id="@+id/waiting_name"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="@dimen/space_sm"
+        android:ellipsize="end"
+        android:maxLines="1"
+        android:textAppearance="?attr/textAppearanceBodyLarge"
+        android:textColor="?attr/colorOnSurface"
+        app:layout_constraintEnd_toStartOf="@id/waiting_actions"
+        app:layout_constraintStart_toEndOf="@id/waiting_number"
+        app:layout_constraintTop_toTopOf="parent"
+        tools:text="Ana Lopez" />
+
+    <TextView
+        android:id="@+id/waiting_phone"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="@dimen/space_sm"
+        android:ellipsize="end"
+        android:maxLines="1"
+        android:textAppearance="?attr/textAppearanceLabelSmall"
+        android:textColor="?attr/colorOnSurfaceVariant"
+        app:layout_constraintEnd_toStartOf="@id/waiting_actions"
+        app:layout_constraintStart_toEndOf="@id/waiting_number"
+        app:layout_constraintTop_toBottomOf="@id/waiting_name"
+        tools:text="09171000002" />
+
+    <LinearLayout
+        android:id="@+id/waiting_actions"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="parent">
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/waiting_serve"
+            style="@style/Widget.Material3.Button.TextButton"
+            android:layout_width="wrap_content"
+            android:layout_height="@dimen/touch_target_min"
+            android:minWidth="0dp"
+            android:text="@string/console_serve_action" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/waiting_no_show"
+            style="@style/Widget.Material3.Button.TextButton"
+            android:layout_width="wrap_content"
+            android:layout_height="@dimen/touch_target_min"
+            android:minWidth="0dp"
+            android:text="@string/console_no_show_action"
+            android:textColor="?attr/colorError" />
+
+    </LinearLayout>
+
+</androidx.constraintlayout.widget.ConstraintLayout>

@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string-array name="queue_categories">
+        <item>Medical</item>
+        <item>Government</item>
+        <item>Community</item>
+        <item>Education</item>
+        <item>Relief</item>
+    </string-array>
+
+    <string-array name="bohol_municipalities">
+        <item>Tagbilaran City</item>
+        <item>Baclayon</item>
+        <item>Corella</item>
+        <item>Dauis</item>
+        <item>Loon</item>
+        <item>Panglao</item>
+        <item>Maribojoc</item>
+        <item>Cortes</item>
+        <item>Sikatuna</item>
+        <item>Alburquerque</item>
+    </string-array>
+</resources>

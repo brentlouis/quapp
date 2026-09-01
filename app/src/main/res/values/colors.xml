@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Palette -->
+    <color name="teal_40">#0E5A52</color>
+    <color name="teal_90">#B8E5DD</color>
+    <color name="teal_10">#00201C</color>
+    <color name="slate_40">#4A635F</color>
+
+    <color name="surface_light">#FBFDFB</color>
+    <color name="surface_variant_light">#DBE5E1</color>
+    <color name="on_surface_light">#191C1B</color>
+    <color name="on_surface_variant_light">#3F4947</color>
+    <color name="outline_light">#6F7976</color>
+    <color name="error_light">#BA1A1A</color>
+    <color name="white">#FFFFFF</color>
+
+    <!-- Queue status — app-specific semantics, not theme roles -->
+    <color name="status_waiting">#1565C0</color>
+    <color name="status_called">#E65100</color>
+    <color name="status_served">#2E7D32</color>
+    <color name="status_expired">#C62828</color>
+</resources>
