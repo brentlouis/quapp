@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Owner tabs (DECISIONS.md "Bottom navigation, landing states and first visit"). -->
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <item
+        android:id="@+id/nav_queues"
+        android:icon="@drawable/ic_nav_queues"
+        android:title="@string/nav_queues" />
+    <item
+        android:id="@+id/nav_today"
+        android:icon="@drawable/ic_nav_today"
+        android:title="@string/nav_today" />
+    <item
+        android:id="@+id/nav_profile"
+        android:icon="@drawable/ic_nav_profile"
+        android:title="@string/nav_profile" />
+</menu>

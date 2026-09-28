@@ -14,23 +14,10 @@ import androidx.fragment.app.Fragment;
 
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 
-/**
- * Profile. A tab on the queuer home (no back arrow), and for now still opened as its own screen
- * from the owner dashboard (with a back arrow) until the owner home gets its tabs.
- */
+/** Profile. The last tab on both homes; the rows adapt to the current role. */
 public class ProfileFragment extends Fragment {
 
-    private static final String ARG_SHOW_BACK = "show_back";
-
     private Session session;
-
-    public static ProfileFragment newInstance(boolean showBack) {
-        ProfileFragment fragment = new ProfileFragment();
-        Bundle args = new Bundle();
-        args.putBoolean(ARG_SHOW_BACK, showBack);
-        fragment.setArguments(args);
-        return fragment;
-    }
 
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container,
@@ -43,15 +30,8 @@ public class ProfileFragment extends Fragment {
         super.onViewCreated(view, savedInstanceState);
         session = new Session(requireContext());
 
-        View back = view.findViewById(R.id.profile_back);
-        boolean showBack = getArguments() != null && getArguments().getBoolean(ARG_SHOW_BACK);
-        back.setVisibility(showBack ? View.VISIBLE : View.GONE);
-        back.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                requireActivity().finish();
-            }
-        });
+        // A tab is never "pushed", so there's nothing to go back to.
+        view.findViewById(R.id.profile_back).setVisibility(View.GONE);
 
         bindUser(view);
         bindRows(view);

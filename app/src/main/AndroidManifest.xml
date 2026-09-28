@@ -30,11 +30,10 @@
         <activity android:name=".QueueDetailActivity" />
         <activity android:name=".JoinQueueActivity" />
         <activity android:name=".ActiveTicketActivity" />
-        <activity android:name=".OwnerDashboardActivity"/>
+        <activity android:name=".OwnerHomeActivity" />
         <activity android:name=".CreateQueueActivity"/>
         <activity android:name=".LiveConsoleActivity"/>
         <activity android:name=".QueueAnalyticsActivity" />
-        <activity android:name=".ProfileActivity" />
         <activity android:name=".HistoryActivity" />
     </application>
 

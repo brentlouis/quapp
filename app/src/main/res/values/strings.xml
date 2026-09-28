@@ -8,6 +8,8 @@
     <string name="nav_my_tickets">My tickets</string>
     <string name="nav_profile">Profile</string>
     <string name="nav_ticket_badge">#%d</string>
+    <string name="nav_queues">Queues</string>
+    <string name="nav_today">Today</string>
 
     <!-- My tickets tab -->
     <string name="my_tickets_title">My tickets</string>
@@ -282,4 +284,23 @@
         <item quantity="one">Rolling average of the last person served.</item>
         <item quantity="other">Rolling average of the last %d people served.</item>
     </plurals>
+    <!-- Today tab (owner) -->
+    <string name="today_title">Today</string>
+    <string name="today_subtitle">Across all your queues</string>
+    <string name="today_served_label">Served</string>
+    <string name="today_waiting_label">Waiting now</string>
+    <string name="today_no_show_rate_label">No-show rate</string>
+    <string name="today_percent_format">%d%%</string>
+    <string name="today_by_queue">By queue</string>
+    <string name="today_row_served">served</string>
+    <string name="today_status_paused">Paused</string>
+    <string name="today_status_closed">Closed</string>
+    <plurals name="today_no_shows">
+        <item quantity="one">%d no-show</item>
+        <item quantity="other">%d no-shows</item>
+    </plurals>
+    <string name="today_minutes_per_person">%.1f min per person</string>
+    <string name="today_detail_separator"> · </string>
+    <string name="today_empty_title">Nothing to count yet</string>
+    <string name="today_empty_body">Totals show up here once you create a queue.</string>
 </resources>

@@ -142,7 +142,7 @@ public class QueuerHomeActivity extends AppCompatActivity {
         if (itemId == R.id.nav_tickets) {
             return new MyTicketsFragment();
         } else if (itemId == R.id.nav_profile) {
-            return ProfileFragment.newInstance(false);
+            return new ProfileFragment();
         }
         return new BrowseFragment();
     }

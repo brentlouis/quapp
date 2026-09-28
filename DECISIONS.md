@@ -697,7 +697,7 @@ Queues open and close automatically from their schedule. Queuer Browse has no st
 
 **Trade-off:** Fragments bring a second lifecycle (`onCreateView`/`onViewCreated`, `requireContext()`, checking `isAdded()` before touching views in a late Retrofit callback). Brent is time-constrained, so this is built from a guide rather than learned in depth first.
 
-**Status:** Current (design and structure). Not built.
+**Status:** Current. Both homes built Sep 28 (`QueuerHomeActivity`, `OwnerHomeActivity`); the old `BrowseActivity`, `OwnerDashboardActivity` and the temporary `ProfileActivity` are gone. The tab contents are ported as-is; their Civic Paper redesign comes screen by screen.
 
 ---
 

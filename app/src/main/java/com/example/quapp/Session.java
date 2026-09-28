@@ -84,7 +84,7 @@ public class Session {
     }
 
     /**
-     * Where this user belongs right now: Login, Role Select, the queuer home or Dashboard.
+     * Where this user belongs right now: Login, Role Select, or one of the two homes.
      * CLEAR_TASK wipes the back stack, so Back from home exits the app instead of
      * walking back through Login.
      */
@@ -94,7 +94,7 @@ public class Session {
         if (!isLoggedIn()) {
             destination = LoginActivity.class;
         } else if (getRole() == Role.OWNER) {
-            destination = OwnerDashboardActivity.class;
+            destination = OwnerHomeActivity.class;
         } else if (getRole() == Role.QUEUER) {
             destination = QueuerHomeActivity.class;
         } else {
