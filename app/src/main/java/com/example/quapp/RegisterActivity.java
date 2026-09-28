@@ -7,6 +7,7 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.textfield.TextInputEditText;
+import com.google.android.material.textfield.TextInputLayout;
 
 public class RegisterActivity extends AppCompatActivity {
 
@@ -15,6 +16,19 @@ public class RegisterActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_register);
         SystemBars.applyPaddingWithKeyboard(findViewById(R.id.register_root));
+
+        // The length rule shows before anyone gets it wrong; an error replaces it while shown.
+        TextInputLayout passwordLayout = findViewById(R.id.register_password_layout);
+        passwordLayout.setHelperText(
+                getString(R.string.register_password_helper, Validation.MIN_PASSWORD_LENGTH));
+
+        View.OnClickListener backToLogin = new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                finish();
+            }
+        };
+        findViewById(R.id.register_back).setOnClickListener(backToLogin);
 
         MaterialButton submitButton = findViewById(R.id.register_submit_button);
         MaterialButton loginButton = findViewById(R.id.register_login_button);
@@ -26,12 +40,7 @@ public class RegisterActivity extends AppCompatActivity {
             }
         });
 
-        loginButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                finish();
-            }
-        });
+        loginButton.setOnClickListener(backToLogin);
     }
 
     private void submitRegistration() {

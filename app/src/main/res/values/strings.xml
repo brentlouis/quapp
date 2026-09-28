@@ -50,16 +50,19 @@
     <!-- Register -->
     <string name="register_heading">Create account</string>
     <string name="register_subheading">Join queues remotely or manage your own.</string>
-    <string name="register_name_hint">Full name</string>
-    <string name="register_phone_hint">Phone number</string>
-    <string name="register_password_hint">Password</string>
-    <string name="register_confirm_hint">Confirm password</string>
+    <string name="register_back_description">Back to log in</string>
+    <string name="register_name_label">Full name</string>
+    <string name="register_phone_label">Phone number</string>
+    <string name="register_password_label">Password</string>
+    <string name="register_password_helper">At least %d characters.</string>
+    <string name="register_confirm_label">Confirm password</string>
     <string name="register_action">Create account</string>
-    <string name="register_login_prompt">Already have an account? Log in</string>
+    <string name="register_have_account">Already have an account?</string>
+    <string name="register_login_action">Log in</string>
     <string name="register_name_error">Enter your full name</string>
     <string name="register_phone_error">Enter an 11-digit number starting with 09</string>
     <string name="register_password_error">Use at least %d characters</string>
-    <string name="register_confirm_error">Passwords don\'t match</string>
+    <string name="register_confirm_error">Passwords don\'t match. Retype it to confirm.</string>
 
     <!-- Role select -->
     <string name="role_heading">How will you use Quapp?</string>
