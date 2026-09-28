@@ -35,6 +35,34 @@ public final class SystemBars {
         });
     }
 
+    /**
+     * For screens with a bottom navigation bar: pads the top and sides only. The bar handles the
+     * bottom inset itself (BottomNavigationView adds it as padding by default), so its paper colour
+     * runs under the gesture pill instead of stopping above it. The insets aren't consumed, so they
+     * still reach the bar.
+     */
+    public static void applyPaddingExceptBottom(final View root) {
+        final int basePaddingLeft = root.getPaddingLeft();
+        final int basePaddingTop = root.getPaddingTop();
+        final int basePaddingRight = root.getPaddingRight();
+        final int basePaddingBottom = root.getPaddingBottom();
+
+        ViewCompat.setOnApplyWindowInsetsListener(root, new OnApplyWindowInsetsListener() {
+            @Override
+            public WindowInsetsCompat onApplyWindowInsets(View view, WindowInsetsCompat windowInsets) {
+                Insets systemBars = windowInsets.getInsets(WindowInsetsCompat.Type.systemBars());
+
+                view.setPadding(
+                        basePaddingLeft + systemBars.left,
+                        basePaddingTop + systemBars.top,
+                        basePaddingRight + systemBars.right,
+                        basePaddingBottom);
+
+                return windowInsets;
+            }
+        });
+    }
+
     public static void applyPaddingWithKeyboard(final View root) {
         final int basePaddingLeft = root.getPaddingLeft();
         final int basePaddingTop = root.getPaddingTop();

@@ -127,7 +127,7 @@ Designed on the Claude Design canvas; none of it is built. Decisions are in DECI
 - [x] Type: `TextAppearance.Quapp.*` styles, M3 roles mapped, custom `textAppearanceTicketNumber` / `Stat` / `StatHero` attrs
 - [x] Dimens: add `space_ms` (12dp), radii (`radius_sm/md/sheet`), punch sizes
 - [x] Paper grain: `paper_grain.png` tile + `bg_paper` layer-list as `windowBackground`
-- [ ] `ThemeOverlay.Quapp.Spotlight` and `Theme.Quapp.Called`
+- [x] `ThemeOverlay.Quapp.Spotlight` and `Theme.Quapp.Called`
 - [ ] Punch `EdgeTreatment` (spotlight, nav tab, badge, selected chip) and the dashed tear-line drawable
 - [x] Logo: ticket mark vector, splash on paper, adaptive launcher icon, notification small icon
 - [ ] Queue cards v5 (queuer and owner): status strip, identity, one-line description, footer band; faded paused/closed

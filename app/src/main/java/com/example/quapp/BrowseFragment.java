@@ -7,11 +7,13 @@ import android.text.Editable;
 import android.text.TextWatcher;
 import android.view.LayoutInflater;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
-import androidx.appcompat.app.AppCompatActivity;
+import androidx.annotation.Nullable;
 import androidx.core.content.ContextCompat;
+import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -24,8 +26,12 @@ import com.google.android.material.textfield.TextInputEditText;
 
 import java.util.List;
 
-public class BrowseActivity extends AppCompatActivity
-        implements QueueAdapter.OnQueueClickListener {
+/**
+ * The Browse tab. Same behaviour as the old BrowseActivity; only the lifecycle changed:
+ * views are set up in onViewCreated, and the screen refreshes both in onResume (coming back
+ * from another Activity) and in onHiddenChanged (coming back from another tab).
+ */
+public class BrowseFragment extends Fragment implements QueueAdapter.OnQueueClickListener {
 
     private static final String STATE_CATEGORY = "category";
     private static final String STATE_MUNICIPALITY = "municipality";
@@ -49,58 +55,68 @@ public class BrowseActivity extends AppCompatActivity
     private String selectedMunicipality;
 
     @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_browse);
-        SystemBars.applyPadding(findViewById(R.id.browse_root));
+    public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container,
+                             @Nullable Bundle savedInstanceState) {
+        return inflater.inflate(R.layout.activity_browse, container, false);
+    }
+
+    @Override
+    public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
+        super.onViewCreated(view, savedInstanceState);
 
         if (savedInstanceState != null) {
             selectedCategory = savedInstanceState.getString(STATE_CATEGORY);
             selectedMunicipality = savedInstanceState.getString(STATE_MUNICIPALITY);
         }
 
-        queueList = findViewById(R.id.browse_list);
-        emptyState = findViewById(R.id.browse_empty);
-        queueList.setLayoutManager(new LinearLayoutManager(this));
+        queueList = view.findViewById(R.id.browse_list);
+        emptyState = view.findViewById(R.id.browse_empty);
+        queueList.setLayoutManager(new LinearLayoutManager(requireContext()));
         queueList.setHasFixedSize(true);
 
         queueAdapter = new QueueAdapter(this);
         queueList.setAdapter(queueAdapter);
 
-        findViewById(R.id.browse_profile).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                startActivity(new Intent(BrowseActivity.this, ProfileActivity.class));
-            }
-        });
+        // Profile is a tab now, so the old header button goes (it's removed with the Browse rebuild).
+        view.findViewById(R.id.browse_profile).setVisibility(View.GONE);
 
-        setUpTicketCard();
-        setUpSearch();
-        setUpCategoryChips();
-        setUpLocationChip();
+        setUpTicketCard(view);
+        setUpSearch(view);
+        setUpCategoryChips(view);
+        setUpLocationChip(view);
 
-        MaterialButton clearButton = findViewById(R.id.browse_empty_button);
+        MaterialButton clearButton = view.findViewById(R.id.browse_empty_button);
         clearButton.setOnClickListener(new View.OnClickListener() {
             @Override
-            public void onClick(View view) {
+            public void onClick(View button) {
                 clearFilters();
             }
         });
     }
 
-    /**
-     * onResume, not onCreate: Browse stays underneath while the queuer joins or
-     * finishes a ticket, and these need to be fresh every time it comes back.
-     */
+    /** Coming back from Queue detail, Join or the ticket screen. */
     @Override
-    protected void onResume() {
+    public void onResume() {
         super.onResume();
+        refresh();
+    }
+
+    /** Coming back from another tab. */
+    @Override
+    public void onHiddenChanged(boolean hidden) {
+        super.onHiddenChanged(hidden);
+        if (!hidden) {
+            refresh();
+        }
+    }
+
+    private void refresh() {
         bindTicketCard();
         applyFilters();
     }
 
     @Override
-    protected void onSaveInstanceState(@NonNull Bundle outState) {
+    public void onSaveInstanceState(@NonNull Bundle outState) {
         super.onSaveInstanceState(outState);
         outState.putString(STATE_CATEGORY, selectedCategory);
         outState.putString(STATE_MUNICIPALITY, selectedMunicipality);
@@ -108,16 +124,16 @@ public class BrowseActivity extends AppCompatActivity
 
     // ---- Active ticket card -------------------------------------------------
 
-    private void setUpTicketCard() {
-        ticketCard = findViewById(R.id.browse_ticket_card);
-        ticketTitle = findViewById(R.id.browse_ticket_title);
-        ticketStatus = findViewById(R.id.browse_ticket_status);
-        ticketDot = findViewById(R.id.browse_ticket_dot);
+    private void setUpTicketCard(View view) {
+        ticketCard = view.findViewById(R.id.browse_ticket_card);
+        ticketTitle = view.findViewById(R.id.browse_ticket_title);
+        ticketStatus = view.findViewById(R.id.browse_ticket_status);
+        ticketDot = view.findViewById(R.id.browse_ticket_dot);
 
         ticketCard.setOnClickListener(new View.OnClickListener() {
             @Override
-            public void onClick(View view) {
-                startActivity(new Intent(BrowseActivity.this, ActiveTicketActivity.class));
+            public void onClick(View card) {
+                startActivity(new Intent(requireContext(), ActiveTicketActivity.class));
             }
         });
     }
@@ -156,13 +172,13 @@ public class BrowseActivity extends AppCompatActivity
                 break;
         }
 
-        ticketDot.getBackground().mutate().setTint(ContextCompat.getColor(this, colorRes));
+        ticketDot.getBackground().mutate().setTint(ContextCompat.getColor(requireContext(), colorRes));
     }
 
     // ---- Search and filters -------------------------------------------------
 
-    private void setUpSearch() {
-        searchInput = findViewById(R.id.browse_search_input);
+    private void setUpSearch(View view) {
+        searchInput = view.findViewById(R.id.browse_search_input);
         searchInput.addTextChangedListener(new TextWatcher() {
             @Override
             public void beforeTextChanged(CharSequence text, int start, int count, int after) {
@@ -179,9 +195,9 @@ public class BrowseActivity extends AppCompatActivity
         });
     }
 
-    private void setUpCategoryChips() {
-        categoryGroup = findViewById(R.id.browse_category_group);
-        LayoutInflater inflater = LayoutInflater.from(this);
+    private void setUpCategoryChips(View view) {
+        categoryGroup = view.findViewById(R.id.browse_category_group);
+        LayoutInflater inflater = LayoutInflater.from(requireContext());
 
         allCategoriesChip = addCategoryChip(inflater, getString(R.string.browse_filter_all), null);
         Chip chipToCheck = allCategoriesChip;
@@ -218,13 +234,13 @@ public class BrowseActivity extends AppCompatActivity
         return chip;
     }
 
-    private void setUpLocationChip() {
-        locationChip = findViewById(R.id.browse_location_chip);
+    private void setUpLocationChip(View view) {
+        locationChip = view.findViewById(R.id.browse_location_chip);
         bindLocationChip();
 
         locationChip.setOnClickListener(new View.OnClickListener() {
             @Override
-            public void onClick(View view) {
+            public void onClick(View chip) {
                 // Tapping a filter chip toggles it; the checked state should only
                 // follow the actual selection, so put it back and ask instead.
                 bindLocationChip();
@@ -254,7 +270,7 @@ public class BrowseActivity extends AppCompatActivity
             }
         }
 
-        new MaterialAlertDialogBuilder(this)
+        new MaterialAlertDialogBuilder(requireContext())
                 .setTitle(R.string.browse_location_dialog_title)
                 .setSingleChoiceItems(options, checkedIndex, new DialogInterface.OnClickListener() {
                     @Override
@@ -290,7 +306,7 @@ public class BrowseActivity extends AppCompatActivity
 
     @Override
     public void onQueueClick(Queue queue) {
-        Intent intent = new Intent(this, QueueDetailActivity.class);
+        Intent intent = new Intent(requireContext(), QueueDetailActivity.class);
         intent.putExtra(QueueDetailActivity.EXTRA_QUEUE_ID, queue.getId());
         startActivity(intent);
     }

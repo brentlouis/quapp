@@ -1,6 +1,5 @@
 package com.example.quapp;
 
-import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
 
@@ -30,11 +29,10 @@ public class HistoryActivity extends AppCompatActivity {
         findViewById(R.id.history_empty_button).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                // Browse is already further down the stack. CLEAR_TOP returns to that
-                // instance (closing Profile and History) instead of stacking a new one.
-                Intent intent = new Intent(HistoryActivity.this, BrowseActivity.class);
-                intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
-                startActivity(intent);
+                // The queuer home is already further down the stack. intent() uses CLEAR_TOP to
+                // return to that instance (closing History) and switch it to the Browse tab.
+                startActivity(QueuerHomeActivity.intent(HistoryActivity.this,
+                        QueuerHomeActivity.TAB_BROWSE));
             }
         });
 

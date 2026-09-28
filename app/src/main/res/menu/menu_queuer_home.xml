@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Queuer tabs (DECISIONS.md "Bottom navigation, landing states and first visit"). -->
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <item
+        android:id="@+id/nav_browse"
+        android:icon="@drawable/ic_nav_browse"
+        android:title="@string/nav_browse" />
+    <item
+        android:id="@+id/nav_tickets"
+        android:icon="@drawable/ic_nav_tickets"
+        android:title="@string/nav_my_tickets" />
+    <item
+        android:id="@+id/nav_profile"
+        android:icon="@drawable/ic_nav_profile"
+        android:title="@string/nav_profile" />
+</menu>

@@ -3,6 +3,36 @@
     <string name="splash_tagline">Queue from anywhere</string>
     <string name="splash_loading">Loading</string>
 
+    <!-- Bottom navigation -->
+    <string name="nav_browse">Browse</string>
+    <string name="nav_my_tickets">My tickets</string>
+    <string name="nav_profile">Profile</string>
+    <string name="nav_ticket_badge">#%d</string>
+
+    <!-- My tickets tab -->
+    <string name="my_tickets_title">My tickets</string>
+    <plurals name="my_tickets_count">
+        <item quantity="one">%d ticket</item>
+        <item quantity="other">%d tickets</item>
+    </plurals>
+    <string name="my_tickets_section_in_line">In line now</string>
+    <string name="my_tickets_section_needs_you">Needs you now</string>
+    <string name="my_tickets_section_done">Just finished</string>
+    <string name="my_tickets_your_number">Your number</string>
+    <string name="my_tickets_number">#%d</string>
+    <string name="my_tickets_label_in_line">In line</string>
+    <string name="my_tickets_label_called">Called</string>
+    <string name="my_tickets_ahead">ahead of you</string>
+    <string name="my_tickets_called">You\'re being called</string>
+    <string name="my_tickets_called_hint">Open your ticket and tap I\'m here</string>
+    <string name="my_tickets_served">Served</string>
+    <string name="my_tickets_no_show">Slot released</string>
+    <string name="my_tickets_wait">About %d min</string>
+    <string name="my_tickets_open_description">Open your ticket for %1$s, number %2$d</string>
+    <string name="my_tickets_empty_title">No tickets yet</string>
+    <string name="my_tickets_empty_body">When you join a queue, your ticket shows up here.</string>
+    <string name="my_tickets_empty_action">Browse queues</string>
+
     <string name="login_heading">Welcome back</string>
     <string name="login_subheading">Log in to join or manage queues.</string>
     <string name="login_phone_hint">Phone number</string>

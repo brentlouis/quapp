@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Component styles for Civic Paper (DESIGN.md section 9). -->
+<resources>
+
+    <!-- Bottom nav: raised paper, ink when selected. The tear line above it is a TearLineView
+         in the layout; the notched active tab is set in code (TicketShapes.selection). -->
+    <style name="Widget.Quapp.BottomNavigation" parent="Widget.Material3.BottomNavigationView">
+        <item name="android:background">?attr/colorSurfaceContainer</item>
+        <item name="elevation">0dp</item>
+        <item name="itemIconSize">22dp</item>
+        <item name="itemIconTint">@color/nav_item</item>
+        <item name="itemTextColor">@color/nav_item</item>
+        <item name="itemTextAppearanceActive">@style/TextAppearance.Quapp.NavLabel.Active</item>
+        <item name="itemTextAppearanceInactive">@style/TextAppearance.Quapp.NavLabel</item>
+        <item name="itemActiveIndicatorStyle">@style/Widget.Quapp.BottomNavigation.Indicator</item>
+        <item name="labelVisibilityMode">labeled</item>
+    </style>
+
+    <!-- The active tab: a 64 x 32 paper_sunk ticket -->
+    <style name="Widget.Quapp.BottomNavigation.Indicator" parent="Widget.Material3.BottomNavigationView.ActiveIndicator">
+        <item name="android:color">?attr/colorSecondaryContainer</item>
+        <item name="android:width">64dp</item>
+        <item name="android:height">32dp</item>
+    </style>
+
+    <style name="TextAppearance.Quapp.NavLabel" parent="TextAppearance.Quapp.LabelMedium" />
+
+    <style name="TextAppearance.Quapp.NavLabel.Active">
+        <item name="fontFamily">@font/ibm_plex_sans_bold</item>
+        <item name="android:fontFamily">@font/ibm_plex_sans_bold</item>
+    </style>
+</resources>

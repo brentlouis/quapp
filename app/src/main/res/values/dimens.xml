@@ -12,6 +12,7 @@
     <dimen name="radius_sm">6dp</dimen>       <!-- fields, notes, snackbar, tiles -->
     <dimen name="radius_md">10dp</dimen>      <!-- cards, buttons, dialogs, the spotlight -->
     <dimen name="radius_sheet">16dp</dimen>   <!-- top corners of bottom sheets -->
+    <dimen name="radius_selection">8dp</dimen> <!-- the punched nav tab and selected chip -->
 
     <!-- Ticket details (DESIGN.md section 5) -->
     <dimen name="punch_radius">9dp</dimen>        <!-- holes in the spotlight's sides -->
@@ -20,6 +21,7 @@
     <dimen name="tear_line_width">1.5dp</dimen>
     <dimen name="tear_line_dash">4dp</dimen>
     <dimen name="hairline">1dp</dimen>
+    <dimen name="my_tickets_stub_width">104dp</dimen> <!-- where the tear line and punches sit on a compact ticket -->
 
     <dimen name="touch_target_min">48dp</dimen>
     <dimen name="icon_size">24dp</dimen>

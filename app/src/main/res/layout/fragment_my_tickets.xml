@@ -1,0 +1,205 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- My tickets tab (canvas 12b, one ticket for now). The ticket is the screen's spotlight:
+     an espresso stub-and-body ticket, holes top and bottom at the tear line. Its shape is set in
+     MyTicketsFragment because the bottom punch needs the view's width. -->
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:paddingStart="@dimen/space_md"
+    android:paddingEnd="@dimen/space_md">
+
+    <TextView
+        android:id="@+id/my_tickets_title"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/space_md"
+        android:text="@string/my_tickets_title"
+        android:textAppearance="?attr/textAppearanceTitleMedium"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <TextView
+        android:id="@+id/my_tickets_count"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:textAppearance="?attr/textAppearanceBodySmall"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/my_tickets_title"
+        tools:text="1 ticket" />
+
+    <!-- ===== With a ticket ===== -->
+
+    <TextView
+        android:id="@+id/my_tickets_section"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/space_lg"
+        android:textAppearance="?attr/textAppearanceLabelSmall"
+        android:textColor="?attr/colorOnSurfaceVariant"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/my_tickets_count"
+        tools:text="@string/my_tickets_section_in_line" />
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/my_tickets_ticket"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/space_sm"
+        android:clickable="true"
+        android:focusable="true"
+        android:foreground="?attr/selectableItemBackground"
+        android:minHeight="136dp"
+        android:theme="@style/ThemeOverlay.Quapp.Spotlight"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/my_tickets_section">
+
+        <!-- Stub: your number -->
+        <TextView
+            android:id="@+id/my_tickets_stub_label"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="18dp"
+            android:layout_marginTop="@dimen/space_md"
+            android:text="@string/my_tickets_your_number"
+            android:textAppearance="?attr/textAppearanceLabelSmall"
+            android:textColor="?attr/colorOnSurfaceVariant"
+            app:layout_constraintEnd_toStartOf="@id/my_tickets_tear"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <TextView
+            android:id="@+id/my_tickets_number"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="18dp"
+            android:layout_marginBottom="@dimen/space_md"
+            android:textAppearance="?attr/textAppearanceTicketNumber"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            tools:text="#43" />
+
+        <!-- The tear line between stub and body; the punches sit at its ends -->
+        <com.example.quapp.TearLineView
+            android:id="@+id/my_tickets_tear"
+            android:layout_width="2dp"
+            android:layout_height="0dp"
+            android:layout_marginStart="@dimen/my_tickets_stub_width"
+            android:layout_marginTop="@dimen/space_ms"
+            android:layout_marginBottom="@dimen/space_ms"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:tearOrientation="vertical" />
+
+        <!-- Body: where you stand -->
+        <TextView
+            android:id="@+id/my_tickets_label"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="18dp"
+            android:layout_marginTop="@dimen/space_md"
+            android:layout_marginEnd="@dimen/space_md"
+            android:textAppearance="?attr/textAppearanceLabelSmall"
+            android:textColor="?attr/colorOnSurfaceVariant"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toEndOf="@id/my_tickets_tear"
+            app:layout_constraintTop_toTopOf="parent"
+            tools:text="@string/my_tickets_label_in_line" />
+
+        <TextView
+            android:id="@+id/my_tickets_headline"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="18dp"
+            android:layout_marginTop="@dimen/space_xs"
+            android:textAppearance="?attr/textAppearanceStat"
+            app:layout_constraintStart_toEndOf="@id/my_tickets_tear"
+            app:layout_constraintTop_toBottomOf="@id/my_tickets_label"
+            tools:text="41" />
+
+        <TextView
+            android:id="@+id/my_tickets_headline_suffix"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="@dimen/space_sm"
+            android:layout_marginEnd="@dimen/space_md"
+            android:textAppearance="?attr/textAppearanceBodySmall"
+            app:layout_constraintBaseline_toBaselineOf="@id/my_tickets_headline"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toEndOf="@id/my_tickets_headline"
+            tools:text="@string/my_tickets_ahead" />
+
+        <TextView
+            android:id="@+id/my_tickets_queue"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="18dp"
+            android:layout_marginTop="@dimen/space_sm"
+            android:layout_marginEnd="@dimen/space_md"
+            android:textAppearance="?attr/textAppearanceBodySmall"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toEndOf="@id/my_tickets_tear"
+            app:layout_constraintTop_toBottomOf="@id/my_tickets_headline"
+            tools:text="Barangay Relief Distribution · Brgy. Poblacion Hall" />
+
+        <TextView
+            android:id="@+id/my_tickets_detail"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="18dp"
+            android:layout_marginTop="@dimen/space_xs"
+            android:layout_marginEnd="@dimen/space_md"
+            android:layout_marginBottom="@dimen/space_md"
+            android:textAppearance="?attr/textAppearanceLabelMedium"
+            android:textColor="?attr/colorOnSurface"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toEndOf="@id/my_tickets_tear"
+            app:layout_constraintTop_toBottomOf="@id/my_tickets_queue"
+            app:layout_constraintVertical_bias="0"
+            tools:text="About 55 min" />
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+    <!-- ===== No ticket ===== -->
+
+    <LinearLayout
+        android:id="@+id/my_tickets_empty"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/space_xl"
+        android:orientation="vertical"
+        android:visibility="gone"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/my_tickets_count">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/my_tickets_empty_title"
+            android:textAppearance="?attr/textAppearanceTitleLarge" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/space_sm"
+            android:text="@string/my_tickets_empty_body"
+            android:textAppearance="?attr/textAppearanceBodyLarge"
+            android:textColor="?attr/colorOnSurfaceVariant" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/my_tickets_empty_button"
+            style="@style/Widget.Material3.Button.TonalButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/space_md"
+            android:text="@string/my_tickets_empty_action" />
+    </LinearLayout>
+
+</androidx.constraintlayout.widget.ConstraintLayout>
