@@ -101,10 +101,15 @@
     <string name="detail_waiting_label">In queue</string>
     <string name="detail_eta_label">Est. wait</string>
     <string name="detail_eta_value_format">%d min</string>
-    <string name="detail_hours_label">Service hours</string>
-    <string name="detail_about_label">About this queue</string>
     <string name="detail_verification_label">How this queue works</string>
-    <string name="detail_verification_otp">You\'ll confirm a code sent by SMS.</string>
+    <string name="detail_rule_on">On</string>
+    <string name="detail_rule_planned">Planned</string>
+    <string name="detail_verification_otp_planned">Not available yet.</string>
+    <string name="detail_you_will_be">You\'ll be</string>
+    <string name="detail_hours_slip_label">Hours</string>
+    <string name="detail_status_open">Open</string>
+    <string name="detail_status_paused">Paused</string>
+    <string name="detail_status_closed">Closed</string>
     <string name="detail_verification_grace">Confirm within 3 minutes when called, or you lose your slot.</string>
     <string name="detail_verification_penalty">Repeated no-shows lead to a temporary cooldown.</string>
     <string name="detail_verification_proximity">You must be near the venue to join.</string>
@@ -121,18 +126,18 @@
 
     <!-- Join -->
     <string name="join_title">Join queue</string>
-    <string name="join_name_hint">Your name</string>
-    <string name="join_phone_hint">Phone number</string>
-    <string name="join_requirements_label">This queue requires</string>
     <string name="requirement_otp_title">SMS confirmation</string>
-    <string name="join_otp_body">A 6-digit code will be sent to your number. Confirm it within 5 minutes.</string>
     <string name="requirement_grace_title">Presence confirmation</string>
-    <string name="join_grace_body">When called, tap \"I\'m here\" within 3 minutes or your slot is released.</string>
     <string name="requirement_penalty_title">No-show cooldown</string>
-    <string name="join_penalty_body">Missing your slot repeatedly blocks you from joining queues for a period.</string>
     <string name="requirement_proximity_title">Location check</string>
-    <string name="join_proximity_body">You must be within 2 km of the venue to join this queue.</string>
-    <string name="join_position_format">You\'ll be #%d in line</string>
+    <string name="join_number_label">Your number will be</string>
+    <string name="join_ahead_format">%1$d ahead of you · about %2$d min</string>
+    <string name="join_ahead_next_format">You\'re next · about %d min</string>
+    <string name="join_as_label">Joining as</string>
+    <string name="join_edit_action">Edit</string>
+    <string name="join_grace_note">When you\'re called, you\'ll have 3 minutes to tap \"I\'m here.\" Keep notifications on.</string>
+    <string name="join_name_label">Your name</string>
+    <string name="join_phone_label">Phone number</string>
     <string name="join_action">Confirm and join</string>
     <string name="join_back_description">Back</string>
     <string name="join_name_error">Enter your name</string>
@@ -159,8 +164,15 @@
     <string name="called_timer_hint">left to confirm. If you don\'t confirm, your slot goes to the next person.</string>
     <string name="ticket_status_served">Served</string>
     <string name="ticket_status_expired">Slot released</string>
-    <string name="ticket_served_instruction">Thanks for using Quapp.</string>
-    <string name="ticket_expired_instruction">You didn\'t confirm in time. Join again if the queue is still open.</string>
+    <string name="ticket_served_instruction">Thanks for using Quapp. You can join another queue anytime.</string>
+    <string name="ticket_outcome_number_label">Your number</string>
+    <string name="ticket_outcome_status_label">Status</string>
+    <string name="ticket_outcome_no_shows_label">No-shows</string>
+    <string name="ticket_outcome_no_shows_format">%1$d of %2$d</string>
+    <string name="ticket_join_again_action">Join again</string>
+    <string name="ticket_outcome_subtitle_format">%1$s · %2$s</string>
+    <string name="ticket_expired_instruction">The 3-minute window passed, so your place went to the next person.</string>
+    <string name="ticket_expired_note">Join again if the queue is still open.</string>
     <string name="ticket_here_action">I\'m here</string>
     <string name="ticket_leave_action">Leave queue</string>
     <string name="ticket_done_action">Done</string>
@@ -169,10 +181,10 @@
     <string name="ticket_next_label">You\'re next</string>
     <string name="ticket_eta_format">About %d min</string>
     <string name="ticket_served_headline">You\'re all set</string>
-    <string name="ticket_expired_headline">Your slot was released</string>
+    <string name="ticket_expired_headline">You didn\'t confirm in time</string>
     <string name="ticket_back_description">Back</string>
-    <string name="ticket_expired_warning_instruction">You didn\'t confirm in time. One more no-show starts a %d-minute cooldown on queues like this.</string>
-    <string name="ticket_expired_cooldown_instruction">You didn\'t confirm in time. Queues with a no-show cooldown are blocked for the next %d min.</string>
+    <string name="ticket_expired_warning_instruction">One more no-show starts a %d-minute cooldown on queues like this.</string>
+    <string name="ticket_expired_cooldown_instruction">Queues with a no-show cooldown are blocked for you for the next %d min.</string>
 
     <!-- Owner dashboard -->
     <string name="dashboard_title">Your queues</string>

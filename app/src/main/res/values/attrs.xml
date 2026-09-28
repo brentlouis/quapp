@@ -9,6 +9,8 @@
     <attr name="textAppearanceFieldLabel" format="reference" />
     <attr name="textAppearanceStatSmall" format="reference" />
     <attr name="textAppearanceStatDisplay" format="reference" />
+    <attr name="textAppearanceTicketNumberLarge" format="reference" />
+    <attr name="textAppearanceTicketNumberSmall" format="reference" />
 
     <!-- TearLineView: the dashed crema line -->
     <declare-styleable name="TearLineView">

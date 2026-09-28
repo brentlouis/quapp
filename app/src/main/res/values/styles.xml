@@ -188,4 +188,22 @@
     <style name="Widget.Quapp.Snackbar.Action" parent="Widget.Material3.Button.TextButton.Snackbar">
         <item name="android:textColor">@color/crema</item>
     </style>
+    <!-- Rubber stamp: tilted -6 degrees from its left edge. The colour and the double-rule
+         outline are set in code (TicketShapes.stampBackground). -->
+    <style name="Widget.Quapp.Stamp" parent="">
+        <item name="android:paddingStart">@dimen/space_ms</item>
+        <item name="android:paddingEnd">@dimen/space_ms</item>
+        <item name="android:paddingTop">@dimen/space_sm</item>
+        <item name="android:paddingBottom">@dimen/space_sm</item>
+        <item name="android:textAppearance">@style/TextAppearance.Quapp.Stamp</item>
+        <item name="android:rotation">-6</item>
+        <item name="android:transformPivotX">0dp</item>
+        <item name="android:maxLines">1</item>
+    </style>
+
+    <!-- Tear-off stub dock: raised paper with notched top corners, where you're handed a number.
+         The background is set in code (TicketShapes.stubDockBackground). -->
+    <style name="Widget.Quapp.Dock.Stub">
+        <item name="android:paddingTop">@dimen/space_md</item>
+    </style>
 </resources>

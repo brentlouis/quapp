@@ -19,6 +19,13 @@
     <dimen name="punch_radius_small">5dp</dimen>  <!-- active nav tab, selected chip -->
     <dimen name="punch_radius_badge">2.5dp</dimen>
     <dimen name="tear_line_width">1.5dp</dimen>
+    <dimen name="stub_dock_notch">10dp</dimen>   <!-- the tear-off stub dock's top corners -->
+    <dimen name="stamp_radius">6dp</dimen>
+    <dimen name="stamp_inner_radius">4dp</dimen>
+    <dimen name="stamp_gap">3dp</dimen>
+    <dimen name="stamp_rule">2dp</dimen>
+    <dimen name="outcome_tile_size">56dp</dimen>
+    <dimen name="outcome_icon_size">28dp</dimen>
     <dimen name="tear_line_dash">4dp</dimen>
     <dimen name="hairline">1dp</dimen>
     <dimen name="dot_leader_gap">3dp</dimen>     <!-- dot spacing in a receipt slip leader -->

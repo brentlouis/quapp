@@ -1,10 +1,9 @@
 package com.example.quapp;
 
-import android.content.ActivityNotFoundException;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.res.ColorStateList;
-import android.net.Uri;
+import android.graphics.Paint;
 import android.os.Bundle;
 import android.text.format.DateFormat;
 import android.view.View;
@@ -17,7 +16,6 @@ import androidx.core.view.ViewCompat;
 
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.google.android.material.shape.ShapeAppearanceModel;
-import com.google.android.material.snackbar.Snackbar;
 
 import java.util.Date;
 import java.util.Locale;
@@ -38,6 +36,8 @@ public class ActiveTicketActivity extends AppCompatActivity {
     private View outcome;
     private View leaveButton;
     private View doneButton;
+    private View doneOutlinedButton;
+    private View joinAgainButton;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -51,6 +51,8 @@ public class ActiveTicketActivity extends AppCompatActivity {
         outcome = findViewById(R.id.ticket_outcome);
         leaveButton = findViewById(R.id.ticket_leave_button);
         doneButton = findViewById(R.id.ticket_done_button);
+        doneOutlinedButton = findViewById(R.id.ticket_done_outlined_button);
+        joinAgainButton = findViewById(R.id.ticket_join_again_button);
 
         findViewById(R.id.ticket_back).setOnClickListener(new View.OnClickListener() {
             @Override
@@ -66,11 +68,40 @@ public class ActiveTicketActivity extends AppCompatActivity {
             }
         });
 
-        doneButton.setOnClickListener(new View.OnClickListener() {
+        View.OnClickListener done = new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 ActiveTicketStore.finishTicket();
                 finish();
+            }
+        };
+        doneButton.setOnClickListener(done);
+        doneOutlinedButton.setOnClickListener(done);
+
+        // Slot released: file the ticket, then open the same queue so you can join again.
+        joinAgainButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Ticket ticket = ActiveTicketStore.getTicket();
+                ActiveTicketStore.finishTicket();
+                if (ticket != null) {
+                    Intent intent = new Intent(ActiveTicketActivity.this, QueueDetailActivity.class);
+                    intent.putExtra(QueueDetailActivity.EXTRA_QUEUE_ID, ticket.getQueueId());
+                    startActivity(intent);
+                }
+                finish();
+            }
+        });
+
+        // The kept ticket's punches sit halfway across, so its shape also needs the width.
+        findViewById(R.id.ticket_kept).addOnLayoutChangeListener(new View.OnLayoutChangeListener() {
+            @Override
+            public void onLayoutChange(View v, int left, int top, int right, int bottom,
+                                       int oldLeft, int oldTop, int oldRight, int oldBottom) {
+                if (right - left != oldRight - oldLeft) {
+                    v.setBackground(TicketShapes.keptTicketBackground(
+                            ActiveTicketActivity.this, right - left));
+                }
             }
         });
 
@@ -128,13 +159,10 @@ public class ActiveTicketActivity extends AppCompatActivity {
                 openCalled();
                 break;
             case SERVED:
-                renderOutcome(R.string.ticket_status_served, R.color.ok, R.color.ok_soft,
-                        getString(R.string.ticket_served_headline),
-                        getString(R.string.ticket_served_instruction));
+                renderServed(ticket);
                 break;
             case NO_SHOW:
-                renderOutcome(R.string.ticket_status_expired, R.color.err, R.color.err_soft,
-                        getString(R.string.ticket_expired_headline), expiredInstruction());
+                renderReleased(ticket);
                 break;
         }
     }
@@ -207,23 +235,9 @@ public class ActiveTicketActivity extends AppCompatActivity {
         ((TextView) findViewById(R.id.ticket_arrival_venue)).setText(ticket.getVenue());
     }
 
-    /**
-     * Opens the venue in whatever maps app is installed: a geo: link with the venue's
-     * coordinates and its name as the label. No Maps SDK needed.
-     */
     private void openDirections() {
         Ticket ticket = ActiveTicketStore.getTicket();
-        Queue queue = ticket == null ? null : FakeData.queueById(ticket.getQueueId());
-        if (queue == null) {
-            return;
-        }
-        Uri uri = Uri.parse(String.format(Locale.US, "geo:0,0?q=%f,%f(%s)",
-                queue.getLatitude(), queue.getLongitude(), Uri.encode(queue.getVenue())));
-        try {
-            startActivity(new Intent(Intent.ACTION_VIEW, uri));
-        } catch (ActivityNotFoundException e) {
-            Snackbar.make(ticketCard, R.string.ticket_no_maps_app, Snackbar.LENGTH_SHORT).show();
-        }
+        Directions.open(this, ticket == null ? null : FakeData.queueById(ticket.getQueueId()));
     }
 
     /** Leaving gives up the number for good, so it asks first (canvas 26). */
@@ -250,21 +264,68 @@ public class ActiveTicketActivity extends AppCompatActivity {
 
     // ---- Served / slot released ---------------------------------------------
 
-    private void renderOutcome(int pillText, @ColorRes int pillColor, @ColorRes int pillGround,
-                               String headline, String body) {
-        setPill(pillText, pillColor, pillGround);
-        showWaiting(false);
-        ((TextView) findViewById(R.id.ticket_outcome_headline)).setText(headline);
-        ((TextView) findViewById(R.id.ticket_outcome_body)).setText(body);
+    /** Served (canvas 22): a check, then the kept ticket stamped SERVED. */
+    private void renderServed(Ticket ticket) {
+        showOutcome(ticket, R.string.ticket_status_served);
+        findViewById(R.id.ticket_outcome_tile).setVisibility(View.VISIBLE);
+        setText(R.id.ticket_outcome_headline, getString(R.string.ticket_served_headline));
+        setText(R.id.ticket_outcome_body, getString(R.string.ticket_served_instruction));
+
+        TextView number = keptNumber(ticket, false);
+        number.setTextColor(ContextCompat.getColor(this, R.color.ink));
+        setText(R.id.ticket_kept_right_label, getString(R.string.ticket_outcome_status_label));
+        stamp(R.id.ticket_kept_stamp_right, R.string.ticket_status_served, R.color.ok);
+        findViewById(R.id.ticket_kept_stamp_left).setVisibility(View.GONE);
+        findViewById(R.id.ticket_kept_no_shows).setVisibility(View.GONE);
+        findViewById(R.id.ticket_outcome_note).setVisibility(View.GONE);
+
+        doneButton.setVisibility(View.VISIBLE);
     }
 
-    /** The expired message depends on whether this no-show counted toward a cooldown. */
-    private String expiredInstruction() {
-        Ticket ticket = ActiveTicketStore.getTicket();
-        Queue queue = ticket == null ? null : FakeData.queueById(ticket.getQueueId());
+    /**
+     * Slot released (canvas 23): your number struck through and stamped. When the queue counts
+     * no-shows, the other half shows how close you are to a cooldown; otherwise it carries the
+     * stamp.
+     */
+    private void renderReleased(Ticket ticket) {
+        showOutcome(ticket, R.string.ticket_status_expired);
+        findViewById(R.id.ticket_outcome_tile).setVisibility(View.GONE);
+        setText(R.id.ticket_outcome_headline, getString(R.string.ticket_expired_headline));
+        setText(R.id.ticket_outcome_body, getString(R.string.ticket_expired_instruction));
 
-        if (queue == null || !queue.isNoShowPenaltyEnabled()) {
-            return getString(R.string.ticket_expired_instruction);
+        keptNumber(ticket, true).setTextColor(ContextCompat.getColor(this, R.color.ink_faint));
+
+        Queue queue = FakeData.queueById(ticket.getQueueId());
+        boolean counts = queue != null && queue.isNoShowPenaltyEnabled();
+        TextView noShows = findViewById(R.id.ticket_kept_no_shows);
+        if (counts) {
+            stamp(R.id.ticket_kept_stamp_left, R.string.ticket_status_expired, R.color.err);
+            findViewById(R.id.ticket_kept_stamp_right).setVisibility(View.GONE);
+            setText(R.id.ticket_kept_right_label, getString(R.string.ticket_outcome_no_shows_label));
+            // During a cooldown the count has already hit the limit.
+            int count = Cooldown.isActive() ? Cooldown.NO_SHOW_LIMIT
+                    : Cooldown.NO_SHOW_LIMIT - Cooldown.noShowsUntilCooldown();
+            noShows.setText(getString(R.string.ticket_outcome_no_shows_format,
+                    count, Cooldown.NO_SHOW_LIMIT));
+            noShows.setVisibility(View.VISIBLE);
+        } else {
+            findViewById(R.id.ticket_kept_stamp_left).setVisibility(View.GONE);
+            setText(R.id.ticket_kept_right_label, getString(R.string.ticket_outcome_status_label));
+            stamp(R.id.ticket_kept_stamp_right, R.string.ticket_status_expired, R.color.err);
+            noShows.setVisibility(View.GONE);
+        }
+
+        findViewById(R.id.ticket_outcome_note).setVisibility(View.VISIBLE);
+        setText(R.id.ticket_outcome_note_text, expiredNote(counts));
+
+        doneOutlinedButton.setVisibility(View.VISIBLE);
+        joinAgainButton.setVisibility(View.VISIBLE);
+    }
+
+    /** What the no-show means for you next time. */
+    private String expiredNote(boolean countsTowardCooldown) {
+        if (!countsTowardCooldown) {
+            return getString(R.string.ticket_expired_note);
         }
         if (Cooldown.isActive()) {
             return getString(R.string.ticket_expired_cooldown_instruction,
@@ -273,14 +334,51 @@ public class ActiveTicketActivity extends AppCompatActivity {
         return getString(R.string.ticket_expired_warning_instruction, Cooldown.DURATION_MINUTES);
     }
 
+    /** The outcome's app bar reads "Served" over "Queue · venue"; no pill, the stamp says it. */
+    private void showOutcome(Ticket ticket, int title) {
+        showWaiting(false);
+        statusPill.setVisibility(View.GONE);
+        setText(R.id.ticket_queue_name, getString(title));
+        setText(R.id.ticket_venue, getString(R.string.ticket_outcome_subtitle_format,
+                ticket.getQueueName(), ticket.getVenue()));
+    }
+
+    private TextView keptNumber(Ticket ticket, boolean struck) {
+        TextView number = findViewById(R.id.ticket_kept_number);
+        number.setText(getString(R.string.ticket_number_format, ticket.getTicketNumber()));
+        // Paint flags are bits; | turns strike-through on, & ~ turns it off.
+        int flags = number.getPaintFlags();
+        number.setPaintFlags(struck ? flags | Paint.STRIKE_THRU_TEXT_FLAG
+                : flags & ~Paint.STRIKE_THRU_TEXT_FLAG);
+        return number;
+    }
+
+    /** A rubber stamp: its text and double rule both take the status colour. */
+    private void stamp(int viewId, int text, @ColorRes int color) {
+        TextView stamp = findViewById(viewId);
+        int c = ContextCompat.getColor(this, color);
+        stamp.setVisibility(View.VISIBLE);
+        stamp.setText(text);
+        stamp.setTextColor(c);
+        stamp.setBackground(TicketShapes.stampBackground(this, c));
+    }
+
+    private void setText(int viewId, CharSequence text) {
+        ((TextView) findViewById(viewId)).setText(text);
+    }
+
     // ---- Shared -------------------------------------------------------------
 
+    /** Switches between the waiting ticket and an outcome; each outcome then shows its buttons. */
     private void showWaiting(boolean waiting) {
         ticketCard.setVisibility(waiting ? View.VISIBLE : View.GONE);
         ticketRows.setVisibility(waiting ? View.VISIBLE : View.GONE);
         leaveButton.setVisibility(waiting ? View.VISIBLE : View.GONE);
+        statusPill.setVisibility(waiting ? View.VISIBLE : View.GONE);
         outcome.setVisibility(waiting ? View.GONE : View.VISIBLE);
-        doneButton.setVisibility(waiting ? View.GONE : View.VISIBLE);
+        doneButton.setVisibility(View.GONE);
+        doneOutlinedButton.setVisibility(View.GONE);
+        joinAgainButton.setVisibility(View.GONE);
     }
 
     private void setPill(int text, @ColorRes int color, @ColorRes int ground) {

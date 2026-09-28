@@ -17,7 +17,6 @@ import androidx.fragment.app.Fragment;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 
 import java.util.List;
-import java.util.Locale;
 
 /** Profile. The last tab on both homes; the rows adapt to the current role. */
 public class ProfileFragment extends Fragment {
@@ -66,8 +65,8 @@ public class ProfileFragment extends Fragment {
         String name = session.getName() == null
                 ? getString(R.string.profile_name_fallback) : session.getName();
         ((TextView) view.findViewById(R.id.profile_name)).setText(name);
-        ((TextView) view.findViewById(R.id.profile_initials)).setText(initials(name));
-        ((TextView) view.findViewById(R.id.profile_phone)).setText(spacedPhone(session.getPhone()));
+        ((TextView) view.findViewById(R.id.profile_initials)).setText(Format.initials(name));
+        ((TextView) view.findViewById(R.id.profile_phone)).setText(Format.spacedPhone(session.getPhone()));
     }
 
     /**
@@ -136,25 +135,6 @@ public class ProfileFragment extends Fragment {
                 confirmLogout();
             }
         });
-    }
-
-    /** "Maria Santos" → "MS"; one word gives one letter. */
-    private static String initials(String name) {
-        String[] words = name.trim().split("\\s+");
-        StringBuilder result = new StringBuilder();
-        result.append(words[0].charAt(0));
-        if (words.length > 1) {
-            result.append(words[words.length - 1].charAt(0));
-        }
-        return result.toString().toUpperCase(Locale.ROOT);
-    }
-
-    /** "09171234567" → "0917 123 4567", the way people read a PH mobile number aloud. */
-    private static String spacedPhone(String phone) {
-        if (phone.length() != 11) {
-            return phone;
-        }
-        return phone.substring(0, 4) + " " + phone.substring(4, 7) + " " + phone.substring(7);
     }
 
     /** Warns specifically when logging out would also throw away a place in line. */

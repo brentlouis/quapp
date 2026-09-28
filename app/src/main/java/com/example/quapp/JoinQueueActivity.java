@@ -3,20 +3,26 @@ package com.example.quapp;
 import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
-import android.widget.ImageButton;
-import android.widget.ImageView;
 import android.widget.TextView;
 
 import androidx.appcompat.app.AppCompatActivity;
 
-import com.google.android.material.button.MaterialButton;
 import com.google.android.material.textfield.TextInputEditText;
 
+/**
+ * Join confirm (canvas 07). Shows the number you'll be handed and who you're joining as.
+ * The account's name and phone go on the ticket unless you tap Edit; an account that never
+ * registered a name goes straight to the fields.
+ */
 public class JoinQueueActivity extends AppCompatActivity {
 
     public static final String EXTRA_QUEUE_ID = "com.example.quapp.EXTRA_JOIN_QUEUE_ID";
 
+    private static final String STATE_EDITING = "editing";
+
     private Queue queue;
+    private View identityCard;
+    private View fields;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -32,23 +38,28 @@ public class JoinQueueActivity extends AppCompatActivity {
             return;
         }
 
+        identityCard = findViewById(R.id.join_identity);
+        fields = findViewById(R.id.join_fields);
+        findViewById(R.id.join_dock).setBackground(TicketShapes.stubDockBackground(this));
+
         bindQueue();
-        bindRequirements();
+        bindIdentity(savedInstanceState != null && savedInstanceState.getBoolean(STATE_EDITING));
 
-        if (savedInstanceState == null) {
-            prefillFromSession();
-        }
-
-        ImageButton backButton = findViewById(R.id.join_back);
-        backButton.setOnClickListener(new View.OnClickListener() {
+        findViewById(R.id.join_back).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 finish();
             }
         });
 
-        MaterialButton submitButton = findViewById(R.id.join_submit_button);
-        submitButton.setOnClickListener(new View.OnClickListener() {
+        findViewById(R.id.join_edit_button).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                showFields();
+            }
+        });
+
+        findViewById(R.id.join_submit_button).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 submitJoin();
@@ -56,70 +67,55 @@ public class JoinQueueActivity extends AppCompatActivity {
         });
     }
 
+    /** Remember Edit across rotation; the fields keep their own text. */
+    @Override
+    protected void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+        outState.putBoolean(STATE_EDITING, fields.getVisibility() == View.VISIBLE);
+    }
+
     private void bindQueue() {
-        TextView queueName = findViewById(R.id.join_queue_name);
-        TextView positionPreview = findViewById(R.id.join_position_preview);
+        ((TextView) findViewById(R.id.join_queue_name)).setText(queue.getName());
 
-        queueName.setText(getString(R.string.browse_venue_format,
-                queue.getName(), queue.getMunicipality()));
+        // Joining puts you at the back: everyone waiting now is ahead of you.
+        int ahead = queue.getPeopleWaiting();
+        ((TextView) findViewById(R.id.join_number)).setText(
+                getString(R.string.ticket_number_format, ahead + 1));
+        ((TextView) findViewById(R.id.join_ahead)).setText(ahead > 0
+                ? getString(R.string.join_ahead_format, ahead, queue.getEstimatedWaitMinutes())
+                : getString(R.string.join_ahead_next_format, queue.getEstimatedWaitMinutes()));
 
-        positionPreview.setText(getString(R.string.join_position_format,
-                queue.getPeopleWaiting() + 1));
+        findViewById(R.id.join_grace_note).setVisibility(
+                queue.isGracePeriodEnabled() ? View.VISIBLE : View.GONE);
     }
 
-    private void bindRequirements() {
-        View section = findViewById(R.id.join_requirements_section);
-
-        if (!queue.hasAnyVerification()) {
-            section.setVisibility(View.GONE);
-            return;
-        }
-
-        section.setVisibility(View.VISIBLE);
-
-        bindRequirement(R.id.join_requirement_otp, queue.isSmsOtpEnabled(), R.drawable.ic_sms,
-                R.string.requirement_otp_title, R.string.join_otp_body);
-
-        bindRequirement(R.id.join_requirement_grace, queue.isGracePeriodEnabled(), R.drawable.ic_timer,
-                R.string.requirement_grace_title, R.string.join_grace_body);
-
-        bindRequirement(R.id.join_requirement_penalty, queue.isNoShowPenaltyEnabled(), R.drawable.ic_block,
-                R.string.requirement_penalty_title, R.string.join_penalty_body);
-
-        bindRequirement(R.id.join_requirement_proximity, queue.isProximityCheckEnabled(), R.drawable.ic_place,
-                R.string.requirement_proximity_title, R.string.join_proximity_body);
-    }
-
-    private void bindRequirement(int includeId, boolean enabled, int iconRes,
-                                 int titleRes, int bodyRes) {
-        View block = findViewById(includeId);
-
-        if (!enabled) {
-            block.setVisibility(View.GONE);
-            return;
-        }
-
-        block.setVisibility(View.VISIBLE);
-
-        ImageView iconView = block.findViewById(R.id.requirement_icon);
-        TextView titleText = block.findViewById(R.id.requirement_title);
-        TextView bodyText = block.findViewById(R.id.requirement_body);
-
-        iconView.setImageResource(iconRes);
-        titleText.setText(titleRes);
-        bodyText.setText(bodyRes);
-    }
-
-    /** Fills in the logged-in user's details so most people just tap Confirm. */
-    private void prefillFromSession() {
+    /** Fills the "Joining as" card and the fields from the account. */
+    private void bindIdentity(boolean editing) {
         Session session = new Session(this);
+        String name = session.getName();
+        String phone = session.getPhone();
+
+        ((TextView) findViewById(R.id.join_identity_phone)).setText(Format.spacedPhone(phone));
         TextInputEditText nameInput = findViewById(R.id.join_name_input);
         TextInputEditText phoneInput = findViewById(R.id.join_phone_input);
-
-        if (session.getName() != null) {
-            nameInput.setText(session.getName());
+        if (Forms.text(phoneInput).isEmpty()) {
+            phoneInput.setText(phone);
         }
-        phoneInput.setText(session.getPhone());
+
+        if (name == null || editing) {
+            showFields();
+            return;
+        }
+        ((TextView) findViewById(R.id.join_identity_name)).setText(name);
+        ((TextView) findViewById(R.id.join_initials)).setText(Format.initials(name));
+        if (Forms.text(nameInput).isEmpty()) {
+            nameInput.setText(name);
+        }
+    }
+
+    private void showFields() {
+        identityCard.setVisibility(View.GONE);
+        fields.setVisibility(View.VISIBLE);
     }
 
     private void submitJoin() {
@@ -135,6 +131,8 @@ public class JoinQueueActivity extends AppCompatActivity {
                 Validation.isValidPhone(holderPhone), getString(R.string.join_phone_error));
 
         if (!valid) {
+            // The errors are on the fields, so make sure they're on screen.
+            showFields();
             return;
         }
 

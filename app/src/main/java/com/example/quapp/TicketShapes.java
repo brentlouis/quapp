@@ -3,6 +3,8 @@ package com.example.quapp;
 import android.content.Context;
 import android.content.res.ColorStateList;
 import android.graphics.drawable.Drawable;
+import android.graphics.drawable.GradientDrawable;
+import android.graphics.drawable.LayerDrawable;
 
 import androidx.annotation.ColorInt;
 import androidx.annotation.DimenRes;
@@ -80,6 +82,54 @@ public final class TicketShapes {
     /** Shortcut: the spotlight shape filled espresso. */
     public static Drawable spotlightBackground(@NonNull Context context) {
         return background(spotlight(context), ContextCompat.getColor(context, R.color.spotlight));
+    }
+
+    /**
+     * The tear-off stub dock (Queue detail, Join): raised paper with its top corners bitten out,
+     * square at the bottom where it meets the screen edge.
+     */
+    public static Drawable stubDockBackground(@NonNull Context context) {
+        float notch = px(context, R.dimen.stub_dock_notch);
+        ShapeAppearanceModel shape = ShapeAppearanceModel.builder()
+                .setTopLeftCorner(new NotchCornerTreatment())
+                .setTopRightCorner(new NotchCornerTreatment())
+                .setTopLeftCornerSize(notch)
+                .setTopRightCornerSize(notch)
+                .build();
+        return background(shape, ContextCompat.getColor(context, R.color.paper_raised));
+    }
+
+    /**
+     * The kept ticket on an outcome (Served, Slot released): raised paper with a line edge,
+     * punched top and bottom halfway across, where its tear line runs.
+     */
+    public static Drawable keptTicketBackground(@NonNull Context context, float widthPx) {
+        MaterialShapeDrawable drawable = new MaterialShapeDrawable(
+                stub(context, R.dimen.radius_md, R.dimen.punch_radius, widthPx / 2f, widthPx));
+        drawable.setFillColor(ColorStateList.valueOf(
+                ContextCompat.getColor(context, R.color.paper_raised)));
+        drawable.setStroke(px(context, R.dimen.hairline),
+                ContextCompat.getColor(context, R.color.line));
+        return drawable;
+    }
+
+    /**
+     * The rubber stamp's outline: a thin rule, a gap, a heavy rule, in the status colour.
+     * Built in code rather than tinted, because tinting a stroke-only shape can fill it solid.
+     */
+    public static Drawable stampBackground(@NonNull Context context, @ColorInt int color) {
+        GradientDrawable outer = new GradientDrawable();
+        outer.setCornerRadius(px(context, R.dimen.stamp_radius));
+        outer.setStroke(Math.round(px(context, R.dimen.hairline)), color);
+
+        GradientDrawable inner = new GradientDrawable();
+        inner.setCornerRadius(px(context, R.dimen.stamp_inner_radius));
+        inner.setStroke(Math.round(px(context, R.dimen.stamp_rule)), color);
+
+        LayerDrawable stamp = new LayerDrawable(new Drawable[]{outer, inner});
+        int gap = Math.round(px(context, R.dimen.stamp_gap));
+        stamp.setLayerInset(1, gap, gap, gap, gap);
+        return stamp;
     }
 
     private static float px(Context context, @DimenRes int res) {

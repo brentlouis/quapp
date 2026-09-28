@@ -1,32 +1,44 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout
-    xmlns:android="http://schemas.android.com/apk/res/android"
+<!-- Join confirm (canvas 07): the number you're about to be handed, who you're joining as, and
+     "Confirm and join" on the tear-off stub dock. Your account's name and phone are used unless
+     you tap Edit (or the account has no name yet), which shows the two fields. -->
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/join_root"
     android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:background="?attr/colorSurface">
+    android:layout_height="match_parent">
 
+    <!-- App bar -->
     <ImageButton
         android:id="@+id/join_back"
         android:layout_width="@dimen/touch_target_min"
         android:layout_height="@dimen/touch_target_min"
-        android:layout_marginStart="@dimen/space_sm"
-        android:layout_marginTop="@dimen/space_sm"
+        android:layout_marginStart="@dimen/space_xs"
+        android:layout_marginTop="@dimen/space_xs"
         android:background="?attr/selectableItemBackgroundBorderless"
         android:contentDescription="@string/join_back_description"
-        android:padding="@dimen/space_sm"
         android:src="@drawable/ic_arrow_back"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
         app:tint="?attr/colorOnSurface" />
 
+    <TextView
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="@dimen/space_xs"
+        android:layout_marginEnd="@dimen/space_md"
+        android:text="@string/join_title"
+        android:textAppearance="?attr/textAppearanceTitleMedium"
+        app:layout_constraintBottom_toBottomOf="@id/join_back"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toEndOf="@id/join_back"
+        app:layout_constraintTop_toTopOf="@id/join_back" />
+
     <androidx.core.widget.NestedScrollView
-        android:id="@+id/join_scroll"
         android:layout_width="0dp"
         android:layout_height="0dp"
-        app:layout_constraintBottom_toTopOf="@id/join_submit_button"
+        app:layout_constraintBottom_toTopOf="@id/join_dock"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/join_back">
@@ -36,122 +48,229 @@
             android:layout_height="wrap_content"
             android:orientation="vertical"
             android:paddingStart="@dimen/space_md"
+            android:paddingTop="@dimen/space_sm"
             android:paddingEnd="@dimen/space_md"
             android:paddingBottom="@dimen/space_lg">
-
-            <TextView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="@string/join_title"
-                android:textAppearance="?attr/textAppearanceHeadlineMedium"
-                android:textColor="?attr/colorOnSurface" />
 
             <TextView
                 android:id="@+id/join_queue_name"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="@dimen/space_xs"
-                android:textAppearance="?attr/textAppearanceBodyLarge"
-                android:textColor="?attr/colorOnSurfaceVariant"
+                android:accessibilityHeading="true"
+                android:textAppearance="?attr/textAppearanceHeadlineSmall"
                 tools:text="Barangay Relief Distribution" />
 
+            <!-- The number -->
             <TextView
-                android:id="@+id/join_position_preview"
-                android:layout_width="match_parent"
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="@dimen/space_md"
-                android:textAppearance="?attr/textAppearanceTitleMedium"
-                android:textColor="?attr/colorPrimary"
-                tools:text="You'll be #43 in line" />
+                android:text="@string/join_number_label"
+                android:textAppearance="?attr/textAppearanceBodySmall" />
 
-            <com.google.android.material.textfield.TextInputLayout
-                android:id="@+id/join_name_layout"
-                style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
+            <TextView
+                android:id="@+id/join_number"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:maxLines="1"
+                android:includeFontPadding="false"
+                android:textAppearance="?attr/textAppearanceTicketNumberLarge"
+                android:textColor="?attr/colorOnSurface"
+                tools:text="#43" />
+
+            <TextView
+                android:id="@+id/join_ahead"
                 android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/space_xs"
+                android:fontFeatureSettings="tnum"
+                android:textAppearance="?attr/textAppearanceBodyMedium"
+                android:textColor="?attr/colorOnSurfaceVariant"
+                tools:text="41 ahead of you · about 55 min" />
+
+            <!-- Who's joining -->
+            <TextView
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="@dimen/space_lg"
-                android:hint="@string/join_name_hint">
+                android:text="@string/join_as_label"
+                android:textAppearance="?attr/textAppearanceTitleSmall" />
 
-                <com.google.android.material.textfield.TextInputEditText
-                    android:id="@+id/join_name_input"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:inputType="textPersonName|textCapWords" />
-
-            </com.google.android.material.textfield.TextInputLayout>
-
-            <com.google.android.material.textfield.TextInputLayout
-                android:id="@+id/join_phone_layout"
-                style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
+            <com.google.android.material.card.MaterialCardView
+                android:id="@+id/join_identity"
+                style="@style/Widget.Quapp.Card"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="@dimen/space_md"
-                android:hint="@string/join_phone_hint">
+                android:layout_marginTop="@dimen/space_sm">
 
-                <com.google.android.material.textfield.TextInputEditText
-                    android:id="@+id/join_phone_input"
+                <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:imeOptions="actionDone"
-                    android:inputType="phone" />
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal"
+                    android:paddingStart="@dimen/space_ms"
+                    android:paddingTop="@dimen/space_sm"
+                    android:paddingEnd="@dimen/space_xs"
+                    android:paddingBottom="@dimen/space_sm">
 
-            </com.google.android.material.textfield.TextInputLayout>
+                    <TextView
+                        android:id="@+id/join_initials"
+                        android:layout_width="@dimen/touch_target_min"
+                        android:layout_height="@dimen/touch_target_min"
+                        android:background="@drawable/bg_avatar"
+                        android:gravity="center"
+                        android:importantForAccessibility="no"
+                        android:textAppearance="?attr/textAppearanceTitleSmall"
+                        tools:text="MS" />
 
+                    <LinearLayout
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="@dimen/space_ms"
+                        android:layout_weight="1"
+                        android:orientation="vertical">
+
+                        <TextView
+                            android:id="@+id/join_identity_name"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:textAppearance="?attr/textAppearanceTitleSmall"
+                            tools:text="Maria Santos" />
+
+                        <TextView
+                            android:id="@+id/join_identity_phone"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:fontFeatureSettings="tnum"
+                            android:textAppearance="?attr/textAppearanceBodySmall"
+                            tools:text="0917 123 4567" />
+                    </LinearLayout>
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/join_edit_button"
+                        style="@style/Widget.Quapp.Button.Text"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/join_edit_action" />
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
+
+            <!-- Shown by Edit, or straight away when the account has no name -->
             <LinearLayout
-                android:id="@+id/join_requirements_section"
+                android:id="@+id/join_fields"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="@dimen/space_lg"
-                android:orientation="vertical">
+                android:layout_marginTop="@dimen/space_sm"
+                android:orientation="vertical"
+                android:visibility="gone">
 
                 <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:labelFor="@id/join_name_input"
+                    android:text="@string/join_name_label"
+                    android:textAppearance="?attr/textAppearanceFieldLabel" />
+
+                <com.google.android.material.textfield.TextInputLayout
+                    android:id="@+id/join_name_layout"
+                    style="@style/Widget.Quapp.TextField"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginBottom="@dimen/space_xs"
-                    android:text="@string/join_requirements_label"
-                    android:textAppearance="?attr/textAppearanceLabelSmall"
-                    android:textColor="?attr/colorOnSurfaceVariant" />
+                    android:layout_marginTop="@dimen/space_sm">
 
-                <include
-                    android:id="@+id/join_requirement_otp"
-                    layout="@layout/view_requirement"
-                    android:visibility="gone"
-                    tools:visibility="visible" />
+                    <com.google.android.material.textfield.TextInputEditText
+                        android:id="@+id/join_name_input"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:autofillHints="name"
+                        android:inputType="textPersonName|textCapWords" />
+                </com.google.android.material.textfield.TextInputLayout>
 
-                <include
-                    android:id="@+id/join_requirement_grace"
-                    layout="@layout/view_requirement"
-                    android:visibility="gone"
-                    tools:visibility="visible" />
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="@dimen/space_md"
+                    android:labelFor="@id/join_phone_input"
+                    android:text="@string/join_phone_label"
+                    android:textAppearance="?attr/textAppearanceFieldLabel" />
 
-                <include
-                    android:id="@+id/join_requirement_penalty"
-                    layout="@layout/view_requirement"
-                    android:visibility="gone"
-                    tools:visibility="visible" />
+                <com.google.android.material.textfield.TextInputLayout
+                    android:id="@+id/join_phone_layout"
+                    style="@style/Widget.Quapp.TextField"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="@dimen/space_sm">
 
-                <include
-                    android:id="@+id/join_requirement_proximity"
-                    layout="@layout/view_requirement"
-                    android:visibility="gone"
-                    tools:visibility="visible" />
-
+                    <com.google.android.material.textfield.TextInputEditText
+                        android:id="@+id/join_phone_input"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:autofillHints="phone"
+                        android:hint="@string/login_phone_placeholder"
+                        android:inputType="phone" />
+                </com.google.android.material.textfield.TextInputLayout>
             </LinearLayout>
 
-        </LinearLayout>
+            <!-- Presence confirmation reminder (only when the queue uses it) -->
+            <LinearLayout
+                android:id="@+id/join_grace_note"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/space_md"
+                android:background="@drawable/bg_note"
+                android:orientation="horizontal"
+                android:paddingStart="@dimen/space_md"
+                android:paddingTop="@dimen/space_ms"
+                android:paddingEnd="@dimen/space_md"
+                android:paddingBottom="@dimen/space_ms">
 
+                <ImageView
+                    android:layout_width="@dimen/icon_small"
+                    android:layout_height="@dimen/icon_small"
+                    android:importantForAccessibility="no"
+                    android:src="@drawable/ic_bell_ring"
+                    app:tint="?attr/colorOnSurfaceVariant" />
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="@dimen/space_ms"
+                    android:layout_weight="1"
+                    android:text="@string/join_grace_note"
+                    android:textAppearance="?attr/textAppearanceBodySmall"
+                    android:textColor="?attr/colorOnSurface" />
+            </LinearLayout>
+        </LinearLayout>
     </androidx.core.widget.NestedScrollView>
 
-    <com.google.android.material.button.MaterialButton
-        android:id="@+id/join_submit_button"
+    <!-- ===== Tear-off stub dock ===== -->
+
+    <LinearLayout
+        android:id="@+id/join_dock"
         android:layout_width="0dp"
-        android:layout_height="@dimen/touch_target_min"
-        android:layout_marginStart="@dimen/space_md"
-        android:layout_marginEnd="@dimen/space_md"
-        android:layout_marginBottom="@dimen/space_md"
-        android:text="@string/join_action"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent" />
+        app:layout_constraintStart_toStartOf="parent">
+
+        <com.example.quapp.TearLineView
+            android:layout_width="match_parent"
+            android:layout_height="@dimen/tear_line_width"
+            android:layout_marginStart="@dimen/space_md"
+            android:layout_marginEnd="@dimen/space_md" />
+
+        <FrameLayout
+            style="@style/Widget.Quapp.Dock.Stub"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/join_submit_button"
+                android:layout_width="match_parent"
+                android:layout_height="@dimen/button_height_lg"
+                android:text="@string/join_action" />
+        </FrameLayout>
+    </LinearLayout>
 
 </androidx.constraintlayout.widget.ConstraintLayout>

@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!-- My ticket (canvas 08). Waiting: the espresso ticket (stub + body) is the spotlight, with the
-     wait, arrival and directions rows under it on paper. Served / slot released reuse the same
-     screen with the ticket swapped for an outcome message (the kept-ticket and stamp versions,
-     canvas 22–23, come in a later batch). Being called opens CalledActivity instead. -->
+     wait, arrival and directions rows under it on paper. Served / slot released (canvas 22, 23)
+     reuse the screen: the ticket is swapped for the kept ticket, stamped with the result.
+     Being called opens CalledActivity instead. -->
 <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
@@ -293,20 +293,38 @@
                 </LinearLayout>
             </LinearLayout>
 
-            <!-- ===== Served / slot released ===== -->
+            <!-- ===== Served / slot released (canvas 22, 23) ===== -->
 
             <LinearLayout
                 android:id="@+id/ticket_outcome"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="@dimen/space_lg"
                 android:orientation="vertical"
                 android:visibility="gone">
+
+                <!-- Served only: a check in a tile -->
+                <FrameLayout
+                    android:id="@+id/ticket_outcome_tile"
+                    android:layout_width="@dimen/outcome_tile_size"
+                    android:layout_height="@dimen/outcome_tile_size"
+                    android:layout_marginTop="@dimen/space_sm"
+                    android:background="@drawable/bg_tile">
+
+                    <ImageView
+                        android:layout_width="@dimen/outcome_icon_size"
+                        android:layout_height="@dimen/outcome_icon_size"
+                        android:layout_gravity="center"
+                        android:importantForAccessibility="no"
+                        android:src="@drawable/ic_circle_check"
+                        app:tint="@color/ok" />
+                </FrameLayout>
 
                 <TextView
                     android:id="@+id/ticket_outcome_headline"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
+                    android:layout_marginTop="@dimen/space_md"
+                    android:accessibilityLiveRegion="polite"
                     android:textAppearance="?attr/textAppearanceHeadlineMedium"
                     tools:text="You're all set" />
 
@@ -317,7 +335,157 @@
                     android:layout_marginTop="@dimen/space_sm"
                     android:textAppearance="?attr/textAppearanceBodyLarge"
                     android:textColor="?attr/colorOnSurfaceVariant"
-                    tools:text="Thanks for using Quapp." />
+                    tools:text="Thanks for using Quapp. You can join another queue anytime." />
+
+                <!-- The kept ticket: perforated down the middle, stamped with the result -->
+                <androidx.constraintlayout.widget.ConstraintLayout
+                    android:id="@+id/ticket_kept"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="@dimen/space_lg">
+
+                    <androidx.constraintlayout.widget.Guideline
+                        android:id="@+id/ticket_kept_middle"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical"
+                        app:layout_constraintGuide_percent="0.5" />
+
+                    <!-- Left half: your number -->
+                    <TextView
+                        android:id="@+id/ticket_kept_number_label"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="@dimen/space_md"
+                        android:layout_marginTop="@dimen/space_md"
+                        android:layout_marginEnd="@dimen/space_md"
+                        android:text="@string/ticket_outcome_number_label"
+                        android:textAppearance="?attr/textAppearanceLabelSmall"
+                        android:textColor="?attr/colorOnSurfaceVariant"
+                        app:layout_constraintEnd_toStartOf="@id/ticket_kept_middle"
+                        app:layout_constraintStart_toStartOf="parent"
+                        app:layout_constraintTop_toTopOf="parent" />
+
+                    <TextView
+                        android:id="@+id/ticket_kept_number"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="@dimen/space_md"
+                        android:layout_marginTop="@dimen/space_xs"
+                        android:textAppearance="?attr/textAppearanceTicketNumberSmall"
+                        android:textColor="?attr/colorOnSurface"
+                        app:layout_constraintStart_toStartOf="parent"
+                        app:layout_constraintTop_toBottomOf="@id/ticket_kept_number_label"
+                        tools:text="#43" />
+
+                    <TextView
+                        android:id="@+id/ticket_kept_stamp_left"
+                        style="@style/Widget.Quapp.Stamp"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="@dimen/space_md"
+                        android:layout_marginTop="@dimen/space_ms"
+                        android:visibility="gone"
+                        app:layout_constraintStart_toStartOf="parent"
+                        app:layout_constraintTop_toBottomOf="@id/ticket_kept_number"
+                        tools:text="Slot released" />
+
+                    <!-- The perforation -->
+                    <com.example.quapp.TearLineView
+                        android:layout_width="2dp"
+                        android:layout_height="0dp"
+                        android:layout_marginTop="@dimen/space_ms"
+                        android:layout_marginBottom="@dimen/space_ms"
+                        app:layout_constraintBottom_toBottomOf="parent"
+                        app:layout_constraintEnd_toEndOf="@id/ticket_kept_middle"
+                        app:layout_constraintStart_toStartOf="@id/ticket_kept_middle"
+                        app:layout_constraintTop_toTopOf="parent"
+                        app:tearOrientation="vertical" />
+
+                    <!-- Right half: the status stamp, or the no-show count -->
+                    <TextView
+                        android:id="@+id/ticket_kept_right_label"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="@dimen/space_md"
+                        android:layout_marginTop="@dimen/space_md"
+                        android:layout_marginEnd="@dimen/space_md"
+                        android:textAppearance="?attr/textAppearanceLabelSmall"
+                        android:textColor="?attr/colorOnSurfaceVariant"
+                        app:layout_constraintEnd_toEndOf="parent"
+                        app:layout_constraintStart_toEndOf="@id/ticket_kept_middle"
+                        app:layout_constraintTop_toTopOf="parent"
+                        tools:text="@string/ticket_outcome_status_label" />
+
+                    <TextView
+                        android:id="@+id/ticket_kept_stamp_right"
+                        style="@style/Widget.Quapp.Stamp"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="@dimen/space_md"
+                        android:layout_marginTop="@dimen/space_ms"
+                        app:layout_constraintStart_toEndOf="@id/ticket_kept_middle"
+                        app:layout_constraintTop_toBottomOf="@id/ticket_kept_right_label"
+                        tools:text="Served" />
+
+                    <TextView
+                        android:id="@+id/ticket_kept_no_shows"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="@dimen/space_md"
+                        android:layout_marginTop="@dimen/space_xs"
+                        android:textAppearance="?attr/textAppearanceStatHero"
+                        android:visibility="gone"
+                        app:layout_constraintStart_toEndOf="@id/ticket_kept_middle"
+                        app:layout_constraintTop_toBottomOf="@id/ticket_kept_right_label"
+                        tools:text="1 of 2" />
+
+                    <!-- Keeps a little paper under whichever half is taller -->
+                    <androidx.constraintlayout.widget.Barrier
+                        android:id="@+id/ticket_kept_bottom"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        app:barrierDirection="bottom"
+                        app:constraint_referenced_ids="ticket_kept_number,ticket_kept_stamp_left,ticket_kept_stamp_right,ticket_kept_no_shows" />
+
+                    <Space
+                        android:layout_width="0dp"
+                        android:layout_height="@dimen/space_md"
+                        app:layout_constraintEnd_toEndOf="parent"
+                        app:layout_constraintStart_toStartOf="parent"
+                        app:layout_constraintTop_toBottomOf="@id/ticket_kept_bottom" />
+                </androidx.constraintlayout.widget.ConstraintLayout>
+
+                <!-- Slot released only: what the no-show means for you -->
+                <LinearLayout
+                    android:id="@+id/ticket_outcome_note"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="@dimen/space_md"
+                    android:background="@drawable/bg_note"
+                    android:orientation="horizontal"
+                    android:paddingStart="@dimen/space_md"
+                    android:paddingTop="@dimen/space_ms"
+                    android:paddingEnd="@dimen/space_md"
+                    android:paddingBottom="@dimen/space_ms">
+
+                    <ImageView
+                        android:layout_width="@dimen/icon_small"
+                        android:layout_height="@dimen/icon_small"
+                        android:importantForAccessibility="no"
+                        android:src="@drawable/ic_info"
+                        app:tint="?attr/colorOnSurfaceVariant" />
+
+                    <TextView
+                        android:id="@+id/ticket_outcome_note_text"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="@dimen/space_ms"
+                        android:layout_weight="1"
+                        android:textAppearance="?attr/textAppearanceBodySmall"
+                        android:textColor="?attr/colorOnSurface"
+                        tools:text="One more no-show starts a 30-minute cooldown on queues like this." />
+                </LinearLayout>
             </LinearLayout>
         </LinearLayout>
     </androidx.core.widget.NestedScrollView>
@@ -334,28 +502,52 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent" />
 
-    <FrameLayout
+    <LinearLayout
         android:id="@+id/ticket_dock"
         style="@style/Widget.Quapp.Dock"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
+        android:orientation="horizontal"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent">
 
+        <!-- Waiting -->
         <com.google.android.material.button.MaterialButton
             android:id="@+id/ticket_leave_button"
             style="@style/Widget.Quapp.Button.Text"
-            android:layout_width="match_parent"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
+            android:layout_weight="1"
             android:text="@string/ticket_leave_action" />
 
+        <!-- Slot released: Done is secondary, Join again is the one filled button -->
         <com.google.android.material.button.MaterialButton
-            android:id="@+id/ticket_done_button"
-            android:layout_width="match_parent"
+            android:id="@+id/ticket_done_outlined_button"
+            style="@style/Widget.Quapp.Button.Outlined"
+            android:layout_width="0dp"
             android:layout_height="@dimen/button_height_lg"
+            android:layout_marginEnd="@dimen/space_ms"
+            android:layout_weight="1"
             android:text="@string/ticket_done_action"
             android:visibility="gone" />
-    </FrameLayout>
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/ticket_join_again_button"
+            android:layout_width="0dp"
+            android:layout_height="@dimen/button_height_lg"
+            android:layout_weight="1"
+            android:text="@string/ticket_join_again_action"
+            android:visibility="gone" />
+
+        <!-- Served -->
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/ticket_done_button"
+            android:layout_width="0dp"
+            android:layout_height="@dimen/button_height_lg"
+            android:layout_weight="1"
+            android:text="@string/ticket_done_action"
+            android:visibility="gone" />
+    </LinearLayout>
 
 </androidx.constraintlayout.widget.ConstraintLayout>

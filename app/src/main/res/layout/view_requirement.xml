@@ -1,45 +1,50 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- One verification rule: icon, name, one-line explanation. Used by Join and Queue Detail. -->
-<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<!-- One verification check on Queue detail: icon, name, what it means for you, and its state
+     (ON or PLANNED) as a small tag. Filled in by QueueDetailActivity.bindRule. -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:paddingTop="@dimen/space_sm"
-    android:paddingBottom="@dimen/space_sm">
+    android:orientation="horizontal"
+    android:paddingTop="@dimen/space_ms"
+    android:paddingBottom="@dimen/space_ms">
 
     <ImageView
         android:id="@+id/requirement_icon"
-        android:layout_width="@dimen/icon_size"
-        android:layout_height="@dimen/icon_size"
-        android:contentDescription="@null"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        app:tint="?attr/colorPrimary"
-        tools:src="@drawable/ic_timer" />
+        android:layout_width="@dimen/icon_small"
+        android:layout_height="@dimen/icon_small"
+        android:importantForAccessibility="no"
+        tools:src="@drawable/ic_timer"
+        tools:tint="@color/ok" />
 
-    <TextView
-        android:id="@+id/requirement_title"
+    <LinearLayout
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:layout_marginStart="@dimen/space_md"
-        android:textAppearance="?attr/textAppearanceTitleSmall"
-        android:textColor="?attr/colorOnSurface"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toEndOf="@id/requirement_icon"
-        app:layout_constraintTop_toTopOf="parent"
-        tools:text="Presence confirmation" />
+        android:layout_marginStart="@dimen/space_ms"
+        android:layout_marginEnd="@dimen/space_sm"
+        android:layout_weight="1"
+        android:orientation="vertical">
+
+        <TextView
+            android:id="@+id/requirement_title"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textAppearance="?attr/textAppearanceTitleSmall"
+            tools:text="Presence confirmation" />
+
+        <TextView
+            android:id="@+id/requirement_body"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textAppearance="?attr/textAppearanceBodySmall"
+            tools:text="When called, tap &quot;I'm here&quot; within 3 minutes or your slot goes to the next person." />
+    </LinearLayout>
 
     <TextView
-        android:id="@+id/requirement_body"
-        android:layout_width="0dp"
+        android:id="@+id/requirement_state"
+        style="@style/Widget.Quapp.Tag"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginTop="@dimen/space_xs"
-        android:textAppearance="?attr/textAppearanceBodyMedium"
-        android:textColor="?attr/colorOnSurfaceVariant"
-        app:layout_constraintEnd_toEndOf="@id/requirement_title"
-        app:layout_constraintStart_toStartOf="@id/requirement_title"
-        app:layout_constraintTop_toBottomOf="@id/requirement_title"
-        tools:text="When called, tap I'm here within 3 minutes or your slot is released." />
-
-</androidx.constraintlayout.widget.ConstraintLayout>
+        tools:text="On" />
+</LinearLayout>
