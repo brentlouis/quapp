@@ -63,6 +63,8 @@
         <item name="textAppearanceStat">@style/TextAppearance.Quapp.Stat</item>
         <item name="textAppearanceStatHero">@style/TextAppearance.Quapp.StatHero</item>
         <item name="textAppearanceFieldLabel">@style/TextAppearance.Quapp.FieldLabel</item>
+        <item name="textAppearanceStatSmall">@style/TextAppearance.Quapp.StatSmall</item>
+        <item name="textAppearanceStatDisplay">@style/TextAppearance.Quapp.StatDisplay</item>
 
         <!-- Components (values/styles.xml): every MaterialButton gets the Civic Paper shape -->
         <item name="materialButtonStyle">@style/Widget.Quapp.Button</item>

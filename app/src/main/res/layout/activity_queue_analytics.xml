@@ -1,30 +1,60 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout
-    xmlns:android="http://schemas.android.com/apk/res/android"
+<!-- Insights (canvas 16): the rolling-average wait forecast first, then today's counts on a
+     receipt slip. -->
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/analytics_root"
     android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:background="?attr/colorSurface">
+    android:layout_height="match_parent">
 
+    <!-- App bar: title with the queue name under it -->
     <ImageButton
         android:id="@+id/analytics_back"
         android:layout_width="@dimen/touch_target_min"
         android:layout_height="@dimen/touch_target_min"
-        android:layout_marginStart="@dimen/space_sm"
-        android:layout_marginTop="@dimen/space_sm"
+        android:layout_marginStart="@dimen/space_xs"
+        android:layout_marginTop="@dimen/space_xs"
         android:background="?attr/selectableItemBackgroundBorderless"
         android:contentDescription="@string/analytics_back_description"
-        android:padding="@dimen/space_sm"
         android:src="@drawable/ic_arrow_back"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
         app:tint="?attr/colorOnSurface" />
 
+    <LinearLayout
+        android:id="@+id/analytics_titles"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="@dimen/space_xs"
+        android:layout_marginEnd="@dimen/space_md"
+        android:orientation="vertical"
+        app:layout_constraintBottom_toBottomOf="@id/analytics_back"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toEndOf="@id/analytics_back"
+        app:layout_constraintTop_toTopOf="@id/analytics_back">
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:accessibilityHeading="true"
+            android:text="@string/analytics_title"
+            android:textAppearance="?attr/textAppearanceTitleMedium" />
+
+        <TextView
+            android:id="@+id/analytics_queue_name"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:ellipsize="end"
+            android:maxLines="1"
+            android:textAppearance="?attr/textAppearanceBodySmall"
+            tools:text="Free Medical Mission · today" />
+    </LinearLayout>
+
     <androidx.core.widget.NestedScrollView
         android:layout_width="0dp"
         android:layout_height="0dp"
+        android:layout_marginTop="@dimen/space_sm"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
@@ -38,118 +68,80 @@
             android:paddingEnd="@dimen/space_md"
             android:paddingBottom="@dimen/space_lg">
 
-            <TextView
+            <!-- The forecast -->
+            <com.google.android.material.card.MaterialCardView
+                style="@style/Widget.Quapp.Card"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="@string/analytics_title"
-                android:textAppearance="?attr/textAppearanceHeadlineMedium"
-                android:textColor="?attr/colorOnSurface" />
+                android:layout_height="wrap_content">
 
-            <TextView
-                android:id="@+id/analytics_queue_name"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="@dimen/space_xs"
-                android:textAppearance="?attr/textAppearanceBodyMedium"
-                android:textColor="?attr/colorOnSurfaceVariant"
-                tools:text="Barangay Relief Distribution" />
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="@dimen/space_md">
+
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="@string/analytics_projected_label"
+                        android:textAppearance="?attr/textAppearanceTitleSmall" />
+
+                    <LinearLayout
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="@dimen/space_sm"
+                        android:baselineAligned="true"
+                        android:orientation="horizontal">
+
+                        <TextView
+                            android:id="@+id/analytics_projected_value"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:textAppearance="?attr/textAppearanceStatDisplay"
+                            tools:text="~11" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginStart="@dimen/space_sm"
+                            android:text="@string/analytics_minutes_unit"
+                            android:textAppearance="?attr/textAppearanceTitleSmall" />
+                    </LinearLayout>
+
+                    <TextView
+                        android:id="@+id/analytics_average_basis"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="@dimen/space_sm"
+                        android:fontFeatureSettings="tnum"
+                        android:textAppearance="?attr/textAppearanceBodySmall"
+                        tools:text="1.3 min per person (average of the last 5 served) · 8 waiting" />
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
 
             <TextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="@dimen/space_lg"
                 android:text="@string/analytics_today_label"
-                android:textAppearance="?attr/textAppearanceTitleMedium"
-                android:textColor="?attr/colorOnSurface" />
-
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="@dimen/space_md"
-                android:orientation="horizontal">
-
-                <include
-                    android:id="@+id/analytics_served"
-                    layout="@layout/view_stat" />
-
-                <include
-                    android:id="@+id/analytics_no_shows"
-                    layout="@layout/view_stat" />
-
-            </LinearLayout>
-
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="@dimen/space_md"
-                android:orientation="horizontal">
-
-                <include
-                    android:id="@+id/analytics_no_show_rate"
-                    layout="@layout/view_stat" />
-
-                <include
-                    android:id="@+id/analytics_waiting"
-                    layout="@layout/view_stat" />
-
-            </LinearLayout>
-
-            <com.google.android.material.divider.MaterialDivider
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="@dimen/space_lg" />
-
-            <TextView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="@dimen/space_lg"
-                android:text="@string/analytics_forecast_label"
-                android:textAppearance="?attr/textAppearanceTitleMedium"
-                android:textColor="?attr/colorOnSurface" />
-
-            <TextView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="@dimen/space_md"
-                android:text="@string/analytics_average_label"
                 android:textAppearance="?attr/textAppearanceLabelSmall"
                 android:textColor="?attr/colorOnSurfaceVariant" />
 
-            <TextView
-                android:id="@+id/analytics_average_value"
+            <!-- Today's counts: filled by ReceiptSlip -->
+            <LinearLayout
+                android:id="@+id/analytics_slip"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:textAppearance="?attr/textAppearanceHeadlineSmall"
-                android:textColor="?attr/colorOnSurface"
-                tools:text="1.3 min" />
-
-            <TextView
-                android:id="@+id/analytics_average_basis"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="@dimen/space_xs"
-                android:textAppearance="?attr/textAppearanceBodyMedium"
-                android:textColor="?attr/colorOnSurfaceVariant"
-                tools:text="Rolling average of the last 5 people served." />
-
-            <TextView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="@dimen/space_lg"
-                android:text="@string/analytics_projected_label"
-                android:textAppearance="?attr/textAppearanceLabelSmall"
-                android:textColor="?attr/colorOnSurfaceVariant" />
-
-            <TextView
-                android:id="@+id/analytics_projected_value"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:textAppearance="?attr/textAppearanceHeadlineSmall"
-                android:textColor="?attr/colorPrimary"
-                tools:text="~55 min" />
-
+                android:layout_marginTop="@dimen/space_sm"
+                android:background="@drawable/bg_note"
+                android:divider="@drawable/divider_slip"
+                android:orientation="vertical"
+                android:paddingStart="@dimen/space_md"
+                android:paddingTop="@dimen/space_xs"
+                android:paddingEnd="@dimen/space_md"
+                android:paddingBottom="@dimen/space_xs"
+                android:showDividers="middle" />
         </LinearLayout>
-
     </androidx.core.widget.NestedScrollView>
 
 </androidx.constraintlayout.widget.ConstraintLayout>

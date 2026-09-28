@@ -7,6 +7,8 @@
     <attr name="textAppearanceStat" format="reference" />
     <attr name="textAppearanceStatHero" format="reference" />
     <attr name="textAppearanceFieldLabel" format="reference" />
+    <attr name="textAppearanceStatSmall" format="reference" />
+    <attr name="textAppearanceStatDisplay" format="reference" />
 
     <!-- TearLineView: the dashed crema line -->
     <declare-styleable name="TearLineView">
@@ -15,5 +17,10 @@
             <enum name="vertical" value="1" />
         </attr>
         <attr name="tearColor" format="color" />
+        <!-- dashed: the crema tear line. dotted: the leader in a receipt slip row. -->
+        <attr name="tearStyle" format="enum">
+            <enum name="dashed" value="0" />
+            <enum name="dotted" value="1" />
+        </attr>
     </declare-styleable>
 </resources>

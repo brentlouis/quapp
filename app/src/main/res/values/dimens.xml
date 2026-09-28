@@ -21,6 +21,10 @@
     <dimen name="tear_line_width">1.5dp</dimen>
     <dimen name="tear_line_dash">4dp</dimen>
     <dimen name="hairline">1dp</dimen>
+    <dimen name="dot_leader_gap">3dp</dimen>     <!-- dot spacing in a receipt slip leader -->
+    <dimen name="pill_height">24dp</dimen>       <!-- status pill -->
+    <dimen name="avatar_size">56dp</dimen>
+    <dimen name="list_row_min_height">60dp</dimen>
     <dimen name="my_tickets_stub_width">104dp</dimen> <!-- where the tear line and punches sit on a compact ticket -->
     <dimen name="brand_mark_width">34dp</dimen>   <!-- the ticket mark next to the wordmark; 4:5 -->
     <dimen name="brand_mark_height">42.5dp</dimen>

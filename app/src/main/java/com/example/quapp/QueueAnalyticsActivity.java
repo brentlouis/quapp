@@ -1,16 +1,23 @@
 package com.example.quapp;
 
+import android.graphics.Typeface;
 import android.os.Bundle;
+import android.text.SpannableStringBuilder;
+import android.text.Spanned;
+import android.text.style.ForegroundColorSpan;
+import android.text.style.StyleSpan;
 import android.view.View;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.content.ContextCompat;
 
 import java.util.Locale;
 
 /**
- * The owner's numbers for one queue: today's counts and the rolling-average
- * wait forecast that also drives the ETA queuers see on Browse.
+ * The owner's numbers for one queue: the rolling-average wait forecast (the same number that
+ * drives the ETA queuers see on Browse) and today's counts.
  */
 public class QueueAnalyticsActivity extends AppCompatActivity {
 
@@ -47,46 +54,50 @@ public class QueueAnalyticsActivity extends AppCompatActivity {
         QueueStats stats = FakeData.stats(queueId);
 
         TextView queueName = findViewById(R.id.analytics_queue_name);
-        queueName.setText(queue.getName());
-
-        bindStat(R.id.analytics_served, R.string.analytics_served_label,
-                String.valueOf(stats.getServedToday()));
-        bindStat(R.id.analytics_no_shows, R.string.analytics_no_shows_label,
-                String.valueOf(stats.getNoShowsToday()));
-        bindStat(R.id.analytics_no_show_rate, R.string.analytics_no_show_rate_label,
-                getString(R.string.analytics_percent_format, stats.getNoShowRatePercent()));
-        bindStat(R.id.analytics_waiting, R.string.analytics_waiting_label,
-                String.valueOf(stats.getWaitingNow()));
+        queueName.setText(getString(R.string.analytics_subtitle_format, queue.getName()));
 
         bindForecast(stats);
-    }
-
-    private void bindStat(int includeId, int labelRes, String value) {
-        View cell = findViewById(includeId);
-        TextView label = cell.findViewById(R.id.stat_label);
-        TextView valueText = cell.findViewById(R.id.stat_value);
-        label.setText(labelRes);
-        valueText.setText(value);
+        bindToday(stats);
     }
 
     private void bindForecast(QueueStats stats) {
-        TextView averageValue = findViewById(R.id.analytics_average_value);
-        TextView averageBasis = findViewById(R.id.analytics_average_basis);
         TextView projectedValue = findViewById(R.id.analytics_projected_value);
-
-        // Locale.US keeps the decimal point a point, matching how the countdown is formatted.
-        averageValue.setText(String.format(Locale.US,
-                getString(R.string.analytics_average_format), stats.getAverageServiceMinutes()));
-
-        int samples = stats.getServiceSampleCount();
-        if (samples == 0) {
-            averageBasis.setText(R.string.analytics_average_none);
-        } else {
-            averageBasis.setText(getResources().getQuantityString(
-                    R.plurals.analytics_average_basis, samples, samples));
-        }
-
         projectedValue.setText(getString(R.string.analytics_projected_format,
                 stats.getProjectedWaitMinutes()));
+
+        TextView basis = findViewById(R.id.analytics_average_basis);
+        int samples = stats.getServiceSampleCount();
+        if (samples == 0) {
+            basis.setText(R.string.analytics_average_none);
+            return;
+        }
+
+        // "1.3 min per person" in ink and bold, then how it was worked out, then who's waiting.
+        // Locale.US keeps the decimal point a point, matching how the countdown is formatted.
+        String average = String.format(Locale.US,
+                getString(R.string.analytics_average_format), stats.getAverageServiceMinutes());
+        SpannableStringBuilder text = new SpannableStringBuilder(average);
+        text.setSpan(new StyleSpan(Typeface.BOLD), 0, average.length(),
+                Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+        text.setSpan(new ForegroundColorSpan(ContextCompat.getColor(this, R.color.ink)),
+                0, average.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+        text.append(' ');
+        text.append(getResources().getQuantityString(
+                R.plurals.analytics_average_basis, samples, samples));
+        text.append(getString(R.string.analytics_waiting_suffix, stats.getWaitingNow()));
+        basis.setText(text);
+    }
+
+    private void bindToday(QueueStats stats) {
+        LinearLayout slip = findViewById(R.id.analytics_slip);
+        ReceiptSlip.clear(slip);
+        ReceiptSlip.addRow(slip, getString(R.string.analytics_served_label),
+                String.valueOf(stats.getServedToday()));
+        ReceiptSlip.addRow(slip, getString(R.string.analytics_waiting_label),
+                String.valueOf(stats.getWaitingNow()));
+        ReceiptSlip.addRow(slip, getString(R.string.analytics_no_shows_label),
+                String.valueOf(stats.getNoShowsToday()));
+        ReceiptSlip.addRow(slip, getString(R.string.analytics_no_show_rate_label),
+                getString(R.string.analytics_percent_format, stats.getNoShowRatePercent()));
     }
 }

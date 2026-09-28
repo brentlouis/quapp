@@ -78,7 +78,9 @@ public class BrowseFragment extends Fragment implements QueueAdapter.OnQueueClic
         queueList.setAdapter(queueAdapter);
 
         // Profile is a tab now, so the old header button goes (it's removed with the Browse rebuild).
-        view.findViewById(R.id.browse_profile).setVisibility(View.GONE);
+        // INVISIBLE, not GONE: the header is laid out around this button, and a GONE view
+        // collapses to nothing and drags the title up under the status bar.
+        view.findViewById(R.id.browse_profile).setVisibility(View.INVISIBLE);
 
         setUpTicketCard(view);
         setUpSearch(view);

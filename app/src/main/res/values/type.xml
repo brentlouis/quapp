@@ -156,4 +156,16 @@
         <item name="android:letterSpacing">0</item>
         <item name="android:textColor">?attr/colorOnSurface</item>
     </style>
+    <!-- Mono tallies at the small and display ends: slip values, and the big wait on Insights -->
+    <style name="TextAppearance.Quapp.StatSmall" parent="TextAppearance.Quapp.Stat">
+        <item name="android:textSize">15sp</item>
+        <item name="lineHeight">18sp</item>
+        <item name="android:letterSpacing">-0.01</item>
+    </style>
+
+    <style name="TextAppearance.Quapp.StatDisplay" parent="TextAppearance.Quapp.Stat">
+        <item name="android:textSize">56sp</item>
+        <item name="lineHeight">56sp</item>
+        <item name="android:letterSpacing">-0.03</item>
+    </style>
 </resources>

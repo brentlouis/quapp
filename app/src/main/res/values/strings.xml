@@ -248,23 +248,24 @@
     <string name="analytics_no_show_rate_label">No-show rate</string>
     <string name="analytics_waiting_label">Waiting now</string>
     <string name="analytics_percent_format">%d%%</string>
-    <string name="analytics_forecast_label">Wait forecast</string>
-    <string name="analytics_average_label">Average time per person</string>
-    <string name="analytics_average_format">%.1f min</string>
+    <string name="analytics_average_format">%.1f min per person</string>
     <string name="analytics_average_none">No one served yet. Using a 5-minute default until there\'s data.</string>
     <string name="analytics_projected_label">Wait for someone joining now</string>
-    <string name="analytics_projected_format">~%d min</string>
+    <string name="analytics_projected_format">~%d</string>
+    <string name="analytics_minutes_unit">min</string>
+    <string name="analytics_subtitle_format">%s · today</string>
+    <string name="analytics_waiting_suffix">" · %d waiting"</string>
 
     <!-- Profile -->
     <string name="profile_title">Profile</string>
-    <string name="profile_back_description">Back</string>
     <string name="profile_name_fallback">Quapp user</string>
-    <string name="profile_role_label">Using Quapp for</string>
-    <string name="profile_role_queuer">Joining queues</string>
-    <string name="profile_role_owner">Managing queues</string>
+    <string name="profile_served_label">Served</string>
+    <string name="profile_no_shows_label">No-show</string>
     <string name="profile_history_action">Queue history</string>
     <string name="profile_switch_to_owner">Switch to managing queues</string>
     <string name="profile_switch_to_queuer">Switch to joining queues</string>
+    <string name="profile_switch_to_owner_hint">For LGU staff, clinics and organizers</string>
+    <string name="profile_switch_to_queuer_hint">Browse and join public queues</string>
     <string name="profile_logout_action">Log out</string>
     <string name="profile_logout_title">Log out?</string>
     <string name="profile_logout_message">You\'ll need to log in again to join or manage queues.</string>
@@ -277,6 +278,10 @@
     <string name="history_ticket_format">Ticket #%d</string>
     <string name="history_status_served">Served</string>
     <string name="history_status_no_show">No-show</string>
+    <string name="history_section">Past queues</string>
+    <string name="history_joined_label">Queues joined</string>
+    <string name="history_served_label">Served</string>
+    <string name="history_no_show_label">No-show</string>
     <string name="history_empty_title">No past queues yet</string>
     <string name="history_empty_body">Queues you finish, served or missed, show up here.</string>
     <string name="history_empty_action">Browse queues</string>
@@ -287,8 +292,8 @@
     </plurals>
 
     <plurals name="analytics_average_basis">
-        <item quantity="one">Rolling average of the last person served.</item>
-        <item quantity="other">Rolling average of the last %d people served.</item>
+        <item quantity="one">(the last person served)</item>
+        <item quantity="other">(average of the last %d served)</item>
     </plurals>
     <!-- Today tab (owner) -->
     <string name="today_title">Today</string>
@@ -306,7 +311,7 @@
         <item quantity="other">%d no-shows</item>
     </plurals>
     <string name="today_minutes_per_person">%.1f min per person</string>
-    <string name="today_detail_separator"> · </string>
+    <string name="today_detail_separator">" · "</string>
     <string name="today_empty_title">Nothing to count yet</string>
     <string name="today_empty_body">Totals show up here once you create a queue.</string>
     <!-- Forgot password -->
@@ -327,4 +332,8 @@
     <string name="forgot_email_subject">Password reset</string>
     <string name="forgot_email_body">Name:\nRegistered phone number:\n</string>
     <string name="forgot_no_email_app">No email app found. Write to %1$s.</string>
+    <plurals name="profile_history_count">
+        <item quantity="one">%d queue joined</item>
+        <item quantity="other">%d queues joined</item>
+    </plurals>
 </resources>

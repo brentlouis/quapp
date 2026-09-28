@@ -25,6 +25,8 @@ import androidx.core.content.ContextCompat;
 public class TearLineView extends View {
 
     private static final int HORIZONTAL = 0;
+    private static final int DASHED = 0;
+    private static final int DOTTED = 1;
 
     private final Paint paint = new Paint(Paint.ANTI_ALIAS_FLAG);
     private final int orientation;
@@ -39,13 +41,21 @@ public class TearLineView extends View {
         orientation = a.getInt(R.styleable.TearLineView_tearOrientation, HORIZONTAL);
         int color = a.getColor(R.styleable.TearLineView_tearColor,
                 ContextCompat.getColor(context, R.color.crema));
+        boolean dotted = a.getInt(R.styleable.TearLineView_tearStyle, DASHED) == DOTTED;
         a.recycle();
 
-        float dash = getResources().getDimension(R.dimen.tear_line_dash);
         paint.setColor(color);
         paint.setStyle(Paint.Style.STROKE);
         paint.setStrokeWidth(getResources().getDimension(R.dimen.tear_line_width));
-        paint.setPathEffect(new DashPathEffect(new float[]{dash, dash}, 0f));
+        if (dotted) {
+            // A near-zero dash with round caps draws a dot: the leader in a receipt slip row.
+            float gap = getResources().getDimension(R.dimen.dot_leader_gap);
+            paint.setStrokeCap(Paint.Cap.ROUND);
+            paint.setPathEffect(new DashPathEffect(new float[]{0.01f, gap}, 0f));
+        } else {
+            float dash = getResources().getDimension(R.dimen.tear_line_dash);
+            paint.setPathEffect(new DashPathEffect(new float[]{dash, dash}, 0f));
+        }
         // Decorative: screen readers skip it
         setImportantForAccessibility(IMPORTANT_FOR_ACCESSIBILITY_NO);
     }

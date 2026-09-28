@@ -40,8 +40,10 @@ public class OwnerQueuesFragment extends Fragment
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
-        // Profile is a tab now, so the header button goes.
-        view.findViewById(R.id.dashboard_profile).setVisibility(View.GONE);
+        // Profile is a tab now, so the header button is hidden.
+        // INVISIBLE, not GONE: the header is laid out around this button, and a GONE view
+        // collapses to nothing and drags the title up under the status bar.
+        view.findViewById(R.id.dashboard_profile).setVisibility(View.INVISIBLE);
 
         queueList = view.findViewById(R.id.dashboard_list);
         emptyState = view.findViewById(R.id.dashboard_empty);

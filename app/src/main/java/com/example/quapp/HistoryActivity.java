@@ -2,12 +2,11 @@ package com.example.quapp;
 
 import android.os.Bundle;
 import android.view.View;
+import android.widget.LinearLayout;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
-
-import com.google.android.material.divider.MaterialDividerItemDecoration;
 
 import java.util.List;
 
@@ -38,9 +37,6 @@ public class HistoryActivity extends AppCompatActivity {
 
         RecyclerView list = findViewById(R.id.history_list);
         list.setLayoutManager(new LinearLayoutManager(this));
-        list.addItemDecoration(new MaterialDividerItemDecoration(
-                this, MaterialDividerItemDecoration.VERTICAL));
-
         HistoryAdapter adapter = new HistoryAdapter();
         list.setAdapter(adapter);
 
@@ -49,6 +45,27 @@ public class HistoryActivity extends AppCompatActivity {
 
         boolean empty = tickets.isEmpty();
         list.setVisibility(empty ? View.GONE : View.VISIBLE);
+        findViewById(R.id.history_slip).setVisibility(empty ? View.GONE : View.VISIBLE);
+        findViewById(R.id.history_section).setVisibility(empty ? View.GONE : View.VISIBLE);
         findViewById(R.id.history_empty).setVisibility(empty ? View.VISIBLE : View.GONE);
+        bindTotals(tickets);
+    }
+
+    /** Queues joined, served, no-show on the receipt slip. */
+    private void bindTotals(List<Ticket> tickets) {
+        int served = 0;
+        int noShows = 0;
+        for (Ticket ticket : tickets) {
+            if (ticket.getStatus() == Ticket.Status.SERVED) {
+                served++;
+            } else if (ticket.getStatus() == Ticket.Status.NO_SHOW) {
+                noShows++;
+            }
+        }
+        LinearLayout slip = findViewById(R.id.history_slip);
+        ReceiptSlip.clear(slip);
+        ReceiptSlip.addRow(slip, getString(R.string.history_joined_label), String.valueOf(tickets.size()));
+        ReceiptSlip.addRow(slip, getString(R.string.history_served_label), String.valueOf(served));
+        ReceiptSlip.addRow(slip, getString(R.string.history_no_show_label), String.valueOf(noShows));
     }
 }
