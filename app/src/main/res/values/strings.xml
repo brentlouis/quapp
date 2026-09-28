@@ -37,10 +37,13 @@
 
     <string name="login_heading">Welcome back</string>
     <string name="login_subheading">Log in to join or manage queues.</string>
-    <string name="login_phone_hint">Phone number</string>
-    <string name="login_password_hint">Password</string>
+    <string name="login_phone_label">Phone number</string>
+    <string name="login_phone_placeholder">0917 123 4567</string>
+    <string name="login_password_label">Password</string>
+    <string name="login_forgot">Forgot password?</string>
     <string name="login_action">Log in</string>
-    <string name="login_register_prompt">No account yet? Register</string>
+    <string name="login_no_account">No account yet?</string>
+    <string name="login_create_account">Create account</string>
     <string name="login_phone_error">Enter an 11-digit number starting with 09</string>
     <string name="login_password_error">Enter your password</string>
 
@@ -303,4 +306,22 @@
     <string name="today_detail_separator"> · </string>
     <string name="today_empty_title">Nothing to count yet</string>
     <string name="today_empty_body">Totals show up here once you create a queue.</string>
+    <!-- Forgot password -->
+    <string name="forgot_back_description">Back to log in</string>
+    <string name="forgot_title">Forgot your password?</string>
+    <string name="forgot_body">Quapp can\'t send reset codes by text yet. Support can reset it for you.</string>
+    <string name="forgot_step_1_number">1</string>
+    <string name="forgot_step_1_title">Email Quapp support</string>
+    <string name="forgot_step_1_body">Include your name and the phone number you registered with.</string>
+    <string name="forgot_step_2_number">2</string>
+    <string name="forgot_step_2_title">Get a temporary password</string>
+    <string name="forgot_step_2_body">We reply within a day. Change it in Profile after you log in.</string>
+    <string name="forgot_note">In line right now? Your spot is kept. Show your number to staff at the counter.</string>
+    <string name="forgot_email_action">Email support</string>
+    <string name="forgot_back_action">Back to log in</string>
+    <!-- Placeholder address until the project has a real support inbox -->
+    <string name="forgot_support_email" translatable="false">support@quapp.app</string>
+    <string name="forgot_email_subject">Password reset</string>
+    <string name="forgot_email_body">Name:\nRegistered phone number:\n</string>
+    <string name="forgot_no_email_app">No email app found. Write to %1$s.</string>
 </resources>

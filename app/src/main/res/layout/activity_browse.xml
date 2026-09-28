@@ -235,7 +235,7 @@
 
         <com.google.android.material.button.MaterialButton
             android:id="@+id/browse_empty_button"
-            style="@style/Widget.Material3.Button.TonalButton"
+            style="@style/Widget.Quapp.Button.Tonal"
             android:layout_width="wrap_content"
             android:layout_height="@dimen/touch_target_min"
             android:layout_marginTop="@dimen/space_lg"

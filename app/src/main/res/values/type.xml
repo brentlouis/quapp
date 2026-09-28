@@ -134,4 +134,26 @@
         <item name="android:letterSpacing">0.08</item>
         <item name="android:textAllCaps">true</item>
     </style>
+    <!-- Field labels, above the box -->
+    <style name="TextAppearance.Quapp.FieldLabel" parent="TextAppearance.Material3.LabelLarge">
+        <item name="fontFamily">@font/ibm_plex_sans_medium</item>
+        <item name="android:fontFamily">@font/ibm_plex_sans_medium</item>
+        <item name="android:textStyle">normal</item>
+        <item name="android:textSize">14sp</item>
+        <item name="lineHeight">18sp</item>
+        <item name="android:letterSpacing">0</item>
+        <item name="android:textAllCaps">false</item>
+        <item name="android:textColor">?attr/colorOnSurface</item>
+    </style>
+
+    <!-- What you type into a field -->
+    <style name="TextAppearance.Quapp.Input" parent="TextAppearance.Material3.BodyLarge">
+        <item name="fontFamily">@font/ibm_plex_sans_regular</item>
+        <item name="android:fontFamily">@font/ibm_plex_sans_regular</item>
+        <item name="android:textStyle">normal</item>
+        <item name="android:textSize">16sp</item>
+        <item name="lineHeight">21sp</item>
+        <item name="android:letterSpacing">0</item>
+        <item name="android:textColor">?attr/colorOnSurface</item>
+    </style>
 </resources>

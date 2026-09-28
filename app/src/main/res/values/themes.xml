@@ -40,8 +40,9 @@
         <item name="colorOnErrorContainer">@color/err</item>
 
         <!-- Type: every Material role points at a Civic Paper style (values/type.xml) -->
-        <item name="fontFamily">@font/ibm_plex_sans_regular</item>
-        <item name="android:fontFamily">@font/ibm_plex_sans_regular</item>
+        <!-- A TextView with no textAppearance reads as body text. Not a theme-wide fontFamily:
+             that would beat every textAppearance and turn the serif headlines into Plex. -->
+        <item name="android:textViewStyle">@style/Widget.Quapp.TextView</item>
         <item name="textAppearanceDisplayLarge">@style/TextAppearance.Quapp.TicketNumber</item>
         <item name="textAppearanceDisplayMedium">@style/TextAppearance.Quapp.Display</item>
         <item name="textAppearanceDisplaySmall">@style/TextAppearance.Quapp.Display</item>
@@ -61,6 +62,12 @@
         <item name="textAppearanceTicketNumberCalled">@style/TextAppearance.Quapp.TicketNumber.Called</item>
         <item name="textAppearanceStat">@style/TextAppearance.Quapp.Stat</item>
         <item name="textAppearanceStatHero">@style/TextAppearance.Quapp.StatHero</item>
+        <item name="textAppearanceFieldLabel">@style/TextAppearance.Quapp.FieldLabel</item>
+
+        <!-- Components (values/styles.xml): every MaterialButton gets the Civic Paper shape -->
+        <item name="materialButtonStyle">@style/Widget.Quapp.Button</item>
+        <item name="materialButtonOutlinedStyle">@style/Widget.Quapp.Button.Outlined</item>
+        <item name="borderlessButtonStyle">@style/Widget.Quapp.Button.Text</item>
 
         <!-- Paper with its printed grain, behind every screen -->
         <item name="android:windowBackground">@drawable/bg_paper</item>

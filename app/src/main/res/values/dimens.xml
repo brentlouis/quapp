@@ -22,9 +22,14 @@
     <dimen name="tear_line_dash">4dp</dimen>
     <dimen name="hairline">1dp</dimen>
     <dimen name="my_tickets_stub_width">104dp</dimen> <!-- where the tear line and punches sit on a compact ticket -->
+    <dimen name="login_mark_width">34dp</dimen>   <!-- the ticket mark is 4:5 -->
+    <dimen name="login_mark_height">42.5dp</dimen>
+    <dimen name="forgot_step_size">32dp</dimen>
 
     <dimen name="touch_target_min">48dp</dimen>
+    <dimen name="button_height_lg">56dp</dimen> <!-- buttons in the dock -->
     <dimen name="icon_size">24dp</dimen>
+    <dimen name="icon_small">20dp</dimen>
     <!-- Centers a 24dp icon in a 48dp touch target. -->
     <dimen name="icon_inset">12dp</dimen>
 

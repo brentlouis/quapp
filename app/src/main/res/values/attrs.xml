@@ -1,11 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Theme attributes for the three text styles Material has no role for.
+<!-- Theme attributes for the text styles Material has no role for.
      Layouts use them like any other role: android:textAppearance="?attr/textAppearanceStat". -->
 <resources>
     <attr name="textAppearanceTicketNumber" format="reference" />
     <attr name="textAppearanceTicketNumberCalled" format="reference" />
     <attr name="textAppearanceStat" format="reference" />
     <attr name="textAppearanceStatHero" format="reference" />
+    <attr name="textAppearanceFieldLabel" format="reference" />
 
     <!-- TearLineView: the dashed crema line -->
     <declare-styleable name="TearLineView">

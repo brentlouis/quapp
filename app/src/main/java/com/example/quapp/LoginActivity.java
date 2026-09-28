@@ -15,10 +15,19 @@ public class LoginActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_login);
-        SystemBars.applyPadding(findViewById(R.id.login_root));
+        // The dock sits above the keyboard instead of behind it.
+        SystemBars.applyPaddingWithKeyboard(findViewById(R.id.login_root));
 
         MaterialButton submitButton = findViewById(R.id.login_submit_button);
         MaterialButton registerButton = findViewById(R.id.login_register_button);
+        MaterialButton forgotButton = findViewById(R.id.login_forgot_button);
+
+        forgotButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                startActivity(new Intent(LoginActivity.this, ForgotPasswordActivity.class));
+            }
+        });
 
         submitButton.setOnClickListener(new View.OnClickListener() {
             @Override

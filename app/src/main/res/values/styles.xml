@@ -2,6 +2,11 @@
 <!-- Component styles for Civic Paper (DESIGN.md section 9). -->
 <resources>
 
+    <!-- Default for every TextView (android:textViewStyle in Theme.Quapp) -->
+    <style name="Widget.Quapp.TextView" parent="Widget.AppCompat.TextView">
+        <item name="android:textAppearance">@style/TextAppearance.Quapp.Body</item>
+    </style>
+
     <!-- Bottom nav: raised paper, ink when selected. The tear line above it is a TearLineView
          in the layout; the notched active tab is set in code (TicketShapes.selection). -->
     <style name="Widget.Quapp.BottomNavigation" parent="Widget.Material3.BottomNavigationView">
@@ -28,5 +33,101 @@
     <style name="TextAppearance.Quapp.NavLabel.Active">
         <item name="fontFamily">@font/ibm_plex_sans_bold</item>
         <item name="android:fontFamily">@font/ibm_plex_sans_bold</item>
+    </style>
+    <!-- ===== Buttons (DESIGN.md section 9): 48dp, radius_md, no pill ===== -->
+
+    <style name="ShapeAppearance.Quapp.Button" parent="">
+        <item name="cornerFamily">rounded</item>
+        <item name="cornerSize">@dimen/radius_md</item>
+    </style>
+
+    <!-- Filled: ink with paper_raised text (colorPrimary / colorOnPrimary). One per screen. -->
+    <style name="Widget.Quapp.Button" parent="Widget.Material3.Button">
+        <item name="shapeAppearance">@style/ShapeAppearance.Quapp.Button</item>
+        <!-- M3 pads 6dp above and below the visible button; Civic Paper buttons fill their height -->
+        <item name="android:insetTop">0dp</item>
+        <item name="android:insetBottom">0dp</item>
+        <item name="android:minHeight">@dimen/touch_target_min</item>
+    </style>
+
+    <!-- Tonal: paper_sunk with ink text (colorSecondaryContainer) -->
+    <style name="Widget.Quapp.Button.Tonal" parent="Widget.Material3.Button.TonalButton">
+        <item name="shapeAppearance">@style/ShapeAppearance.Quapp.Button</item>
+        <item name="android:insetTop">0dp</item>
+        <item name="android:insetBottom">0dp</item>
+        <item name="android:minHeight">@dimen/touch_target_min</item>
+    </style>
+
+    <!-- Outlined: 1dp outline with ink text -->
+    <style name="Widget.Quapp.Button.Outlined" parent="Widget.Material3.Button.OutlinedButton">
+        <item name="shapeAppearance">@style/ShapeAppearance.Quapp.Button</item>
+        <item name="strokeColor">?attr/colorOutline</item>
+        <item name="android:insetTop">0dp</item>
+        <item name="android:insetBottom">0dp</item>
+        <item name="android:minHeight">@dimen/touch_target_min</item>
+    </style>
+
+    <!-- Text: roast. The overlay swaps the primary for this button only, so the ripple matches. -->
+    <style name="Widget.Quapp.Button.Text" parent="Widget.Material3.Button.TextButton">
+        <item name="shapeAppearance">@style/ShapeAppearance.Quapp.Button</item>
+        <item name="materialThemeOverlay">@style/ThemeOverlay.Quapp.TextButton</item>
+        <item name="android:insetTop">0dp</item>
+        <item name="android:insetBottom">0dp</item>
+        <item name="android:minHeight">@dimen/touch_target_min</item>
+    </style>
+
+    <!-- Text button with a leading icon -->
+    <style name="Widget.Quapp.Button.Text.Icon" parent="Widget.Material3.Button.TextButton.Icon">
+        <item name="shapeAppearance">@style/ShapeAppearance.Quapp.Button</item>
+        <item name="materialThemeOverlay">@style/ThemeOverlay.Quapp.TextButton</item>
+        <item name="android:insetTop">0dp</item>
+        <item name="android:insetBottom">0dp</item>
+        <item name="android:minHeight">@dimen/touch_target_min</item>
+    </style>
+
+    <style name="ThemeOverlay.Quapp.TextButton" parent="ThemeOverlay.Material3.Button.TextButton">
+        <item name="colorPrimary">@color/roast</item>
+    </style>
+
+    <!-- ===== Fields (DESIGN.md section 9): label above in its own TextView, 52dp paper_raised box ===== -->
+
+    <style name="Widget.Quapp.TextField" parent="Widget.Material3.TextInputLayout.OutlinedBox">
+        <!-- The label is a TextView above the box, so no floating hint -->
+        <item name="hintEnabled">false</item>
+        <item name="boxBackgroundColor">?attr/colorSurfaceContainer</item>
+        <item name="boxStrokeColor">?attr/colorOutline</item>
+        <item name="boxStrokeWidth">@dimen/hairline</item>
+        <item name="boxStrokeWidthFocused">2dp</item>
+        <item name="boxStrokeErrorColor">?attr/colorError</item>
+        <item name="boxCornerRadiusTopStart">@dimen/radius_sm</item>
+        <item name="boxCornerRadiusTopEnd">@dimen/radius_sm</item>
+        <item name="boxCornerRadiusBottomStart">@dimen/radius_sm</item>
+        <item name="boxCornerRadiusBottomEnd">@dimen/radius_sm</item>
+        <item name="helperTextTextAppearance">@style/TextAppearance.Quapp.Caption</item>
+        <item name="errorTextAppearance">@style/TextAppearance.Quapp.Caption</item>
+        <item name="endIconTint">?attr/colorOnSurfaceVariant</item>
+        <item name="materialThemeOverlay">@style/ThemeOverlay.Quapp.TextField</item>
+    </style>
+
+    <style name="ThemeOverlay.Quapp.TextField" parent="ThemeOverlay.Material3.TextInputEditText.OutlinedBox">
+        <item name="editTextStyle">@style/Widget.Quapp.TextField.Input</item>
+    </style>
+
+    <style name="Widget.Quapp.TextField.Input" parent="Widget.Material3.TextInputEditText.OutlinedBox">
+        <item name="android:textAppearance">@style/TextAppearance.Quapp.Input</item>
+        <item name="android:textColorHint">@color/ink_faint</item>
+        <item name="android:minHeight">52dp</item>
+        <item name="android:paddingTop">@dimen/space_ms</item>
+        <item name="android:paddingBottom">@dimen/space_ms</item>
+    </style>
+
+    <!-- ===== Dock (bottom button bar): paper, 12dp/16dp padding. The tear line on top is a
+         TearLineView in the layout. ===== -->
+
+    <style name="Widget.Quapp.Dock" parent="">
+        <item name="android:paddingStart">@dimen/space_md</item>
+        <item name="android:paddingEnd">@dimen/space_md</item>
+        <item name="android:paddingTop">@dimen/space_ms</item>
+        <item name="android:paddingBottom">@dimen/space_ms</item>
     </style>
 </resources>
