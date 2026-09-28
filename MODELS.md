@@ -26,6 +26,7 @@ Conventions:
 | `VerificationStatus` | `NONE`, `PENDING`, `VERIFIED`, `REJECTED`, `REVOKED` |
 | `OrganizationType` | `LGU_OFFICE`, `BARANGAY`, `HEALTH`, `SCHOOL`, `COMMUNITY_GROUP`, `OTHER` |
 | `ReportReason` | `FAKE`, `ASKED_FOR_MONEY`, `WRONG_PLACE_OR_TIME`, `OTHER` |
+| `EstimateSource` | `ROLLING_AVERAGE`, `MODEL` |
 
 Category labels in the app: Relief, Medical, Government, Education, Bills & Payments, IDs & Registration, Jobs, Other.
 
@@ -79,6 +80,10 @@ An owner's numbers for one queue today. Separate from `Queue` because only the o
 | averageServiceMinutes | `average_service_minutes` | double |
 | serviceSampleCount | `service_sample_count` | int |
 | projectedWaitMinutes | `projected_wait_minutes` | int |
+| estimateSource | `estimate_source` | EstimateSource |
+| modelSamples | `model_samples` | int |
+
+`estimate_source` says where today's minutes-per-person came from: the rolling average while a queue has little history, the learning model after that. Insights shows it ("Learning model · 142 people"). `model_samples` is how many served people the model has learned from in total.
 
 ---
 
@@ -111,12 +116,16 @@ Rules the server enforces:
 - **Closed by the owner is not a no-show.** Closing a queue turns every WAITING or CALLED ticket into QUEUE_CLOSED and never counts toward the cooldown.
 - **Removal.** PRANK counts as a no-show and goes to the admin; DUPLICATE and ASKED_TO_LEAVE don't count.
 
+### The estimator
+
+Every wait in the app is **predicted minutes per person × people ahead**. The minutes per person come from the wait-time model (DECISIONS.md "Wait-time estimation learns online"), or from the rolling average of the last 5 service times while a queue has fewer than 10 served people today. The same number drives the move-back distance below.
+
 ### Moving back: the estimator decides how far
 
 "I need more time" asks how much time the queuer needs (5, 10, 15, 20, 30 or 45 min). The server turns time into places with the same rolling average that drives every ETA:
 
 ```
-places = ceil(minutes_needed / average_service_minutes)
+places = ceil(minutes_needed / predicted_minutes_per_person)
 places = min(places, people_behind)          // at most, to the end of the line
 ```
 

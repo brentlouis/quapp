@@ -1084,6 +1084,28 @@ A crema tear line runs above every bottom button bar and along the top of the bo
 
 ---
 
+## Wait-time estimation learns online (the ML part)
+
+**Decision:** Server-side, in FastAPI. A linear model (scikit-learn `SGDRegressor`) predicts **minutes per person** for a queue right now; every wait is that × people ahead, and the move-back distance is minutes needed ÷ that.
+- **Features, live:** rolling average of the last 5 service times, people served in the last 15 min, people in line, no-shows in the last hour, moved-backs waiting.
+- **Features, context:** hour of day, day of week, category, minutes since the queue opened, whether grace period and proximity are on.
+- **Warm start:** trained on simulated days before launch.
+- **Online:** after each person is served, the model and its scaler take one `partial_fit` step with the real service time. Saved to disk after each update so a restart keeps what it learned.
+- **Guards:** a small learning rate; service times over 30 min are treated as a break and skipped; a queue with fewer than 10 served people today uses the rolling average instead. `QueueStats.estimate_source` says which one was used.
+- **Evaluation:** prequential ("predict, then learn") on simulated days. The error in minutes for the rolling average, a model trained once, and the online model, plus how the online model's error falls as it learns.
+
+**Why:** The course requires ML, and Brent's lives in wait-time estimation. A rolling average alone is statistics and can't learn that lunch hour is slow or relief queues run longer. Learning from each served person uses the live data the app already produces, and a linear model's coefficients can be read out at the defense. There is no real usage data yet, so simulated days train and test it; the write-up says so and explains that real data keeps training it.
+
+**Also considered:**
+- Batch retraining only (nightly): simpler, but misses changes during the day.
+- Gradient boosting: usually more accurate, much harder to explain; possible as a second model to compare against.
+- On-device TensorFlow Lite: not needed, Quapp is an online service.
+- A no-show prediction model: future work; it would double the ML and evaluation work.
+
+**Status:** Current (design). Built with the backend. Supersedes the forecasting half of "Cut the proposal down to a buildable subset".
+
+---
+
 ## Known compromises
 
 Deliberate shortcuts, not oversights. Each has a planned fix.

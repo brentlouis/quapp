@@ -104,7 +104,10 @@ All ten built 2026-09-21 and checked on the Pixel 8 emulator; unticked until Bre
 
 - [ ] Python simulation harness: generated traffic with injected prank entries
 - [ ] Verification strategy comparison (detection rate, false positives, throughput)
-- [ ] Forecasting accuracy comparison
+- [ ] Forecasting accuracy comparison: prequential error for rolling average vs trained-once model vs online model
+- [ ] Wait-time model on FastAPI: `SGDRegressor` + `StandardScaler`, warm start on simulated days, `partial_fit` per served person, saved to disk
+- [ ] Simulated days: arrivals, service times by hour and category, no-shows, move-backs, breaks
+- [ ] `QueueStats.estimate_source` / `model_samples`; Insights shows where the estimate came from
 
 ---
 
