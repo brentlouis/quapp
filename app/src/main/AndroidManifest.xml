@@ -31,6 +31,9 @@
         <activity android:name=".QueueDetailActivity" />
         <activity android:name=".JoinQueueActivity" />
         <activity android:name=".ActiveTicketActivity" />
+        <activity
+            android:name=".CalledActivity"
+            android:theme="@style/Theme.Quapp.Called" />
         <activity android:name=".OwnerHomeActivity" />
         <activity android:name=".CreateQueueActivity"/>
         <activity android:name=".LiveConsoleActivity"/>

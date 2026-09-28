@@ -1,146 +1,190 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout
-    xmlns:android="http://schemas.android.com/apk/res/android"
+<!-- Live console (canvas 15). The Now serving panel is the spotlight: the number in marigold,
+     a tear line, the name in Title. Under it, the line on plain paper. The dock acts on the
+     person being served: No-show, or Served and call the next number. -->
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/console_root"
     android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:background="?attr/colorSurface">
+    android:layout_height="match_parent">
+
+    <!-- ===== App bar ===== -->
 
     <ImageButton
         android:id="@+id/console_back"
         android:layout_width="@dimen/touch_target_min"
         android:layout_height="@dimen/touch_target_min"
-        android:layout_marginStart="@dimen/space_sm"
-        android:layout_marginTop="@dimen/space_sm"
+        android:layout_marginStart="@dimen/space_xs"
+        android:layout_marginTop="@dimen/space_xs"
         android:background="?attr/selectableItemBackgroundBorderless"
         android:contentDescription="@string/console_back_description"
-        android:padding="@dimen/space_sm"
         android:src="@drawable/ic_arrow_back"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
         app:tint="?attr/colorOnSurface" />
 
+    <LinearLayout
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="@dimen/space_xs"
+        android:orientation="vertical"
+        app:layout_constraintBottom_toBottomOf="@id/console_back"
+        app:layout_constraintEnd_toStartOf="@id/console_menu"
+        app:layout_constraintStart_toEndOf="@id/console_back"
+        app:layout_constraintTop_toTopOf="@id/console_back">
+
+        <TextView
+            android:id="@+id/console_queue_name"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:accessibilityHeading="true"
+            android:ellipsize="end"
+            android:maxLines="1"
+            android:textAppearance="?attr/textAppearanceTitleMedium"
+            tools:text="Free Medical Mission" />
+
+        <TextView
+            android:id="@+id/console_status"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:ellipsize="end"
+            android:maxLines="1"
+            android:textAppearance="?attr/textAppearanceBodySmall"
+            tools:text="Open · accepting joins" />
+    </LinearLayout>
+
     <ImageButton
         android:id="@+id/console_menu"
         android:layout_width="@dimen/touch_target_min"
         android:layout_height="@dimen/touch_target_min"
-        android:layout_marginTop="@dimen/space_sm"
-        android:layout_marginEnd="@dimen/space_sm"
+        android:layout_marginEnd="@dimen/space_xs"
         android:background="?attr/selectableItemBackgroundBorderless"
         android:contentDescription="@string/console_menu_description"
-        android:padding="@dimen/space_sm"
         android:src="@drawable/ic_more_vert"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintTop_toTopOf="@id/console_back"
         app:tint="?attr/colorOnSurface" />
 
-    <TextView
-        android:id="@+id/console_queue_name"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="@dimen/space_md"
-        android:layout_marginEnd="@dimen/space_md"
-        android:ellipsize="end"
-        android:maxLines="1"
-        android:textAppearance="?attr/textAppearanceTitleLarge"
-        android:textColor="?attr/colorOnSurface"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/console_back"
-        tools:text="Barangay Relief Distribution" />
+    <!-- ===== Now serving: the spotlight ===== -->
 
-    <TextView
-        android:id="@+id/console_status"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="@dimen/space_md"
-        android:layout_marginTop="@dimen/space_xs"
-        android:layout_marginEnd="@dimen/space_md"
-        android:textAppearance="?attr/textAppearanceBodyMedium"
-        android:textColor="?attr/colorOnSurfaceVariant"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/console_queue_name"
-        tools:text="Open · accepting joins" />
-
-    <com.google.android.material.card.MaterialCardView
+    <androidx.constraintlayout.widget.ConstraintLayout
         android:id="@+id/console_now_serving"
-        style="@style/Widget.Material3.CardView.Filled"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_marginStart="@dimen/space_md"
-        android:layout_marginTop="@dimen/space_md"
+        android:layout_marginTop="@dimen/space_sm"
         android:layout_marginEnd="@dimen/space_md"
-        app:cardCornerRadius="@dimen/corner_radius"
+        android:paddingStart="@dimen/space_md"
+        android:paddingTop="@dimen/space_md"
+        android:paddingEnd="@dimen/space_md"
+        android:paddingBottom="@dimen/space_md"
+        android:theme="@style/ThemeOverlay.Quapp.Spotlight"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/console_status">
+        app:layout_constraintTop_toBottomOf="@id/console_back">
 
-        <LinearLayout
-            android:layout_width="match_parent"
+        <TextView
+            android:id="@+id/console_serving_label"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:orientation="vertical"
-            android:padding="@dimen/space_md">
+            android:text="@string/console_now_serving_label"
+            android:textAppearance="?attr/textAppearanceLabelSmall"
+            android:textColor="?attr/colorOnSurfaceVariant"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
 
-            <TextView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="@string/console_now_serving_label"
-                android:textAppearance="?attr/textAppearanceLabelSmall"
-                android:textColor="?attr/colorOnSurfaceVariant" />
+        <TextView
+            android:id="@+id/console_serving_number"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/space_xs"
+            android:textAppearance="?attr/textAppearanceTicketNumber"
+            android:textColor="@color/signal"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/console_serving_label"
+            tools:text="#23" />
 
-            <TextView
-                android:id="@+id/console_serving_value"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="@dimen/space_xs"
-                android:textAppearance="?attr/textAppearanceHeadlineSmall"
-                android:textColor="?attr/colorOnSurface"
-                tools:text="#3 · Ana Lopez" />
+        <!-- Dashed crema line between the number and who holds it -->
+        <com.example.quapp.TearLineView
+            android:id="@+id/console_serving_tear"
+            android:layout_width="2dp"
+            android:layout_height="0dp"
+            android:layout_marginStart="@dimen/space_md"
+            app:layout_constraintBottom_toBottomOf="@id/console_serving_number"
+            app:layout_constraintStart_toEndOf="@id/console_serving_number"
+            app:layout_constraintTop_toTopOf="@id/console_serving_number"
+            app:tearOrientation="vertical" />
 
-        </LinearLayout>
+        <TextView
+            android:id="@+id/console_serving_name"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="@dimen/space_md"
+            android:ellipsize="end"
+            android:maxLines="2"
+            android:textAppearance="?attr/textAppearanceTitleLarge"
+            app:layout_constraintBottom_toTopOf="@id/console_serving_phone"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toEndOf="@id/console_serving_tear"
+            app:layout_constraintTop_toTopOf="@id/console_serving_number"
+            app:layout_constraintVertical_chainStyle="packed"
+            tools:text="Ana Lopez" />
 
-    </com.google.android.material.card.MaterialCardView>
+        <TextView
+            android:id="@+id/console_serving_phone"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:fontFeatureSettings="tnum"
+            android:textAppearance="?attr/textAppearanceBodySmall"
+            app:layout_constraintBottom_toBottomOf="@id/console_serving_number"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="@id/console_serving_name"
+            app:layout_constraintTop_toBottomOf="@id/console_serving_name"
+            tools:text="0917 ••• 0002" />
 
-    <com.google.android.material.button.MaterialButton
-        android:id="@+id/console_call_next"
-        android:layout_width="0dp"
-        android:layout_height="@dimen/touch_target_min"
-        android:layout_marginStart="@dimen/space_md"
-        android:layout_marginTop="@dimen/space_md"
-        android:layout_marginEnd="@dimen/space_md"
-        android:text="@string/console_call_next"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/console_now_serving" />
+        <!-- Nobody called yet: the number and name are replaced by one line -->
+        <TextView
+            android:id="@+id/console_serving_none"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/space_sm"
+            android:text="@string/console_none_serving"
+            android:textAppearance="?attr/textAppearanceTitleLarge"
+            android:visibility="gone"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/console_serving_label" />
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+    <!-- ===== Up next ===== -->
 
     <TextView
         android:id="@+id/console_waiting_header"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_marginStart="@dimen/space_md"
-        android:layout_marginEnd="@dimen/space_sm"
-        android:textAppearance="?attr/textAppearanceLabelSmall"
-        android:textColor="?attr/colorOnSurfaceVariant"
+        android:fontFeatureSettings="tnum"
+        android:textAppearance="?attr/textAppearanceTitleSmall"
         app:layout_constraintBottom_toBottomOf="@id/console_walk_in"
         app:layout_constraintEnd_toStartOf="@id/console_walk_in"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="@id/console_walk_in"
-        tools:text="8 in queue" />
+        tools:text="Up next · 8 waiting" />
 
     <com.google.android.material.button.MaterialButton
         android:id="@+id/console_walk_in"
-        style="@style/Widget.Quapp.Button.Text.Icon"
+        style="@style/Widget.Quapp.Button.Text"
         android:layout_width="wrap_content"
-        android:layout_height="@dimen/touch_target_min"
-        android:layout_marginTop="@dimen/space_md"
-        android:layout_marginEnd="@dimen/space_sm"
-        android:text="@string/console_walk_in_action"
-        app:icon="@drawable/ic_add"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/space_sm"
+        android:layout_marginEnd="@dimen/space_xs"
+        android:text="@string/console_walk_in_label"
+        app:icon="@drawable/ic_user_plus"
+        app:iconSize="@dimen/icon_small"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/console_call_next" />
+        app:layout_constraintTop_toBottomOf="@id/console_now_serving" />
 
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/console_list"
@@ -148,26 +192,24 @@
         android:layout_height="0dp"
         android:clipToPadding="false"
         android:paddingStart="@dimen/space_md"
-        android:paddingTop="@dimen/space_sm"
-        android:paddingEnd="@dimen/space_md"
+        android:paddingEnd="@dimen/space_xs"
         android:paddingBottom="@dimen/space_md"
-        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintBottom_toTopOf="@id/console_tear"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/console_walk_in"
-        tools:itemCount="5"
+        tools:itemCount="4"
         tools:listitem="@layout/item_waiting_ticket" />
 
     <LinearLayout
         android:id="@+id/console_empty"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:layout_marginStart="@dimen/space_xl"
-        android:layout_marginEnd="@dimen/space_xl"
-        android:gravity="center_horizontal"
+        android:layout_marginStart="@dimen/space_md"
+        android:layout_marginTop="@dimen/space_lg"
+        android:layout_marginEnd="@dimen/space_md"
         android:orientation="vertical"
         android:visibility="gone"
-        app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/console_walk_in">
@@ -176,20 +218,55 @@
             android:id="@+id/console_empty_title"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="@string/console_empty_title"
-            android:textAppearance="?attr/textAppearanceTitleMedium"
-            android:textColor="?attr/colorOnSurface" />
+            android:textAppearance="?attr/textAppearanceTitleLarge"
+            tools:text="@string/console_empty_title" />
 
         <TextView
             android:id="@+id/console_empty_body"
-            android:layout_width="match_parent"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="@dimen/space_sm"
-            android:gravity="center"
-            android:text="@string/console_empty_body"
-            android:textAppearance="?attr/textAppearanceBodyMedium"
-            android:textColor="?attr/colorOnSurfaceVariant" />
+            android:textAppearance="?attr/textAppearanceBodyLarge"
+            android:textColor="?attr/colorOnSurfaceVariant"
+            tools:text="@string/console_empty_body" />
+    </LinearLayout>
 
+    <!-- ===== Dock ===== -->
+
+    <com.example.quapp.TearLineView
+        android:id="@+id/console_tear"
+        android:layout_width="0dp"
+        android:layout_height="@dimen/tear_line_width"
+        android:layout_marginStart="@dimen/space_md"
+        android:layout_marginEnd="@dimen/space_md"
+        app:layout_constraintBottom_toTopOf="@id/console_dock"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent" />
+
+    <LinearLayout
+        android:id="@+id/console_dock"
+        style="@style/Widget.Quapp.Dock"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent">
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/console_no_show"
+            style="@style/Widget.Quapp.Button.Outlined"
+            android:layout_width="wrap_content"
+            android:layout_height="@dimen/button_height_lg"
+            android:layout_marginEnd="@dimen/space_ms"
+            android:text="@string/console_no_show_action" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/console_call_next"
+            android:layout_width="0dp"
+            android:layout_height="@dimen/button_height_lg"
+            android:layout_weight="1"
+            tools:text="Served · call #24" />
     </LinearLayout>
 
 </androidx.constraintlayout.widget.ConstraintLayout>

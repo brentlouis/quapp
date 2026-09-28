@@ -1,46 +1,43 @@
 package com.example.quapp;
 
+import android.content.ActivityNotFoundException;
+import android.content.DialogInterface;
+import android.content.Intent;
 import android.content.res.ColorStateList;
-import android.graphics.Color;
+import android.net.Uri;
 import android.os.Bundle;
-import android.os.CountDownTimer;
+import android.text.format.DateFormat;
 import android.view.View;
-import android.widget.ImageButton;
 import android.widget.TextView;
 
+import androidx.annotation.ColorRes;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.ContextCompat;
-import androidx.core.graphics.ColorUtils;
+import androidx.core.view.ViewCompat;
 
-import com.google.android.material.button.MaterialButton;
-import com.google.android.material.color.MaterialColors;
-import com.google.android.material.progressindicator.CircularProgressIndicator;
+import com.google.android.material.dialog.MaterialAlertDialogBuilder;
+import com.google.android.material.shape.ShapeAppearanceModel;
+import com.google.android.material.snackbar.Snackbar;
 
+import java.util.Date;
 import java.util.Locale;
 
+/**
+ * My ticket (canvas 08) while you wait, and the outcome once you're served or your slot is
+ * released. Being called is its own screen, CalledActivity: the whole screen turns espresso,
+ * which is a different Activity theme (Theme.Quapp.Called).
+ */
 public class ActiveTicketActivity extends AppCompatActivity {
 
-    private static final long GRACE_PERIOD_MS = 180_000L;
-    private static final long COUNTDOWN_TICK_MS = 1_000L;
+    /** "Be there by" is the estimated call time minus this (DECISIONS.md "Arrival info"). */
+    private static final int ARRIVAL_BUFFER_MINUTES = 10;
 
-    private CountDownTimer graceTimer;
-
-    // Track behind the grace ring: the content color at 25% opacity.
-    private static final int RING_TRACK_ALPHA = 64;
-
-    private View hero;
-    private TextView statusText;
-    private TextView aheadText;
-    private TextView aheadLabel;
-    private TextView etaText;
-    private CircularProgressIndicator graceRing;
-    private TextView countdownText;
-    private TextView headlineText;
-    private TextView instructionText;
-    private TextView numberLabel;
-    private TextView ticketNumber;
-    private MaterialButton leaveButton;
-    private MaterialButton primaryButton;
+    private TextView statusPill;
+    private View ticketCard;
+    private View ticketRows;
+    private View outcome;
+    private View leaveButton;
+    private View doneButton;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -48,28 +45,67 @@ public class ActiveTicketActivity extends AppCompatActivity {
         setContentView(R.layout.activity_active_ticket);
         SystemBars.applyPadding(findViewById(R.id.ticket_root));
 
-        Ticket ticket = ActiveTicketStore.getTicket();
+        statusPill = findViewById(R.id.ticket_status);
+        ticketCard = findViewById(R.id.ticket_card);
+        ticketRows = findViewById(R.id.ticket_rows);
+        outcome = findViewById(R.id.ticket_outcome);
+        leaveButton = findViewById(R.id.ticket_leave_button);
+        doneButton = findViewById(R.id.ticket_done_button);
 
-        if (ticket == null) {
-            finish();
-            return;
-        }
-
-        cacheViews();
-        bindStaticDetails(ticket);
-
-        ImageButton backButton = findViewById(R.id.ticket_back);
-        backButton.setOnClickListener(new View.OnClickListener() {
+        findViewById(R.id.ticket_back).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 finish();
             }
         });
+
+        leaveButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                confirmLeave();
+            }
+        });
+
+        doneButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                ActiveTicketStore.finishTicket();
+                finish();
+            }
+        });
+
+        findViewById(R.id.ticket_directions).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                openDirections();
+            }
+        });
+
+        // Demo hook until the server pushes it: long-press the ticket to simulate being called.
+        ticketCard.setOnLongClickListener(new View.OnLongClickListener() {
+            @Override
+            public boolean onLongClick(View view) {
+                ActiveTicketStore.markCalled(CalledActivity.GRACE_PERIOD_MS);
+                openCalled();
+                return true;
+            }
+        });
+
+        // The stub's bottom punch is placed from the right edge, so the shape needs the width.
+        ticketCard.addOnLayoutChangeListener(new View.OnLayoutChangeListener() {
+            @Override
+            public void onLayoutChange(View v, int left, int top, int right, int bottom,
+                                       int oldLeft, int oldTop, int oldRight, int oldBottom) {
+                if (right - left != oldRight - oldLeft) {
+                    applyTicketShape(v, right - left);
+                }
+            }
+        });
     }
 
     /**
-     * Rendered here rather than in onCreate so the screen catches up if the
-     * grace window ran out while the queuer was somewhere else.
+     * Rendered in onResume, not onCreate, so the screen catches up with whatever happened while
+     * the queuer was on another screen (called, served, slot released).
      */
     @Override
     protected void onResume() {
@@ -80,166 +116,146 @@ public class ActiveTicketActivity extends AppCompatActivity {
             finish();
             return;
         }
-        renderState(ticket.getStatus());
+
+        ((TextView) findViewById(R.id.ticket_queue_name)).setText(ticket.getQueueName());
+        ((TextView) findViewById(R.id.ticket_venue)).setText(ticket.getVenue());
+
+        switch (ticket.getStatus()) {
+            case WAITING:
+                renderWaiting(ticket);
+                break;
+            case CALLED:
+                openCalled();
+                break;
+            case SERVED:
+                renderOutcome(R.string.ticket_status_served, R.color.ok, R.color.ok_soft,
+                        getString(R.string.ticket_served_headline),
+                        getString(R.string.ticket_served_instruction));
+                break;
+            case NO_SHOW:
+                renderOutcome(R.string.ticket_status_expired, R.color.err, R.color.err_soft,
+                        getString(R.string.ticket_expired_headline), expiredInstruction());
+                break;
+        }
     }
 
-    @Override
-    protected void onPause() {
-        super.onPause();
-        // The deadline lives in ActiveTicketStore, so stopping the display timer loses nothing.
-        cancelGraceTimer();
+    /** Called replaces this screen, so Back from Called goes to where you came from. */
+    private void openCalled() {
+        startActivity(new Intent(this, CalledActivity.class));
+        finish();
     }
 
-    private void cacheViews() {
-        hero = findViewById(R.id.ticket_hero);
-        statusText = findViewById(R.id.ticket_status);
-        aheadText = findViewById(R.id.ticket_ahead);
-        aheadLabel = findViewById(R.id.ticket_ahead_label);
-        etaText = findViewById(R.id.ticket_eta);
-        graceRing = findViewById(R.id.ticket_ring);
-        countdownText = findViewById(R.id.ticket_countdown);
-        headlineText = findViewById(R.id.ticket_headline);
-        instructionText = findViewById(R.id.ticket_instruction);
-        numberLabel = findViewById(R.id.ticket_number_label);
-        ticketNumber = findViewById(R.id.ticket_number);
-        leaveButton = findViewById(R.id.ticket_leave_button);
-        primaryButton = findViewById(R.id.ticket_primary_button);
-    }
+    // ---- Waiting ------------------------------------------------------------
 
-    private void bindStaticDetails(Ticket ticket) {
-        TextView queueName = findViewById(R.id.ticket_queue_name);
-        TextView venue = findViewById(R.id.ticket_venue);
+    private void renderWaiting(Ticket ticket) {
+        setPill(R.string.ticket_status_waiting, R.color.ink_muted, R.color.paper_sunk);
+        showWaiting(true);
 
-        queueName.setText(ticket.getQueueName());
-        venue.setText(ticket.getVenue());
-
-        ticketNumber.setText(getString(R.string.ticket_number_format, ticket.getTicketNumber()));
-        etaText.setText(getString(R.string.ticket_eta_format, ticket.getEstimatedWaitMinutes()));
+        ((TextView) findViewById(R.id.ticket_number)).setText(
+                getString(R.string.ticket_number_format, ticket.getTicketNumber()));
 
         // Position counts the queuer too, so the people ahead are one fewer.
         int ahead = ticket.getPosition() - 1;
+        TextView aheadText = findViewById(R.id.ticket_ahead);
+        TextView aheadLabel = findViewById(R.id.ticket_ahead_label);
         if (ahead > 0) {
+            aheadText.setVisibility(View.VISIBLE);
             aheadText.setText(String.valueOf(ahead));
             aheadLabel.setText(R.string.ticket_ahead_label);
         } else {
-            aheadText.setText(null);
+            aheadText.setVisibility(View.GONE);
             aheadLabel.setText(R.string.ticket_next_label);
         }
+
+        // Ticks: how far the numbers being served have come towards yours.
+        Ticket serving = FakeData.nowServing(ticket.getQueueId());
+        ProgressTicksView ticks = findViewById(R.id.ticket_ticks);
+        ticks.setProgress(serving == null ? 0f
+                : serving.getTicketNumber() / (float) ticket.getTicketNumber());
+        ((TextView) findViewById(R.id.ticket_now_serving)).setText(serving == null
+                ? getString(R.string.ticket_now_serving_none)
+                : getString(R.string.ticket_now_serving_format, serving.getTicketNumber()));
+
+        ticketCard.setContentDescription(getString(R.string.ticket_description,
+                ticket.getTicketNumber(), aheadText.getVisibility() == View.VISIBLE
+                        ? ahead + " " + getString(R.string.ticket_ahead_label)
+                        : getString(R.string.ticket_next_label)));
+
+        bindEtaRow(ticket);
+        bindArrival(ticket);
     }
 
-    private void renderState(Ticket.Status status) {
-        cancelGraceTimer();
-        hideStateViews();
-        aheadText.setOnLongClickListener(null);
-        aheadLabel.setOnLongClickListener(null);
-        countdownText.setOnLongClickListener(null);
+    /** "About 55 min", and what that estimate is based on. */
+    private void bindEtaRow(Ticket ticket) {
+        QueueStats stats = FakeData.stats(ticket.getQueueId());
+        // Locale.US keeps the decimal point a point, matching the rest of the numbers.
+        String basis = stats.getServiceSampleCount() == 0
+                ? getString(R.string.ticket_eta_basis_none)
+                : String.format(Locale.US, getString(R.string.ticket_eta_basis_format),
+                        stats.getAverageServiceMinutes(), stats.getServiceSampleCount());
+        ListRow.bind(findViewById(R.id.ticket_eta_row), R.drawable.ic_clock,
+                getString(R.string.ticket_eta_format, ticket.getEstimatedWaitMinutes()), basis);
+        findViewById(R.id.ticket_eta_row).findViewById(R.id.row_chevron).setVisibility(View.GONE);
+    }
 
-        switch (status) {
-            case WAITING:
-                renderWaiting();
-                break;
-            case CALLED:
-                renderCalled();
-                break;
-            case SERVED:
-                renderServed();
-                break;
-            case NO_SHOW:
-                renderExpired();
-                break;
+    /** "Be there by": the estimated call time minus a buffer, in the phone's 12/24h format. */
+    private void bindArrival(Ticket ticket) {
+        int minutes = Math.max(0, ticket.getEstimatedWaitMinutes() - ARRIVAL_BUFFER_MINUTES);
+        Date beThereBy = new Date(System.currentTimeMillis() + minutes * 60_000L);
+        ((TextView) findViewById(R.id.ticket_be_there)).setText(getString(
+                R.string.ticket_be_there_format, DateFormat.getTimeFormat(this).format(beThereBy)));
+        ((TextView) findViewById(R.id.ticket_arrival_venue)).setText(ticket.getVenue());
+    }
+
+    /**
+     * Opens the venue in whatever maps app is installed: a geo: link with the venue's
+     * coordinates and its name as the label. No Maps SDK needed.
+     */
+    private void openDirections() {
+        Ticket ticket = ActiveTicketStore.getTicket();
+        Queue queue = ticket == null ? null : FakeData.queueById(ticket.getQueueId());
+        if (queue == null) {
+            return;
+        }
+        Uri uri = Uri.parse(String.format(Locale.US, "geo:0,0?q=%f,%f(%s)",
+                queue.getLatitude(), queue.getLongitude(), Uri.encode(queue.getVenue())));
+        try {
+            startActivity(new Intent(Intent.ACTION_VIEW, uri));
+        } catch (ActivityNotFoundException e) {
+            Snackbar.make(ticketCard, R.string.ticket_no_maps_app, Snackbar.LENGTH_SHORT).show();
         }
     }
 
-    /** Waiting is calm, so it uses the brand container colors rather than a status color. */
-    private void renderWaiting() {
-        applyHeroColors(
-                MaterialColors.getColor(hero, com.google.android.material.R.attr.colorPrimaryContainer),
-                MaterialColors.getColor(hero, com.google.android.material.R.attr.colorOnPrimaryContainer));
-        statusText.setText(R.string.ticket_status_waiting);
-
-        // An empty count means "you're next", and the label alone says that.
-        if (aheadText.getText().length() > 0) {
-            aheadText.setVisibility(View.VISIBLE);
+    /** Leaving gives up the number for good, so it asks first (canvas 26). */
+    private void confirmLeave() {
+        Ticket ticket = ActiveTicketStore.getTicket();
+        if (ticket == null) {
+            return;
         }
-        aheadLabel.setVisibility(View.VISIBLE);
-        etaText.setVisibility(View.VISIBLE);
-
-        leaveButton.setVisibility(View.VISIBLE);
-        leaveButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                ActiveTicketStore.clearTicket();
-                finish();
-            }
-        });
-
-        // Demo hook: long-press the count to simulate being called.
-        View.OnLongClickListener simulateCall = new View.OnLongClickListener() {
-            @Override
-            public boolean onLongClick(View view) {
-                ActiveTicketStore.markCalled(GRACE_PERIOD_MS);
-                renderState(Ticket.Status.CALLED);
-                return true;
-            }
-        };
-        aheadText.setOnLongClickListener(simulateCall);
-        aheadLabel.setOnLongClickListener(simulateCall);
+        new MaterialAlertDialogBuilder(this)
+                .setTitle(R.string.ticket_leave_title)
+                .setMessage(getString(R.string.ticket_leave_message,
+                        ticket.getTicketNumber(), ticket.getQueueName()))
+                .setNegativeButton(R.string.ticket_leave_cancel, null)
+                .setPositiveButton(R.string.ticket_leave_confirm,
+                        new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialog, int which) {
+                                ActiveTicketStore.clearTicket();
+                                finish();
+                            }
+                        })
+                .show();
     }
 
-    private void renderCalled() {
-        applyStatusColors(R.color.status_called);
-        statusText.setText(R.string.ticket_status_called);
+    // ---- Served / slot released ---------------------------------------------
 
-        graceRing.setVisibility(View.VISIBLE);
-        countdownText.setVisibility(View.VISIBLE);
-        instructionText.setVisibility(View.VISIBLE);
-        instructionText.setText(R.string.ticket_called_instruction);
-
-        primaryButton.setVisibility(View.VISIBLE);
-        primaryButton.setText(R.string.ticket_here_action);
-        primaryButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                ActiveTicketStore.markServed();
-                renderState(Ticket.Status.SERVED);
-            }
-        });
-
-        // Demo hook: long-press the countdown to skip to the end of the grace period,
-        // so the no-show and cooldown flow can be shown without waiting 3 minutes.
-        countdownText.setOnLongClickListener(new View.OnLongClickListener() {
-            @Override
-            public boolean onLongClick(View view) {
-                expire();
-                return true;
-            }
-        });
-
-        startGraceTimer(ActiveTicketStore.graceRemainingMs());
-    }
-
-    private void renderServed() {
-        applyStatusColors(R.color.status_served);
-        statusText.setText(R.string.ticket_status_served);
-
-        headlineText.setVisibility(View.VISIBLE);
-        headlineText.setText(R.string.ticket_served_headline);
-        instructionText.setVisibility(View.VISIBLE);
-        instructionText.setText(R.string.ticket_served_instruction);
-
-        showDoneButton();
-    }
-
-    private void renderExpired() {
-        applyStatusColors(R.color.status_expired);
-        statusText.setText(R.string.ticket_status_expired);
-
-        headlineText.setVisibility(View.VISIBLE);
-        headlineText.setText(R.string.ticket_expired_headline);
-        instructionText.setVisibility(View.VISIBLE);
-        instructionText.setText(expiredInstruction());
-
-        showDoneButton();
+    private void renderOutcome(int pillText, @ColorRes int pillColor, @ColorRes int pillGround,
+                               String headline, String body) {
+        setPill(pillText, pillColor, pillGround);
+        showWaiting(false);
+        ((TextView) findViewById(R.id.ticket_outcome_headline)).setText(headline);
+        ((TextView) findViewById(R.id.ticket_outcome_body)).setText(body);
     }
 
     /** The expired message depends on whether this no-show counted toward a cooldown. */
@@ -257,83 +273,31 @@ public class ActiveTicketActivity extends AppCompatActivity {
         return getString(R.string.ticket_expired_warning_instruction, Cooldown.DURATION_MINUTES);
     }
 
-    private void showDoneButton() {
-        primaryButton.setVisibility(View.VISIBLE);
-        primaryButton.setText(R.string.ticket_done_action);
-        primaryButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                ActiveTicketStore.finishTicket();
-                finish();
-            }
-        });
+    // ---- Shared -------------------------------------------------------------
+
+    private void showWaiting(boolean waiting) {
+        ticketCard.setVisibility(waiting ? View.VISIBLE : View.GONE);
+        ticketRows.setVisibility(waiting ? View.VISIBLE : View.GONE);
+        leaveButton.setVisibility(waiting ? View.VISIBLE : View.GONE);
+        outcome.setVisibility(waiting ? View.GONE : View.VISIBLE);
+        doneButton.setVisibility(waiting ? View.GONE : View.VISIBLE);
     }
 
-    private void expire() {
-        ActiveTicketStore.markNoShow();
-        renderState(Ticket.Status.NO_SHOW);
+    private void setPill(int text, @ColorRes int color, @ColorRes int ground) {
+        statusPill.setText(text);
+        statusPill.setTextColor(ContextCompat.getColor(this, color));
+        ViewCompat.setBackgroundTintList(statusPill,
+                ColorStateList.valueOf(ContextCompat.getColor(this, ground)));
     }
 
-    /** Each render starts with nothing state-specific visible, then shows what it needs. */
-    private void hideStateViews() {
-        aheadText.setVisibility(View.GONE);
-        aheadLabel.setVisibility(View.GONE);
-        etaText.setVisibility(View.GONE);
-        graceRing.setVisibility(View.GONE);
-        countdownText.setVisibility(View.GONE);
-        headlineText.setVisibility(View.GONE);
-        instructionText.setVisibility(View.GONE);
-        leaveButton.setVisibility(View.GONE);
-        primaryButton.setVisibility(View.GONE);
-    }
-
-    /** Called, served and expired fill the panel with their status color and white text. */
-    private void applyStatusColors(int colorRes) {
-        applyHeroColors(ContextCompat.getColor(this, colorRes), Color.WHITE);
-    }
-
-    private void applyHeroColors(int containerColor, int contentColor) {
-        hero.setBackgroundTintList(ColorStateList.valueOf(containerColor));
-
-        TextView[] texts = {statusText, aheadText, aheadLabel, etaText, countdownText,
-                headlineText, instructionText, numberLabel, ticketNumber};
-        for (TextView text : texts) {
-            text.setTextColor(contentColor);
-        }
-
-        graceRing.setIndicatorColor(contentColor);
-        graceRing.setTrackColor(ColorUtils.setAlphaComponent(contentColor, RING_TRACK_ALPHA));
-    }
-
-    private void startGraceTimer(long remainingMs) {
-        graceTimer = new CountDownTimer(remainingMs, COUNTDOWN_TICK_MS) {
-            @Override
-            public void onTick(long millisUntilFinished) {
-                long totalSeconds = millisUntilFinished / 1000L;
-                long minutes = totalSeconds / 60L;
-                long seconds = totalSeconds % 60L;
-
-                countdownText.setText(String.format(Locale.US,
-                        getString(R.string.ticket_countdown_format), minutes, seconds));
-
-                // The ring drains from full to empty across the whole grace period.
-                graceRing.setProgressCompat(
-                        (int) (millisUntilFinished * graceRing.getMax() / GRACE_PERIOD_MS), true);
-            }
-
-            @Override
-            public void onFinish() {
-                expire();
-            }
-        };
-
-        graceTimer.start();
-    }
-
-    private void cancelGraceTimer() {
-        if (graceTimer != null) {
-            graceTimer.cancel();
-            graceTimer = null;
-        }
+    /** Espresso ticket with its holes top and bottom, centred on the tear line. */
+    private void applyTicketShape(View v, int width) {
+        // The tear line is 2dp wide and starts at the stub's edge, so its centre is 1dp further in.
+        float tearCentre = getResources().getDimension(R.dimen.ticket_stub_width)
+                + getResources().getDimension(R.dimen.hairline);
+        ShapeAppearanceModel shape = TicketShapes.stub(this,
+                R.dimen.radius_md, R.dimen.punch_radius, tearCentre, width);
+        v.setBackground(TicketShapes.background(shape,
+                ContextCompat.getColor(this, R.color.spotlight)));
     }
 }

@@ -1051,6 +1051,18 @@ A crema tear line runs above every bottom button bar and along the top of the bo
 
 ---
 
+## Called is its own Activity
+
+**Decision:** Being called is `CalledActivity`, with `Theme.Quapp.Called` set in the manifest. `ActiveTicketActivity` keeps the other states (waiting, served, slot released). When the ticket is called, the ticket screen opens Called and closes itself. "I'm here" or the timer running out opens the ticket screen again, which shows the outcome.
+
+**Why:** The Called screen changes the whole window: espresso ground with no grain, light status-bar icons, marigold number. Those are theme values, and an Activity's theme can't change while it's running. Swapping colours by hand in code (the old approach) missed the window background and the system bars. A separate Activity also gives the "you're called" notification one clear screen to open.
+
+**Also considered:** Recreating `ActiveTicketActivity` with a different theme when the status changes. That's more code and it flickers.
+
+**Status:** Current. Built Sep 28.
+
+---
+
 ## Known compromises
 
 Deliberate shortcuts, not oversights. Each has a planned fix.

@@ -37,9 +37,14 @@ public class LiveConsoleActivity extends AppCompatActivity
     private TextView emptyBody;
     private TextView queueName;
     private TextView statusText;
-    private TextView servingValue;
+    private TextView servingNumber;
+    private TextView servingName;
+    private TextView servingPhone;
+    private View servingNone;
+    private View[] servingViews;
     private TextView waitingHeader;
     private MaterialButton callNextButton;
+    private MaterialButton noShowButton;
     private MaterialButton walkInButton;
 
     @Override
@@ -75,11 +80,32 @@ public class LiveConsoleActivity extends AppCompatActivity
             }
         });
 
+        // The spotlight panel: 10dp corners with punches halfway down both sides.
+        findViewById(R.id.console_now_serving).setBackground(
+                TicketShapes.spotlightBackground(this));
+
+        // Served (if someone is being served) and call the next number.
         callNextButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
+                Ticket done = FakeData.nowServing(queueId);
                 FakeData.callNext(queueId);
                 render();
+                if (done != null) {
+                    announce(R.string.console_marked_served, done);
+                }
+            }
+        });
+
+        noShowButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Ticket missed = FakeData.nowServing(queueId);
+                FakeData.noShowAndCallNext(queueId);
+                render();
+                if (missed != null) {
+                    announce(R.string.console_marked_no_show, missed);
+                }
             }
         });
 
@@ -105,9 +131,15 @@ public class LiveConsoleActivity extends AppCompatActivity
         emptyBody = findViewById(R.id.console_empty_body);
         queueName = findViewById(R.id.console_queue_name);
         statusText = findViewById(R.id.console_status);
-        servingValue = findViewById(R.id.console_serving_value);
+        servingNumber = findViewById(R.id.console_serving_number);
+        servingName = findViewById(R.id.console_serving_name);
+        servingPhone = findViewById(R.id.console_serving_phone);
+        servingNone = findViewById(R.id.console_serving_none);
+        servingViews = new View[]{servingNumber, servingName, servingPhone,
+                findViewById(R.id.console_serving_tear)};
         waitingHeader = findViewById(R.id.console_waiting_header);
         callNextButton = findViewById(R.id.console_call_next);
+        noShowButton = findViewById(R.id.console_no_show);
         walkInButton = findViewById(R.id.console_walk_in);
     }
 
@@ -226,7 +258,7 @@ public class LiveConsoleActivity extends AppCompatActivity
                 render();
                 Snackbar.make(ticketList, getString(R.string.console_walk_in_added,
                         ticket.getTicketNumber(), ticket.getHolderName()),
-                        Snackbar.LENGTH_SHORT).show();
+                        Snackbar.LENGTH_SHORT).setAnchorView(R.id.console_tear).show();
             }
         });
     }
@@ -258,18 +290,10 @@ public class LiveConsoleActivity extends AppCompatActivity
                 break;
         }
 
-        if (nowServing == null) {
-            servingValue.setText(R.string.console_none_serving);
-        } else {
-            servingValue.setText(getString(R.string.console_called_format,
-                    nowServing.getTicketNumber(), nowServing.getHolderName()));
-        }
+        bindNowServing(nowServing);
 
-        waitingHeader.setText(getString(R.string.console_waiting_count_format,
-                waitingTickets.size()));
-
-        // Paused still lets the owner work through the line; closed stops everything.
-        callNextButton.setEnabled(!closed && !waitingTickets.isEmpty());
+        waitingHeader.setText(getString(R.string.console_up_next_format, waitingTickets.size()));
+        bindDock(nowServing, waitingTickets, closed);
         walkInButton.setEnabled(!closed);
 
         if (waitingTickets.isEmpty()) {
@@ -283,5 +307,50 @@ public class LiveConsoleActivity extends AppCompatActivity
         }
 
         ticketAdapter.submitTickets(waitingTickets);
+    }
+
+    private void bindNowServing(Ticket nowServing) {
+        boolean someone = nowServing != null;
+        for (View v : servingViews) {
+            v.setVisibility(someone ? View.VISIBLE : View.GONE);
+        }
+        servingNone.setVisibility(someone ? View.GONE : View.VISIBLE);
+        if (!someone) {
+            return;
+        }
+        servingNumber.setText(getString(R.string.console_ticket_format, nowServing.getTicketNumber()));
+        servingName.setText(nowServing.getHolderName());
+        boolean walkIn = nowServing.getHolderPhone().isEmpty();
+        servingPhone.setText(walkIn ? getString(R.string.console_walk_in_label)
+                : WaitingTicketAdapter.maskPhone(this, nowServing.getHolderPhone()));
+    }
+
+    /**
+     * The dock acts on whoever is being served. With someone at the counter: No-show, or
+     * "Served · call #24". With nobody yet: just "Call #24". Paused still lets the owner work
+     * through the line; closed stops everything.
+     */
+    private void bindDock(Ticket nowServing, List<Ticket> waiting, boolean closed) {
+        Ticket next = waiting.isEmpty() ? null : waiting.get(0);
+        noShowButton.setVisibility(nowServing == null ? View.GONE : View.VISIBLE);
+        noShowButton.setEnabled(!closed);
+
+        if (nowServing == null) {
+            callNextButton.setText(next == null ? getString(R.string.console_call_next)
+                    : getString(R.string.console_call_format, next.getTicketNumber()));
+            callNextButton.setEnabled(!closed && next != null);
+        } else {
+            callNextButton.setText(next == null ? getString(R.string.console_serve_action)
+                    : getString(R.string.console_served_call_format, next.getTicketNumber()));
+            callNextButton.setEnabled(!closed);
+        }
+    }
+
+    /** "#22 Rosa Diaz marked served", above the dock. */
+    private void announce(int message, Ticket ticket) {
+        Snackbar.make(ticketList, getString(message, ticket.getTicketNumber(),
+                ticket.getHolderName()), Snackbar.LENGTH_SHORT)
+                .setAnchorView(R.id.console_tear)
+                .show();
     }
 }

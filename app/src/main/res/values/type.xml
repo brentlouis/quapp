@@ -168,4 +168,11 @@
         <item name="lineHeight">56sp</item>
         <item name="android:letterSpacing">-0.03</item>
     </style>
+    <!-- "I'm here": the one 64dp button -->
+    <style name="TextAppearance.Quapp.Button.Call">
+        <item name="fontFamily">@font/ibm_plex_sans_bold</item>
+        <item name="android:fontFamily">@font/ibm_plex_sans_bold</item>
+        <item name="android:textSize">18sp</item>
+        <item name="lineHeight">22sp</item>
+    </style>
 </resources>

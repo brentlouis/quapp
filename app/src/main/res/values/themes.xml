@@ -70,6 +70,9 @@
         <item name="materialButtonStyle">@style/Widget.Quapp.Button</item>
         <item name="materialButtonOutlinedStyle">@style/Widget.Quapp.Button.Outlined</item>
         <item name="borderlessButtonStyle">@style/Widget.Quapp.Button.Text</item>
+        <item name="snackbarStyle">@style/Widget.Quapp.Snackbar</item>
+        <item name="snackbarTextViewStyle">@style/Widget.Quapp.Snackbar.Text</item>
+        <item name="snackbarButtonStyle">@style/Widget.Quapp.Snackbar.Action</item>
 
         <!-- Paper with its printed grain, behind every screen -->
         <item name="android:windowBackground">@drawable/bg_paper</item>
@@ -87,6 +90,9 @@
     <!-- The spotlight: put android:theme="@style/ThemeOverlay.Quapp.Spotlight" on the espresso view and
          every Material component inside picks up the dark colours by itself. -->
     <style name="ThemeOverlay.Quapp.Spotlight" parent="ThemeOverlay.Material3">
+        <!-- Plain TextViews with no colour of their own read these, not colorOnSurface -->
+        <item name="android:textColorPrimary">@color/on_spotlight</item>
+        <item name="android:textColorSecondary">@color/on_spotlight_muted</item>
         <item name="colorPrimary">@color/on_spotlight</item>
         <item name="colorOnPrimary">@color/spotlight</item>
         <item name="colorSecondaryContainer">@color/spotlight_line</item>
@@ -106,6 +112,9 @@
 
     <!-- The Called screen: the whole ground turns espresso, light bar icons -->
     <style name="Theme.Quapp.Called" parent="Theme.Quapp">
+        <!-- Plain TextViews with no colour of their own read these, not colorOnSurface -->
+        <item name="android:textColorPrimary">@color/on_spotlight</item>
+        <item name="android:textColorSecondary">@color/on_spotlight_muted</item>
         <item name="android:windowBackground">@color/spotlight</item>
         <item name="android:colorBackground">@color/spotlight</item>
         <item name="colorPrimary">@color/on_spotlight</item>
@@ -113,6 +122,11 @@
         <item name="colorTertiary">@color/crema</item>
         <item name="colorSurface">@color/spotlight</item>
         <item name="colorOnSurface">@color/on_spotlight</item>
+        <item name="colorSurfaceContainerLowest">@color/spotlight</item>
+        <item name="colorSurfaceContainerLow">@color/spotlight</item>
+        <item name="colorSurfaceContainer">@color/spotlight</item>
+        <item name="colorSurfaceContainerHigh">@color/spotlight_line</item>
+        <item name="colorSurfaceContainerHighest">@color/spotlight_line</item>
         <item name="colorSurfaceVariant">@color/spotlight_line</item>
         <item name="colorOnSurfaceVariant">@color/on_spotlight_muted</item>
         <item name="colorOutline">@color/on_spotlight_muted</item>

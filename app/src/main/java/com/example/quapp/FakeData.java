@@ -147,6 +147,18 @@ public final class FakeData {
         return state.nowServing;
     }
 
+    /** The person being served didn't come up: count a no-show and call the next number. */
+    public static Ticket noShowAndCallNext(String queueId) {
+        LiveQueue state = liveState(queueId);
+
+        if (state.nowServing != null) {
+            state.noShows++;
+        }
+
+        state.nowServing = state.waiting.isEmpty() ? null : state.waiting.remove(0);
+        return state.nowServing;
+    }
+
     public static void markServed(String queueId, String ticketId) {
         LiveQueue state = liveState(queueId);
         if (removeById(state.waiting, ticketId)) {

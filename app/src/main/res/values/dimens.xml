@@ -25,6 +25,16 @@
     <dimen name="pill_height">24dp</dimen>       <!-- status pill -->
     <dimen name="avatar_size">56dp</dimen>
     <dimen name="list_row_min_height">60dp</dimen>
+    <dimen name="ticket_stub_width">118dp</dimen>    <!-- the full ticket on My ticket (08) -->
+    <dimen name="ticket_min_height">152dp</dimen>
+    <dimen name="ticket_barcode_width">78dp</dimen>
+    <dimen name="ticket_barcode_height">16dp</dimen>
+    <dimen name="ticks_height">12dp</dimen>
+    <dimen name="ticks_gap">3dp</dimen>
+    <dimen name="grace_ring_size">48dp</dimen>
+    <dimen name="grace_ring_thickness">4dp</dimen>
+    <dimen name="console_lead_width">52dp</dimen>     <!-- the #24 tile in the console list -->
+    <dimen name="console_lead_height">40dp</dimen>
     <dimen name="my_tickets_stub_width">104dp</dimen> <!-- where the tear line and punches sit on a compact ticket -->
     <dimen name="brand_mark_width">34dp</dimen>   <!-- the ticket mark next to the wordmark; 4:5 -->
     <dimen name="brand_mark_height">42.5dp</dimen>
@@ -33,6 +43,7 @@
 
     <dimen name="touch_target_min">48dp</dimen>
     <dimen name="button_height_lg">56dp</dimen> <!-- buttons in the dock -->
+    <dimen name="button_height_xl">64dp</dimen> <!-- "I'm here" -->
     <dimen name="icon_size">24dp</dimen>
     <dimen name="icon_small">20dp</dimen>
     <!-- Centers a 24dp icon in a 48dp touch target. -->
@@ -41,6 +52,4 @@
     <!-- Still used by screens that haven't been rebuilt yet; removed as each one moves to Civic Paper -->
     <dimen name="corner_radius">12dp</dimen>
     <dimen name="corner_radius_lg">28dp</dimen>
-    <dimen name="ticket_ring_size">200dp</dimen>
-    <dimen name="ticket_ring_thickness">8dp</dimen>
 </resources>

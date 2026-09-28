@@ -139,4 +139,53 @@
         <item name="cardCornerRadius">@dimen/radius_md</item>
         <item name="cardElevation">0dp</item>
     </style>
+    <!-- Call: marigold on the spotlight only. "I'm here" on the Called screen. -->
+    <style name="Widget.Quapp.Button.Call" parent="Widget.Quapp.Button">
+        <item name="backgroundTint">@color/signal</item>
+        <item name="android:textColor">@color/on_signal</item>
+        <item name="iconTint">@color/on_signal</item>
+        <item name="rippleColor">@color/on_signal</item>
+        <item name="android:textAppearance">@style/TextAppearance.Quapp.Button.Call</item>
+        <item name="android:minHeight">@dimen/button_height_xl</item>
+    </style>
+
+    <!-- Small tonal button inside a row ("Directions") -->
+    <style name="Widget.Quapp.Button.Tonal.Small">
+        <item name="android:paddingStart">@dimen/space_ms</item>
+        <item name="android:paddingEnd">@dimen/space_ms</item>
+        <item name="iconSize">@dimen/icon_small</item>
+        <item name="iconPadding">@dimen/space_xs</item>
+    </style>
+
+    <!-- Small mono tag on a console row ("WALK-IN") -->
+    <style name="Widget.Quapp.Tag" parent="">
+        <item name="android:background">@drawable/bg_pill</item>
+        <item name="android:backgroundTint">?attr/colorSurfaceVariant</item>
+        <item name="android:paddingStart">@dimen/space_sm</item>
+        <item name="android:paddingEnd">@dimen/space_sm</item>
+        <item name="android:paddingTop">@dimen/space_xs</item>
+        <item name="android:paddingBottom">@dimen/space_xs</item>
+        <item name="android:textAppearance">?attr/textAppearanceLabelSmall</item>
+        <item name="android:textColor">?attr/colorOnSurfaceVariant</item>
+    </style>
+
+    <!-- ===== Snackbar (DESIGN.md section 9): espresso, radius_sm, crema action ===== -->
+
+    <style name="Widget.Quapp.Snackbar" parent="Widget.Material3.Snackbar">
+        <item name="backgroundTint">@color/spotlight</item>
+        <item name="shapeAppearance">@style/ShapeAppearance.Quapp.Snackbar</item>
+    </style>
+
+    <style name="ShapeAppearance.Quapp.Snackbar" parent="">
+        <item name="cornerFamily">rounded</item>
+        <item name="cornerSize">@dimen/radius_sm</item>
+    </style>
+
+    <style name="Widget.Quapp.Snackbar.Text" parent="Widget.Material3.Snackbar.TextView">
+        <item name="android:textColor">@color/on_spotlight</item>
+    </style>
+
+    <style name="Widget.Quapp.Snackbar.Action" parent="Widget.Material3.Button.TextButton.Snackbar">
+        <item name="android:textColor">@color/crema</item>
+    </style>
 </resources>
