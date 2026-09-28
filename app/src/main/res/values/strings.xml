@@ -73,29 +73,10 @@
     <string name="role_owner_description">Create queues and call people forward as you serve them.</string>
 
     <!-- Browse -->
-    <string name="browse_title">Public queues</string>
-    <string name="browse_status_open">Open</string>
-    <string name="browse_status_closed">Closed</string>
-    <string name="browse_waiting_format">%d waiting</string>
     <string name="browse_eta_none">—</string>
     <string name="browse_venue_format">%1$s · %2$s</string>
-    <string name="browse_card_venue_format">%1$s · %2$s · %3$s</string>
-    <string name="browse_eta_unit">min wait</string>
-    <string name="browse_status_paused">Paused</string>
-    <string name="browse_profile_description">Profile</string>
-    <string name="browse_search_hint">Search queues or venues</string>
     <string name="browse_filter_all">All</string>
-    <string name="browse_location_all">All locations</string>
-    <string name="browse_location_dialog_title">Filter by location</string>
-    <string name="browse_empty_title">No queues match</string>
-    <string name="browse_empty_body">Try a different search, or clear the filters to see every queue.</string>
     <string name="browse_empty_action">Clear filters</string>
-    <string name="browse_ticket_label">Your ticket</string>
-    <string name="browse_ticket_format">#%1$d · %2$s</string>
-    <string name="browse_ticket_waiting">Waiting · #%d in line</string>
-    <string name="browse_ticket_called">You\'re being called. Tap to confirm.</string>
-    <string name="browse_ticket_served">Served · tap to finish</string>
-    <string name="browse_ticket_expired">Slot released · tap to finish</string>
 
     <!-- Queue detail -->
     <string name="detail_waiting_label">In queue</string>
@@ -198,16 +179,7 @@
 
     <!-- Owner dashboard -->
     <string name="dashboard_title">Your queues</string>
-    <string name="dashboard_subtitle">Tap a queue to manage it live.</string>
-    <string name="dashboard_waiting_label">Waiting</string>
-    <string name="dashboard_served_label">Served today</string>
-    <string name="dashboard_create_description">Create queue</string>
-    <string name="dashboard_empty_title">No queues yet</string>
-    <string name="dashboard_empty_body">Create your first queue and people can start joining it remotely.</string>
     <string name="dashboard_empty_action">Create a queue</string>
-    <string name="dashboard_profile_description">Profile</string>
-    <string name="dashboard_status_paused">Paused</string>
-    <string name="dashboard_status_closed">Closed</string>
 
     <!-- Create queue -->
     <string name="create_title">New queue</string>
@@ -446,7 +418,6 @@
     <string name="console_moved_back_tag">Moved back</string>
     <string name="my_tickets_queue_closed">Queue closed</string>
     <string name="my_tickets_removed">Removed from line</string>
-    <string name="browse_ticket_closed">Queue closed</string>
     <string name="history_status_closed">Queue closed</string>
     <string name="history_status_removed">Removed</string>
     <string name="history_details_format">Ticket #%1$d · %2$s</string>
@@ -462,4 +433,75 @@
     <string name="ticket_bring_title">Bring</string>
     <string name="analytics_source_model">Learning model · %d people learned from</string>
     <string name="analytics_source_rolling">Rolling average of recent people · the model takes over once this queue has more history today</string>
+
+    <!-- Queue cards (QueueCards) -->
+    <string name="card_within_format">Within %s</string>
+    <string name="card_paused_at_format">Paused %s</string>
+    <string name="card_hours_format">%1$s – %2$s</string>
+    <string name="card_day_of_format">Day %1$d of %2$d · %3$s</string>
+    <string name="card_closes_in_format">Closes in %d min</string>
+    <string name="card_paused_line_format">No new joins since %1$s · %2$d in line</string>
+    <string name="card_closed_at_format">Closed at %s</string>
+    <string name="card_closed_served_format">Closed at %1$s · %2$d served</string>
+    <string name="card_minutes_unit">min</string>
+    <string name="card_est_wait">Est. wait</string>
+    <string name="card_in_line">In line</string>
+    <string name="card_now_serving">Now serving</string>
+    <string name="card_opens">Opens</string>
+    <string name="card_joined_early">Joined early</string>
+    <string name="card_waiting">Waiting</string>
+    <string name="card_served">Served</string>
+    <string name="card_no_show">No-show</string>
+    <string name="card_no_shows">No-shows</string>
+
+    <!-- Browse (queuer home) -->
+    <string name="browse_title">Find a queue</string>
+    <string name="browse_welcome">Welcome</string>
+    <string name="browse_good_morning">Good morning</string>
+    <string name="browse_good_afternoon">Good afternoon</string>
+    <string name="browse_good_evening">Good evening</string>
+    <string name="browse_greeting_name_format">%1$s, %2$s</string>
+    <string name="browse_which_town">Which town are you in?</string>
+    <string name="browse_which_town_body">We\'ll show queues open near you first. You can change it anytime.</string>
+    <string name="browse_more_towns_format">%d more</string>
+    <string name="browse_town_dialog_title">Your town</string>
+    <string name="browse_search_hint">Search queues or venues</string>
+    <string name="browse_search_any_hint">Or search any queue or venue</string>
+    <string name="browse_open_now_format">Open now across Bohol · %d</string>
+    <string name="browse_open_now_detail_format">%1$s · %2$d min wait</string>
+    <string name="browse_in_town_format">In %1$s · %2$d</string>
+    <string name="browse_results_format">Results · %d</string>
+    <string name="browse_shortest_wait">Shortest wait nearby</string>
+    <string name="browse_highlight_where_format">%1$s · %2$d in line</string>
+    <string name="browse_banner_in_line_format">You\'re in line · %s</string>
+    <string name="browse_banner_called_format">You\'re being called · %s</string>
+    <string name="browse_banner_detail_format">%1$d ahead · About %2$d min</string>
+    <string name="browse_banner_confirm">Tap to confirm you\'re here</string>
+    <string name="browse_empty_town_title">No queues in %s yet</string>
+    <string name="browse_empty_town_body">Queues show up here when an organizer in %s opens one. Try a nearby town for now.</string>
+    <string name="browse_change_town">Change town</string>
+    <string name="browse_nearby">Nearby</string>
+    <string name="browse_nearby_detail_format">%1$d open · shortest wait %2$d min</string>
+    <string name="browse_no_results_format">No results for \"%s\"</string>
+    <string name="browse_nothing_in_format">Nothing in %s right now</string>
+    <string name="browse_no_results_body">Try another word, or clear the filters.</string>
+    <string name="browse_no_results_category_body">Nothing in %s matches. Try another category or word.</string>
+
+    <!-- Owner Queues tab -->
+    <string name="owner_live_now">Live now</string>
+    <string name="owner_console_action">Console</string>
+    <string name="owner_live_waiting_format">%d waiting · no one called yet</string>
+    <string name="owner_live_serving_format">%1$d waiting · serving %2$s</string>
+    <string name="owner_chip_count_format">%1$s %2$d</string>
+    <string name="owner_filter_empty_format">No %s queues.</string>
+    <string name="owner_new_queue">New queue</string>
+    <string name="owner_first_title">Run your first queue</string>
+    <string name="owner_first_body">People join from their phones and wait wherever they are. You call them when you\'re ready.</string>
+    <string name="owner_step_create">Create a queue</string>
+    <string name="owner_step_create_body">Name, venue, hours and the checks you want.</string>
+    <string name="owner_step_share">Share it</string>
+    <string name="owner_step_share_body">Post the link or print the QR code at the venue.</string>
+    <string name="owner_step_call">Call people forward</string>
+    <string name="owner_step_call_body">Tap Call next. They get 3 minutes to confirm.</string>
+    <string name="owner_first_footer">Your queues will show up here, with the live one on top.</string>
 </resources>

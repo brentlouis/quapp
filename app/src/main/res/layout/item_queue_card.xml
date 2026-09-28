@@ -1,0 +1,225 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Queue card v5 (DESIGN.md "Queue card"), shared by Browse and the owner's Queues tab:
+     status strip, identity, one-line description, then a footer of numbers or a single line.
+     QueueCards.bind fills it; the queuer and organizer versions differ only in the footer. -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/card_root"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginBottom="@dimen/space_ms"
+    android:background="@drawable/bg_card"
+    android:clickable="true"
+    android:focusable="true"
+    android:foreground="?attr/selectableItemBackground"
+    android:orientation="vertical"
+    android:padding="@dimen/hairline">
+
+    <!-- 1. Status strip (inset by the 1dp edge so the card's outline stays visible) -->
+    <LinearLayout
+        android:id="@+id/card_strip"
+        android:layout_width="match_parent"
+        android:layout_height="@dimen/card_strip_height"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        android:paddingStart="@dimen/space_md"
+        android:paddingEnd="@dimen/space_md"
+        tools:background="@color/ok_soft">
+
+        <ImageView
+            android:id="@+id/card_status_icon"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="@dimen/space_sm"
+            android:importantForAccessibility="no"
+            tools:src="@drawable/bg_status_dot"
+            tools:tint="@color/ok" />
+
+        <TextView
+            android:id="@+id/card_status"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:maxLines="1"
+            android:textAppearance="?attr/textAppearanceLabelSmall"
+            tools:text="Open"
+            tools:textColor="@color/ok" />
+
+        <TextView
+            android:id="@+id/card_when"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="@dimen/space_sm"
+            android:layout_weight="1"
+            android:ellipsize="end"
+            android:gravity="end"
+            android:maxLines="1"
+            android:textAppearance="?attr/textAppearanceMonoSmall"
+            tools:text="Today · 8 AM – 4 PM" />
+    </LinearLayout>
+
+    <View
+        android:id="@+id/card_strip_rule"
+        android:layout_width="match_parent"
+        android:layout_height="@dimen/hairline"
+        android:background="?attr/colorOutlineVariant" />
+
+    <!-- 2. Identity: category icon and name, then where -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/space_ms"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        android:paddingStart="@dimen/space_md"
+        android:paddingEnd="@dimen/space_md">
+
+        <ImageView
+            android:id="@+id/card_category_icon"
+            android:layout_width="@dimen/icon_small"
+            android:layout_height="@dimen/icon_small"
+            android:importantForAccessibility="no"
+            app:tint="?attr/colorOnSurfaceVariant"
+            tools:src="@drawable/ic_category_medical" />
+
+        <TextView
+            android:id="@+id/card_name"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="@dimen/space_sm"
+            android:layout_weight="1"
+            android:ellipsize="end"
+            android:maxLines="2"
+            android:textAppearance="?attr/textAppearanceTitleSmall"
+            tools:text="Free Medical Mission" />
+
+        <ImageView
+            android:id="@+id/card_verified"
+            android:layout_width="@dimen/icon_small"
+            android:layout_height="@dimen/icon_small"
+            android:layout_marginStart="@dimen/space_xs"
+            android:contentDescription="@string/detail_verified"
+            android:src="@drawable/ic_badge_check"
+            app:tint="@color/ok" />
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/space_xs"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        android:paddingStart="@dimen/space_md"
+        android:paddingEnd="@dimen/space_md">
+
+        <TextView
+            android:id="@+id/card_venue"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:ellipsize="end"
+            android:maxLines="1"
+            android:textAppearance="?attr/textAppearanceBodySmall"
+            tools:text="Tagbilaran City Gym" />
+
+        <!-- "Within 1 km" when the queue has a proximity check -->
+        <TextView
+            android:id="@+id/card_radius"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="@dimen/space_sm"
+            android:drawablePadding="@dimen/space_xs"
+            android:gravity="center_vertical"
+            android:maxLines="1"
+            android:textAppearance="?attr/textAppearanceBodySmall"
+            android:textColor="?attr/colorOnSurface"
+            app:drawableStartCompat="@drawable/ic_navigation"
+            app:drawableTint="?attr/colorOnSurface"
+            tools:text="Within 1 km" />
+    </LinearLayout>
+
+    <!-- 3. One line of description -->
+    <TextView
+        android:id="@+id/card_description"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/space_sm"
+        android:ellipsize="end"
+        android:maxLines="1"
+        android:paddingStart="@dimen/space_md"
+        android:paddingEnd="@dimen/space_md"
+        android:textAppearance="?attr/textAppearanceBodySmall"
+        tools:text="Free check-ups, BP tests, and medicines" />
+
+    <!-- 4a. Footer: up to three numbers on paper_sunk, split by lines -->
+    <View
+        android:id="@+id/card_footer_rule"
+        android:layout_width="match_parent"
+        android:layout_height="@dimen/hairline"
+        android:layout_marginTop="@dimen/space_ms"
+        android:background="?attr/colorOutlineVariant" />
+
+    <LinearLayout
+        android:id="@+id/card_footer"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="?attr/colorSurfaceVariant"
+        android:baselineAligned="false"
+        android:orientation="horizontal">
+
+        <include
+            android:id="@+id/card_cell_1"
+            layout="@layout/view_card_cell" />
+
+        <View
+            android:id="@+id/card_cell_rule_2"
+            android:layout_width="@dimen/hairline"
+            android:layout_height="match_parent"
+            android:background="?attr/colorOutlineVariant" />
+
+        <include
+            android:id="@+id/card_cell_2"
+            layout="@layout/view_card_cell" />
+
+        <View
+            android:id="@+id/card_cell_rule_3"
+            android:layout_width="@dimen/hairline"
+            android:layout_height="match_parent"
+            android:background="?attr/colorOutlineVariant" />
+
+        <include
+            android:id="@+id/card_cell_3"
+            layout="@layout/view_card_cell" />
+    </LinearLayout>
+
+    <!-- 4b. Or one line on a dashed rule (paused for queuers, closed) -->
+    <LinearLayout
+        android:id="@+id/card_line"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/space_ms"
+        android:orientation="vertical"
+        android:visibility="gone">
+
+        <com.example.quapp.TearLineView
+            android:layout_width="match_parent"
+            android:layout_height="@dimen/tear_line_width"
+            app:tearColor="?attr/colorOutlineVariant" />
+
+        <TextView
+            android:id="@+id/card_line_text"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:drawablePadding="@dimen/space_sm"
+            android:fontFeatureSettings="tnum"
+            android:gravity="center_vertical"
+            android:paddingStart="@dimen/space_md"
+            android:paddingTop="@dimen/space_ms"
+            android:paddingEnd="@dimen/space_md"
+            android:paddingBottom="@dimen/space_ms"
+            android:textAppearance="?attr/textAppearanceBodySmall"
+            app:drawableTint="?attr/colorOnSurfaceVariant"
+            tools:drawableStart="@drawable/ic_circle_pause"
+            tools:text="No new joins since 10:05 AM · 12 in line" />
+    </LinearLayout>
+</LinearLayout>

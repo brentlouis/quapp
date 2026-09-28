@@ -18,6 +18,13 @@
     <dimen name="punch_radius">9dp</dimen>        <!-- holes in the spotlight's sides -->
     <dimen name="punch_radius_small">5dp</dimen>  <!-- active nav tab, selected chip -->
     <dimen name="punch_radius_badge">2.5dp</dimen>
+    <dimen name="punch_radius_banner">6dp</dimen>  <!-- the slim "You're in line" banner -->
+    <dimen name="chip_icon_size">16dp</dimen>
+    <dimen name="card_strip_height">32dp</dimen>
+    <dimen name="status_dot">7dp</dimen>
+    <dimen name="banner_min_height">72dp</dimen>
+    <dimen name="search_height">48dp</dimen>
+    <dimen name="owner_list_bottom_padding">88dp</dimen> <!-- room for the New queue button -->
     <dimen name="tear_line_width">1.5dp</dimen>
     <dimen name="stub_dock_notch">10dp</dimen>   <!-- the tear-off stub dock's top corners -->
     <dimen name="stamp_radius">6dp</dimen>

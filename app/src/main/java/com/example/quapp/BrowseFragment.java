@@ -8,6 +8,8 @@ import android.text.TextWatcher;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.CompoundButton;
+import android.widget.EditText;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
@@ -18,83 +20,95 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.google.android.material.button.MaterialButton;
-import com.google.android.material.card.MaterialCardView;
 import com.google.android.material.chip.Chip;
 import com.google.android.material.chip.ChipGroup;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
-import com.google.android.material.textfield.TextInputEditText;
+import com.google.android.material.shape.ShapeAppearanceModel;
 
+import java.time.LocalTime;
 import java.util.List;
 
 /**
- * The Browse tab. Same behaviour as the old BrowseActivity; only the lifecycle changed:
- * views are set up in onViewCreated, and the screen refreshes both in onResume (coming back
- * from another Activity) and in onHiddenChanged (coming back from another tab).
+ * Browse, the queuer's home tab (canvas 05, 33, 34, 40, 41).
+ *
+ * Three states, decided in {@link #refresh()}:
+ * - no town chosen yet: the first-visit question and "Open now across Bohol"
+ * - a town, holding a ticket: the "You're in line" banner above the cards
+ * - a town, no ticket: "Shortest wait nearby" above the cards
+ * The town is remembered in Session; the category and search are per visit.
  */
 public class BrowseFragment extends Fragment implements QueueAdapter.OnQueueClickListener {
 
     private static final String STATE_CATEGORY = "category";
-    private static final String STATE_MUNICIPALITY = "municipality";
+    /** Town chips shown on the first-visit card before "N more". */
+    private static final int FIRST_VISIT_TOWNS = 6;
 
-    private QueueAdapter queueAdapter;
-    private RecyclerView queueList;
+    private Session session;
+    private QueueAdapter cardAdapter;
+    private OpenNowAdapter openNowAdapter;
+
+    private RecyclerView list;
     private View emptyState;
-
-    private MaterialCardView ticketCard;
-    private TextView ticketTitle;
-    private TextView ticketStatus;
-    private View ticketDot;
-
-    private TextInputEditText searchInput;
+    private View banner;
+    private View highlight;
+    private View firstVisit;
+    private View filters;
+    private TextView count;
+    private EditText searchInput;
+    private Chip townChip;
     private ChipGroup categoryGroup;
-    private Chip locationChip;
-    private Chip allCategoriesChip;
+    private Chip allChip;
 
-    // null means "no filter" for both.
+    // null means "no filter"
     private Category selectedCategory;
-    private String selectedMunicipality;
 
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container,
                              @Nullable Bundle savedInstanceState) {
-        return inflater.inflate(R.layout.activity_browse, container, false);
+        return inflater.inflate(R.layout.fragment_browse, container, false);
     }
 
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
+        session = new Session(requireContext());
 
         if (savedInstanceState != null) {
             String saved = savedInstanceState.getString(STATE_CATEGORY);
             selectedCategory = saved == null ? null : Category.valueOf(saved);
-            selectedMunicipality = savedInstanceState.getString(STATE_MUNICIPALITY);
         }
 
-        queueList = view.findViewById(R.id.browse_list);
+        list = view.findViewById(R.id.browse_list);
         emptyState = view.findViewById(R.id.browse_empty);
-        queueList.setLayoutManager(new LinearLayoutManager(requireContext()));
-        queueList.setHasFixedSize(true);
+        banner = view.findViewById(R.id.browse_banner);
+        highlight = view.findViewById(R.id.browse_highlight);
+        firstVisit = view.findViewById(R.id.browse_first_visit);
+        filters = view.findViewById(R.id.browse_filters);
+        count = view.findViewById(R.id.browse_count);
+        searchInput = view.findViewById(R.id.browse_search_input);
+        townChip = view.findViewById(R.id.browse_town_chip);
+        categoryGroup = view.findViewById(R.id.browse_category_group);
 
-        queueAdapter = new QueueAdapter(this);
-        queueList.setAdapter(queueAdapter);
+        list.setLayoutManager(new LinearLayoutManager(requireContext()));
+        cardAdapter = new QueueAdapter(this);
+        openNowAdapter = new OpenNowAdapter(this);
 
-        // Profile is a tab now, so the old header button goes (it's removed with the Browse rebuild).
-        // INVISIBLE, not GONE: the header is laid out around this button, and a GONE view
-        // collapses to nothing and drags the title up under the status bar.
-        view.findViewById(R.id.browse_profile).setVisibility(View.INVISIBLE);
-
-        setUpTicketCard(view);
-        setUpSearch(view);
-        setUpCategoryChips(view);
-        setUpLocationChip(view);
-
-        MaterialButton clearButton = view.findViewById(R.id.browse_empty_button);
-        clearButton.setOnClickListener(new View.OnClickListener() {
+        // The banner is a slim spotlight with small punches in its sides.
+        banner.setBackground(TicketShapes.background(
+                TicketShapes.sidePunched(requireContext(), R.dimen.radius_md,
+                        R.dimen.punch_radius_banner, 0.5f),
+                ContextCompat.getColor(requireContext(), R.color.spotlight)));
+        banner.setOnClickListener(new View.OnClickListener() {
             @Override
-            public void onClick(View button) {
-                clearFilters();
+            public void onClick(View v) {
+                startActivity(new Intent(requireContext(), ActiveTicketActivity.class));
             }
         });
+
+        setUpSearch();
+        setUpTownChip();
+        setUpCategoryChips();
+        setUpFirstVisit(view);
     }
 
     /** Coming back from Queue detail, Join or the ticket screen. */
@@ -113,111 +127,56 @@ public class BrowseFragment extends Fragment implements QueueAdapter.OnQueueClic
         }
     }
 
-    private void refresh() {
-        bindTicketCard();
-        applyFilters();
-    }
-
     @Override
     public void onSaveInstanceState(@NonNull Bundle outState) {
         super.onSaveInstanceState(outState);
         outState.putString(STATE_CATEGORY, selectedCategory == null ? null : selectedCategory.name());
-        outState.putString(STATE_MUNICIPALITY, selectedMunicipality);
     }
 
-    // ---- Active ticket card -------------------------------------------------
+    // ---- Setup ----------------------------------------------------------------
 
-    private void setUpTicketCard(View view) {
-        ticketCard = view.findViewById(R.id.browse_ticket_card);
-        ticketTitle = view.findViewById(R.id.browse_ticket_title);
-        ticketStatus = view.findViewById(R.id.browse_ticket_status);
-        ticketDot = view.findViewById(R.id.browse_ticket_dot);
-
-        ticketCard.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View card) {
-                startActivity(new Intent(requireContext(), ActiveTicketActivity.class));
-            }
-        });
-    }
-
-    private void bindTicketCard() {
-        Ticket ticket = ActiveTicketStore.getTicket();
-
-        if (ticket == null) {
-            ticketCard.setVisibility(View.GONE);
-            return;
-        }
-
-        ticketCard.setVisibility(View.VISIBLE);
-        ticketTitle.setText(getString(R.string.browse_ticket_format,
-                ticket.getTicketNumber(), ticket.getQueueName()));
-
-        int colorRes;
-        switch (ticket.getStatus()) {
-            case CALLED:
-                ticketStatus.setText(R.string.browse_ticket_called);
-                colorRes = R.color.status_called;
-                break;
-            case SERVED:
-                ticketStatus.setText(R.string.browse_ticket_served);
-                colorRes = R.color.status_served;
-                break;
-            case NO_SHOW:
-            case REMOVED:
-                ticketStatus.setText(R.string.browse_ticket_expired);
-                colorRes = R.color.status_expired;
-                break;
-            case QUEUE_CLOSED:
-                ticketStatus.setText(R.string.browse_ticket_closed);
-                colorRes = R.color.ink_muted;
-                break;
-            case WAITING:
-            default:
-                ticketStatus.setText(getString(R.string.browse_ticket_waiting,
-                        ticket.getPosition()));
-                colorRes = R.color.status_waiting;
-                break;
-        }
-
-        ticketDot.getBackground().mutate().setTint(ContextCompat.getColor(requireContext(), colorRes));
-    }
-
-    // ---- Search and filters -------------------------------------------------
-
-    private void setUpSearch(View view) {
-        searchInput = view.findViewById(R.id.browse_search_input);
+    private void setUpSearch() {
         searchInput.addTextChangedListener(new TextWatcher() {
             @Override
-            public void beforeTextChanged(CharSequence text, int start, int count, int after) {
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
             }
 
             @Override
-            public void onTextChanged(CharSequence text, int start, int before, int count) {
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
             }
 
             @Override
-            public void afterTextChanged(Editable text) {
-                applyFilters();
+            public void afterTextChanged(Editable s) {
+                refresh();
             }
         });
     }
 
-    private void setUpCategoryChips(View view) {
-        categoryGroup = view.findViewById(R.id.browse_category_group);
+    private void setUpTownChip() {
+        View.OnClickListener pick = new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                pickTown();
+            }
+        };
+        townChip.setOnClickListener(pick);
+        townChip.setOnCloseIconClickListener(pick);
+    }
+
+    /** "All" plus one chip per category, each with its icon. */
+    private void setUpCategoryChips() {
         LayoutInflater inflater = LayoutInflater.from(requireContext());
-
-        allCategoriesChip = addCategoryChip(inflater, getString(R.string.browse_filter_all), null);
-        Chip chipToCheck = allCategoriesChip;
-
+        allChip = addCategoryChip(inflater, getString(R.string.browse_filter_all), null);
+        Chip toCheck = allChip;
         for (Category category : Category.values()) {
             Chip chip = addCategoryChip(inflater, getString(category.label), category);
+            chip.setChipIconResource(category.icon);
+            chip.setChipIconVisible(true);
             if (category == selectedCategory) {
-                chipToCheck = chip;
+                toCheck = chip;
             }
         }
-
-        chipToCheck.setChecked(true);
+        toCheck.setChecked(true);
 
         categoryGroup.setOnCheckedStateChangeListener(new ChipGroup.OnCheckedStateChangeListener() {
             @Override
@@ -227,89 +186,282 @@ public class BrowseFragment extends Fragment implements QueueAdapter.OnQueueClic
                 }
                 Chip checked = group.findViewById(checkedIds.get(0));
                 selectedCategory = (Category) checked.getTag();
-                applyFilters();
+                refresh();
             }
         });
     }
 
     /** The tag carries the category the chip filters by; null for "All". */
-    private Chip addCategoryChip(LayoutInflater inflater, String label, Category category) {
+    private Chip addCategoryChip(LayoutInflater inflater, String label, @Nullable Category category) {
         Chip chip = (Chip) inflater.inflate(R.layout.view_filter_chip, categoryGroup, false);
         chip.setId(View.generateViewId());
         chip.setText(label);
         chip.setTag(category);
+        punchWhenChecked(chip);
         categoryGroup.addView(chip);
         return chip;
     }
 
-    private void setUpLocationChip(View view) {
-        locationChip = view.findViewById(R.id.browse_location_chip);
-        bindLocationChip();
-
-        locationChip.setOnClickListener(new View.OnClickListener() {
+    /** A selected chip becomes a punched ticket (DESIGN.md "Punched selection"). */
+    private void punchWhenChecked(final Chip chip) {
+        final ShapeAppearanceModel pill = chip.getShapeAppearanceModel();
+        final ShapeAppearanceModel punched =
+                TicketShapes.selection(requireContext(), R.dimen.radius_selection);
+        chip.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             @Override
-            public void onClick(View chip) {
-                // Tapping a filter chip toggles it; the checked state should only
-                // follow the actual selection, so put it back and ask instead.
-                bindLocationChip();
-                showLocationPicker();
+            public void onCheckedChanged(CompoundButton button, boolean isChecked) {
+                chip.setShapeAppearanceModel(isChecked ? punched : pill);
             }
         });
     }
 
-    private void bindLocationChip() {
-        locationChip.setChecked(selectedMunicipality != null);
-        locationChip.setText(selectedMunicipality == null
-                ? getString(R.string.browse_location_all) : selectedMunicipality);
+    /** First visit: the first few towns as chips, the rest behind "N more". */
+    private void setUpFirstVisit(View view) {
+        ChipGroup towns = view.findViewById(R.id.browse_town_chips);
+        String[] all = getResources().getStringArray(R.array.bohol_municipalities);
+        LayoutInflater inflater = LayoutInflater.from(requireContext());
+        for (int i = 0; i < Math.min(FIRST_VISIT_TOWNS, all.length); i++) {
+            final String town = all[i];
+            Chip chip = (Chip) inflater.inflate(R.layout.view_filter_chip, towns, false);
+            chip.setText(town);
+            chip.setCheckable(false);
+            chip.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    chooseTown(town);
+                }
+            });
+            towns.addView(chip);
+        }
+        if (all.length > FIRST_VISIT_TOWNS) {
+            Chip more = (Chip) inflater.inflate(R.layout.view_filter_chip, towns, false);
+            more.setText(getString(R.string.browse_more_towns_format, all.length - FIRST_VISIT_TOWNS));
+            more.setCheckable(false);
+            more.setCloseIconResource(R.drawable.ic_chevron_down);
+            more.setCloseIconVisible(true);
+            View.OnClickListener pick = new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    pickTown();
+                }
+            };
+            more.setOnClickListener(pick);
+            more.setOnCloseIconClickListener(pick);
+            towns.addView(more);
+        }
     }
 
-    private void showLocationPicker() {
-        final String[] municipalities = getResources().getStringArray(R.array.bohol_municipalities);
-
-        // Option 0 is "All locations"; the rest shift down by one.
-        String[] options = new String[municipalities.length + 1];
-        options[0] = getString(R.string.browse_location_all);
-        System.arraycopy(municipalities, 0, options, 1, municipalities.length);
-
-        int checkedIndex = 0;
-        for (int i = 0; i < municipalities.length; i++) {
-            if (municipalities[i].equals(selectedMunicipality)) {
-                checkedIndex = i + 1;
+    private void pickTown() {
+        final String[] towns = getResources().getStringArray(R.array.bohol_municipalities);
+        int checked = -1;
+        for (int i = 0; i < towns.length; i++) {
+            if (towns[i].equals(session.getTown())) {
+                checked = i;
             }
         }
-
         new MaterialAlertDialogBuilder(requireContext())
-                .setTitle(R.string.browse_location_dialog_title)
-                .setSingleChoiceItems(options, checkedIndex, new DialogInterface.OnClickListener() {
+                .setTitle(R.string.browse_town_dialog_title)
+                .setSingleChoiceItems(towns, checked, new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
-                        selectedMunicipality = which == 0 ? null : municipalities[which - 1];
-                        bindLocationChip();
-                        applyFilters();
+                        chooseTown(towns[which]);
                         dialog.dismiss();
                     }
                 })
                 .show();
     }
 
-    private void clearFilters() {
-        selectedMunicipality = null;
-        bindLocationChip();
-        allCategoriesChip.setChecked(true); // fires the listener, which clears selectedCategory
-        searchInput.setText(null);
-        applyFilters();
+    private void chooseTown(String town) {
+        session.setTown(town);
+        refresh();
     }
 
-    private void applyFilters() {
-        String query = searchInput.getText() == null ? "" : searchInput.getText().toString();
-        List<Queue> matches = QueueFilter.apply(
-                FakeData.queues(), query, selectedCategory, selectedMunicipality);
+    private void clearFilters() {
+        searchInput.setText(null);
+        allChip.setChecked(true); // fires the listener, which clears the category and refreshes
+        refresh();
+    }
 
-        queueAdapter.submitQueues(matches);
+    // ---- Rendering ----------------------------------------------------------
 
-        boolean empty = matches.isEmpty();
-        queueList.setVisibility(empty ? View.GONE : View.VISIBLE);
+    private void refresh() {
+        if (getView() == null) {
+            return;
+        }
+        List<Queue> all = FakeData.queues();
+        String town = session.getTown();
+        bindGreeting(town == null);
+
+        if (town == null) {
+            renderFirstVisit(all);
+        } else {
+            renderTown(all, town);
+        }
+    }
+
+    /** "Good morning, Maria" by the hour, or "Welcome, Maria" on a first visit. */
+    private void bindGreeting(boolean firstVisit) {
+        String name = session.getName();
+        int hour = LocalTime.now(Format.MANILA).getHour();
+        int greeting = firstVisit ? R.string.browse_welcome
+                : hour < 12 ? R.string.browse_good_morning
+                : hour < 18 ? R.string.browse_good_afternoon
+                : R.string.browse_good_evening;
+        String first = name == null ? null : name.trim().split("\\s+")[0];
+        TextView view = getView().findViewById(R.id.browse_greeting);
+        view.setText(first == null ? getString(greeting)
+                : getString(R.string.browse_greeting_name_format, getString(greeting), first));
+    }
+
+    private void renderFirstVisit(List<Queue> all) {
+        firstVisit.setVisibility(View.VISIBLE);
+        banner.setVisibility(View.GONE);
+        highlight.setVisibility(View.GONE);
+        filters.setVisibility(View.GONE);
+        emptyState.setVisibility(View.GONE);
+        searchInput.setHint(R.string.browse_search_any_hint);
+
+        String query = searchInput.getText().toString();
+        List<Queue> queues = query.trim().isEmpty()
+                ? QueueFilter.openNowAcrossBohol(all)
+                : QueueFilter.forBrowse(QueueFilter.apply(all, query, null, null));
+        count.setText(getString(query.trim().isEmpty() ? R.string.browse_open_now_format
+                : R.string.browse_results_format, queues.size()));
+        list.setAdapter(openNowAdapter);
+        openNowAdapter.submitQueues(queues);
+        list.setVisibility(View.VISIBLE);
+    }
+
+    private void renderTown(List<Queue> all, String town) {
+        firstVisit.setVisibility(View.GONE);
+        filters.setVisibility(View.VISIBLE);
+        searchInput.setHint(R.string.browse_search_hint);
+        townChip.setText(town);
+
+        bindBannerOrHighlight(all, town);
+
+        String query = searchInput.getText().toString();
+        boolean searching = !query.trim().isEmpty();
+        List<Queue> queues = QueueFilter.forBrowse(
+                QueueFilter.apply(all, query, selectedCategory, town));
+
+        count.setText(searching ? getString(R.string.browse_results_format, queues.size())
+                : getString(R.string.browse_in_town_format, town, queues.size()));
+        list.setAdapter(cardAdapter);
+        cardAdapter.submitQueues(queues);
+
+        boolean empty = queues.isEmpty();
+        list.setVisibility(empty ? View.GONE : View.VISIBLE);
         emptyState.setVisibility(empty ? View.VISIBLE : View.GONE);
+        if (empty) {
+            if (!searching && selectedCategory == null) {
+                bindEmptyTown(all, town);
+            } else {
+                bindNoResults(query.trim());
+            }
+        }
+    }
+
+    /** In line: the spotlight banner. Otherwise: the shortest open wait in town. */
+    private void bindBannerOrHighlight(List<Queue> all, String town) {
+        Ticket ticket = ActiveTicketStore.getTicket();
+        if (ticket != null && ticket.isLive()) {
+            banner.setVisibility(View.VISIBLE);
+            highlight.setVisibility(View.GONE);
+            boolean called = ticket.getStatus() == Ticket.Status.CALLED;
+            TextView number = banner.findViewById(R.id.banner_number);
+            number.setText(getString(R.string.ticket_number_format, ticket.getTicketNumber()));
+            // Marigold only while you're being called (signal only on the spotlight).
+            number.setTextColor(ContextCompat.getColor(requireContext(),
+                    called ? R.color.signal : R.color.on_spotlight));
+            ((TextView) banner.findViewById(R.id.banner_title)).setText(getString(
+                    called ? R.string.browse_banner_called_format : R.string.browse_banner_in_line_format,
+                    ticket.getQueueName()));
+            int ahead = Math.max(0, ticket.getPosition() - 1);
+            ((TextView) banner.findViewById(R.id.banner_detail)).setText(called
+                    ? getString(R.string.browse_banner_confirm)
+                    : getString(R.string.browse_banner_detail_format, ahead,
+                            ticket.getEstimatedWaitMinutes()));
+            banner.setContentDescription(getString(R.string.ticket_description,
+                    ticket.getTicketNumber(), ticket.getQueueName()));
+            return;
+        }
+
+        banner.setVisibility(View.GONE);
+        final Queue best = QueueFilter.shortestWait(all, town);
+        highlight.setVisibility(best == null ? View.GONE : View.VISIBLE);
+        if (best == null) {
+            return;
+        }
+        ((TextView) highlight.findViewById(R.id.browse_highlight_name)).setText(best.getName());
+        ((TextView) highlight.findViewById(R.id.browse_highlight_where)).setText(getString(
+                R.string.browse_highlight_where_format, best.getVenue(), best.getPeopleWaiting()));
+        ((TextView) highlight.findViewById(R.id.browse_highlight_wait)).setText(QueueCards.withUnit(
+                String.valueOf(best.getEstimatedWaitMinutes()), getString(R.string.card_minutes_unit)));
+        highlight.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                onQueueClick(best);
+            }
+        });
+    }
+
+    /** "No queues in Dauis yet", with the town that has the most open. */
+    private void bindEmptyTown(List<Queue> all, String town) {
+        View view = getView();
+        ((TextView) view.findViewById(R.id.browse_empty_title)).setText(
+                getString(R.string.browse_empty_town_title, town));
+        ((TextView) view.findViewById(R.id.browse_empty_body)).setText(
+                getString(R.string.browse_empty_town_body, town));
+        MaterialButton button = view.findViewById(R.id.browse_empty_button);
+        button.setText(R.string.browse_change_town);
+        button.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                pickTown();
+            }
+        });
+
+        final String nearby = QueueFilter.busiestOtherTown(all, town);
+        View label = view.findViewById(R.id.browse_nearby_label);
+        View row = view.findViewById(R.id.browse_nearby_row);
+        label.setVisibility(nearby == null ? View.GONE : View.VISIBLE);
+        row.setVisibility(nearby == null ? View.GONE : View.VISIBLE);
+        if (nearby == null) {
+            return;
+        }
+        Queue fastest = QueueFilter.shortestWait(all, nearby);
+        ListRow.bind(row, R.drawable.ic_map_pin, nearby, getString(R.string.browse_nearby_detail_format,
+                QueueFilter.openCount(all, nearby),
+                fastest == null ? 0 : fastest.getEstimatedWaitMinutes()));
+        row.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                chooseTown(nearby);
+            }
+        });
+    }
+
+    /** 'No results for "passport"' or "Nothing in Medical right now". */
+    private void bindNoResults(String query) {
+        View view = getView();
+        String category = selectedCategory == null ? null : getString(selectedCategory.label);
+        ((TextView) view.findViewById(R.id.browse_empty_title)).setText(query.isEmpty()
+                ? getString(R.string.browse_nothing_in_format, category)
+                : getString(R.string.browse_no_results_format, query));
+        ((TextView) view.findViewById(R.id.browse_empty_body)).setText(category == null
+                ? getString(R.string.browse_no_results_body)
+                : getString(R.string.browse_no_results_category_body, category));
+        MaterialButton button = view.findViewById(R.id.browse_empty_button);
+        button.setText(R.string.browse_empty_action);
+        button.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                clearFilters();
+            }
+        });
+        view.findViewById(R.id.browse_nearby_label).setVisibility(View.GONE);
+        view.findViewById(R.id.browse_nearby_row).setVisibility(View.GONE);
     }
 
     @Override

@@ -360,8 +360,8 @@ public final class FakeData {
         LocalDate today = Format.today();
         // Open queues are scheduled around the current time, so the demo makes sense whenever
         // it runs: opened a couple of hours ago, closing a few hours from now.
-        LocalTime opened = hoursFromNow(-2);
-        LocalTime closes = hoursFromNow(5);
+        LocalTime opened = earlier(hoursFromNow(-2), LocalTime.of(8, 0));
+        LocalTime closes = later(hoursFromNow(5), LocalTime.of(17, 0));
 
         seed(new Queue.Builder()
                         .setId("q1")
@@ -408,7 +408,7 @@ public final class FakeData {
                         .setVenue("Brgy. Cogon Office")
                         .setMunicipality("Tagbilaran City")
                         .setLocation(9.6612, 123.8578)
-                        .setSchedule(today, today, LocalTime.of(8, 0), closes)
+                        .setSchedule(today, today, opened, closes)
                         .setGracePeriodEnabled(true)
                         .build(),
                 7, 12, 11, 1, true);
@@ -574,6 +574,14 @@ public final class FakeData {
         history.add(pastTicket("q5", 17, Ticket.Status.QUEUE_CLOSED, 9));
         history.add(pastTicket("q6", 5, Ticket.Status.NO_SHOW, 14));
         history.add(pastTicket("q3", 4, Ticket.Status.SERVED, 30));
+    }
+
+    private static LocalTime earlier(LocalTime a, LocalTime b) {
+        return a.isBefore(b) ? a : b;
+    }
+
+    private static LocalTime later(LocalTime a, LocalTime b) {
+        return a.isAfter(b) ? a : b;
     }
 
     /**

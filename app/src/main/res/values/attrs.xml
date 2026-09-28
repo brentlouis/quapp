@@ -11,6 +11,7 @@
     <attr name="textAppearanceStatDisplay" format="reference" />
     <attr name="textAppearanceTicketNumberLarge" format="reference" />
     <attr name="textAppearanceTicketNumberSmall" format="reference" />
+    <attr name="textAppearanceMonoSmall" format="reference" />
 
     <!-- TearLineView: the dashed crema line -->
     <declare-styleable name="TearLineView">

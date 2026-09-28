@@ -23,6 +23,7 @@ public class Session {
     private static final String KEY_NAME = "name";
     private static final String KEY_PHONE = "phone";
     private static final String KEY_ROLE = "role";
+    private static final String KEY_TOWN = "town";
 
     private final SharedPreferences prefs;
 
@@ -70,6 +71,15 @@ public class Session {
         }
 
         editor.putString(KEY_PHONE, phone).apply();
+    }
+
+    /** The town Browse is set to. Null until the first-visit question is answered. */
+    public String getTown() {
+        return prefs.getString(KEY_TOWN, null);
+    }
+
+    public void setTown(String town) {
+        prefs.edit().putString(KEY_TOWN, town).apply();
     }
 
     public void setRole(Role role) {

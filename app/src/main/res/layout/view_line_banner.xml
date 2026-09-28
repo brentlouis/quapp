@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- "You're in line": the slim spotlight on Browse while you hold a ticket (DESIGN.md
+     section 6, about 72dp, 6dp punches). Number, a crema tear line, then where you stand. -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:clickable="true"
+    android:focusable="true"
+    android:foreground="?attr/selectableItemBackground"
+    android:gravity="center_vertical"
+    android:minHeight="@dimen/banner_min_height"
+    android:orientation="horizontal"
+    android:paddingStart="@dimen/space_md"
+    android:paddingTop="@dimen/space_sm"
+    android:paddingEnd="@dimen/space_ms"
+    android:paddingBottom="@dimen/space_sm"
+    android:theme="@style/ThemeOverlay.Quapp.Spotlight">
+
+    <TextView
+        android:id="@+id/banner_number"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:includeFontPadding="false"
+        android:textAppearance="?attr/textAppearanceTicketNumberSmall"
+        android:textColor="?attr/colorOnSurface"
+        tools:text="#43" />
+
+    <com.example.quapp.TearLineView
+        android:layout_width="2dp"
+        android:layout_height="match_parent"
+        android:layout_marginStart="@dimen/space_ms"
+        app:tearOrientation="vertical" />
+
+    <LinearLayout
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="@dimen/space_ms"
+        android:layout_weight="1"
+        android:orientation="vertical">
+
+        <TextView
+            android:id="@+id/banner_title"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:ellipsize="end"
+            android:maxLines="2"
+            android:textAppearance="?attr/textAppearanceTitleSmall"
+            tools:text="You're in line · Barangay Relief Distribution" />
+
+        <TextView
+            android:id="@+id/banner_detail"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textAppearance="?attr/textAppearanceMonoSmall"
+            android:textColor="?attr/colorOnSurfaceVariant"
+            tools:text="41 ahead · About 55 min" />
+    </LinearLayout>
+
+    <ImageView
+        android:layout_width="@dimen/icon_size"
+        android:layout_height="@dimen/icon_size"
+        android:importantForAccessibility="no"
+        android:src="@drawable/ic_chevron_right"
+        app:tint="?attr/colorOnSurfaceVariant" />
+</LinearLayout>

@@ -1,5 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!-- A filter chip (Browse categories, owner status). The punched shape for the selected one is
+     set in code (TicketShapes.selection). -->
 <com.google.android.material.chip.Chip xmlns:android="http://schemas.android.com/apk/res/android"
-    style="@style/Widget.Material3.Chip.Filter"
+    style="@style/Widget.Quapp.Chip"
     android:layout_width="wrap_content"
     android:layout_height="wrap_content" />

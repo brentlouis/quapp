@@ -1,0 +1,269 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- The owner's Queues tab (canvas 13, 35). The live queue is the spotlight on top, then status
+     chips with counts, then queue cards with the organizer footer. First visit: a three-step
+     guide instead. "New queue" floats over the list. -->
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <LinearLayout
+        android:id="@+id/owner_header"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent">
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="@dimen/space_md"
+            android:layout_marginTop="@dimen/space_md"
+            android:layout_marginEnd="@dimen/space_md"
+            android:accessibilityHeading="true"
+            android:text="@string/dashboard_title"
+            android:textAppearance="?attr/textAppearanceHeadlineMedium" />
+
+        <TextView
+            android:id="@+id/owner_greeting"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="@dimen/space_md"
+            android:layout_marginEnd="@dimen/space_md"
+            android:textAppearance="?attr/textAppearanceBodyMedium"
+            android:textColor="?attr/colorOnSurfaceVariant"
+            tools:text="Good morning, Rhea" />
+
+        <!-- The live queue: the spotlight -->
+        <androidx.constraintlayout.widget.ConstraintLayout
+            android:id="@+id/owner_live"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="@dimen/space_md"
+            android:layout_marginTop="@dimen/space_md"
+            android:layout_marginEnd="@dimen/space_md"
+            android:clickable="true"
+            android:focusable="true"
+            android:foreground="?attr/selectableItemBackground"
+            android:padding="@dimen/space_md"
+            android:theme="@style/ThemeOverlay.Quapp.Spotlight"
+            android:visibility="gone"
+            tools:visibility="visible">
+
+            <TextView
+                android:id="@+id/owner_live_number"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:includeFontPadding="false"
+                android:textAppearance="?attr/textAppearanceTicketNumber"
+                android:textColor="@color/signal"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent"
+                tools:text="#23" />
+
+            <com.example.quapp.TearLineView
+                android:id="@+id/owner_live_tear"
+                android:layout_width="2dp"
+                android:layout_height="0dp"
+                android:layout_marginStart="@dimen/space_md"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintStart_toEndOf="@id/owner_live_number"
+                app:layout_constraintTop_toTopOf="parent"
+                app:tearOrientation="vertical" />
+
+            <TextView
+                android:id="@+id/owner_live_label"
+                android:layout_width="wrap_content"
+                android:layout_height="@dimen/pill_height"
+                android:layout_marginStart="@dimen/space_md"
+                android:background="@drawable/bg_pill"
+                android:backgroundTint="@color/ok_soft"
+                android:gravity="center"
+                android:paddingStart="@dimen/space_sm"
+                android:paddingEnd="@dimen/space_sm"
+                android:text="@string/owner_live_now"
+                android:textAppearance="?attr/textAppearanceLabelSmall"
+                android:textColor="@color/ok"
+                app:layout_constraintStart_toEndOf="@id/owner_live_tear"
+                app:layout_constraintTop_toTopOf="parent" />
+
+            <TextView
+                android:id="@+id/owner_live_name"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="@dimen/space_md"
+                android:layout_marginTop="@dimen/space_sm"
+                android:textAppearance="?attr/textAppearanceTitleLarge"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toEndOf="@id/owner_live_tear"
+                app:layout_constraintTop_toBottomOf="@id/owner_live_label"
+                tools:text="Free Medical Mission" />
+
+            <TextView
+                android:id="@+id/owner_live_detail"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="@dimen/space_md"
+                android:fontFeatureSettings="tnum"
+                android:textAppearance="?attr/textAppearanceBodySmall"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toEndOf="@id/owner_live_tear"
+                app:layout_constraintTop_toBottomOf="@id/owner_live_name"
+                tools:text="8 waiting · serving Ana Lopez" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/owner_live_console"
+                style="@style/Widget.Quapp.Button.Tonal"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="@dimen/space_md"
+                android:layout_marginTop="@dimen/space_ms"
+                android:text="@string/owner_console_action"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintStart_toEndOf="@id/owner_live_tear"
+                app:layout_constraintTop_toBottomOf="@id/owner_live_detail" />
+        </androidx.constraintlayout.widget.ConstraintLayout>
+
+        <!-- Status filter with counts -->
+        <HorizontalScrollView
+            android:id="@+id/owner_filters"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/space_md"
+            android:clipToPadding="false"
+            android:paddingStart="@dimen/space_md"
+            android:paddingEnd="@dimen/space_md"
+            android:scrollbars="none">
+
+            <com.google.android.material.chip.ChipGroup
+                android:id="@+id/owner_status_group"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                app:chipSpacingHorizontal="@dimen/space_sm"
+                app:selectionRequired="true"
+                app:singleLine="true"
+                app:singleSelection="true" />
+        </HorizontalScrollView>
+    </LinearLayout>
+
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/owner_list"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:clipToPadding="false"
+        android:paddingStart="@dimen/space_md"
+        android:paddingTop="@dimen/space_ms"
+        android:paddingEnd="@dimen/space_md"
+        android:paddingBottom="@dimen/owner_list_bottom_padding"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/owner_header"
+        tools:listitem="@layout/item_queue_card" />
+
+    <!-- Filter matches nothing -->
+    <TextView
+        android:id="@+id/owner_filter_empty"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="@dimen/space_md"
+        android:layout_marginTop="@dimen/space_lg"
+        android:layout_marginEnd="@dimen/space_md"
+        android:textAppearance="?attr/textAppearanceBodyMedium"
+        android:textColor="?attr/colorOnSurfaceVariant"
+        android:visibility="gone"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/owner_header"
+        tools:text="No paused queues." />
+
+    <!-- First visit: run your first queue -->
+    <androidx.core.widget.NestedScrollView
+        android:id="@+id/owner_first_visit"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:visibility="gone"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/owner_header">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="@dimen/space_md">
+
+            <com.google.android.material.card.MaterialCardView
+                style="@style/Widget.Quapp.Card"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="@dimen/space_md">
+
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="@string/owner_first_title"
+                        android:textAppearance="?attr/textAppearanceTitleLarge" />
+
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="@dimen/space_xs"
+                        android:text="@string/owner_first_body"
+                        android:textAppearance="?attr/textAppearanceBodySmall" />
+
+                    <LinearLayout
+                        android:id="@+id/owner_first_steps"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="@dimen/space_sm"
+                        android:divider="@drawable/divider_line"
+                        android:orientation="vertical"
+                        android:showDividers="middle" />
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/owner_first_create"
+                        android:layout_width="match_parent"
+                        android:layout_height="@dimen/button_height_lg"
+                        android:layout_marginTop="@dimen/space_md"
+                        android:text="@string/dashboard_empty_action"
+                        app:icon="@drawable/ic_plus"
+                        app:iconGravity="textStart" />
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/space_md"
+                android:drawablePadding="@dimen/space_sm"
+                android:text="@string/owner_first_footer"
+                android:textAppearance="?attr/textAppearanceBodySmall"
+                app:drawableStartCompat="@drawable/ic_nav_queues"
+                app:drawableTint="?attr/colorOnSurfaceVariant" />
+        </LinearLayout>
+    </androidx.core.widget.NestedScrollView>
+
+    <com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton
+        android:id="@+id/owner_create_fab"
+        style="@style/Widget.Quapp.ExtendedFab"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginEnd="@dimen/space_md"
+        android:layout_marginBottom="@dimen/space_md"
+        android:text="@string/owner_new_queue"
+        app:icon="@drawable/ic_plus"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent" />
+
+</androidx.constraintlayout.widget.ConstraintLayout>

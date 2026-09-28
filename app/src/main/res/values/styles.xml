@@ -259,4 +259,50 @@
         <item name="cornerSizeBottomLeft">0dp</item>
         <item name="cornerSizeBottomRight">0dp</item>
     </style>
+    <!-- ===== Chips (DESIGN.md "Chips"): 40dp, 1dp outline, pill; selected is ink with a check ===== -->
+
+    <style name="Widget.Quapp.Chip" parent="Widget.Material3.Chip.Filter">
+        <item name="chipBackgroundColor">@color/chip_background</item>
+        <item name="chipStrokeColor">@color/chip_stroke</item>
+        <item name="chipStrokeWidth">@dimen/hairline</item>
+        <item name="android:textColor">@color/chip_foreground</item>
+        <item name="chipIconTint">@color/chip_foreground</item>
+        <item name="checkedIconTint">@color/chip_foreground</item>
+        <item name="checkedIcon">@drawable/ic_check</item>
+        <item name="chipIconSize">@dimen/chip_icon_size</item>
+        <item name="checkedIconSize">@dimen/chip_icon_size</item>
+        <item name="chipMinHeight">40dp</item>
+        <item name="shapeAppearance">@style/ShapeAppearance.Quapp.Pill</item>
+        <item name="android:textAppearance">@style/TextAppearance.Quapp.Chip</item>
+        <item name="ensureMinTouchTargetSize">true</item>
+    </style>
+
+    <!-- The town chip: paper_sunk, no edge, opens a picker instead of toggling -->
+    <style name="Widget.Quapp.Chip.Town" parent="Widget.Material3.Chip.Assist">
+        <item name="chipBackgroundColor">?attr/colorSurfaceVariant</item>
+        <item name="chipStrokeWidth">0dp</item>
+        <item name="android:textColor">?attr/colorOnSurface</item>
+        <item name="chipIconTint">?attr/colorOnSurface</item>
+        <item name="closeIconTint">?attr/colorOnSurface</item>
+        <item name="chipIconSize">@dimen/chip_icon_size</item>
+        <item name="closeIconSize">@dimen/chip_icon_size</item>
+        <item name="chipMinHeight">40dp</item>
+        <item name="shapeAppearance">@style/ShapeAppearance.Quapp.Pill</item>
+        <item name="android:textAppearance">@style/TextAppearance.Quapp.Chip</item>
+    </style>
+
+    <style name="ShapeAppearance.Quapp.Pill" parent="">
+        <item name="cornerFamily">rounded</item>
+        <item name="cornerSize">50%</item>
+    </style>
+
+    <!-- "New queue": the extended FAB, ink with paper_raised text, radius_md like the buttons -->
+    <style name="Widget.Quapp.ExtendedFab" parent="Widget.Material3.ExtendedFloatingActionButton.Icon.Primary">
+        <item name="backgroundTint">@color/ink</item>
+        <item name="android:textColor">@color/paper_raised</item>
+        <item name="iconTint">@color/paper_raised</item>
+        <item name="rippleColor">@color/paper_raised</item>
+        <item name="shapeAppearance">@style/ShapeAppearance.Quapp.Button</item>
+        <item name="android:textAppearance">@style/TextAppearance.Quapp.Button</item>
+    </style>
 </resources>
