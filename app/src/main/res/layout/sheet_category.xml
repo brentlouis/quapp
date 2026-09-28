@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Category picker (canvas 17): a bottom sheet with every category, its icon and a hint. -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:paddingBottom="@dimen/space_md">
+
+    <com.google.android.material.bottomsheet.BottomSheetDragHandleView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content" />
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="@dimen/space_md"
+        android:layout_marginEnd="@dimen/space_md"
+        android:accessibilityHeading="true"
+        android:text="@string/category_sheet_title"
+        android:textAppearance="?attr/textAppearanceTitleLarge" />
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="@dimen/space_md"
+        android:layout_marginEnd="@dimen/space_md"
+        android:text="@string/category_sheet_lead"
+        android:textAppearance="?attr/textAppearanceBodySmall" />
+
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/category_list"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/space_sm"
+        android:nestedScrollingEnabled="false" />
+</LinearLayout>

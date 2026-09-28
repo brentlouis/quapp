@@ -12,6 +12,8 @@ import androidx.annotation.NonNull;
 import androidx.appcompat.widget.PopupMenu;
 import androidx.recyclerview.widget.RecyclerView;
 
+import java.time.Duration;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -59,7 +61,7 @@ public class WaitingTicketAdapter
         private final TextView numberText;
         private final TextView nameText;
         private final TextView phoneText;
-        private final View tag;
+        private final TextView tag;
         private final ImageButton actionsButton;
 
         WaitingViewHolder(@NonNull View itemView) {
@@ -75,11 +77,23 @@ public class WaitingTicketAdapter
             numberText.setText(itemView.getContext()
                     .getString(R.string.console_ticket_format, ticket.getTicketNumber()));
             nameText.setText(ticket.getHolderName());
-            // Walk-ins have no phone: a Walk-in tag instead of an empty line.
-            boolean walkIn = ticket.getHolderPhone().isEmpty();
-            phoneText.setVisibility(walkIn ? View.GONE : View.VISIBLE);
-            phoneText.setText(maskPhone(itemView.getContext(), ticket.getHolderPhone()));
-            tag.setVisibility(walkIn ? View.VISIBLE : View.GONE);
+            Context context = itemView.getContext();
+            // Under the name: when they moved back, or phone and how long they've waited.
+            // Walk-ins have no phone, so just the time, plus a tag saying why.
+            if (ticket.isMovedBack() && ticket.getMovedBackAt() != null) {
+                phoneText.setText(context.getString(R.string.console_moved_at_format,
+                        Format.time(context, ticket.getMovedBackAt())));
+                tag.setText(R.string.console_moved_back_tag);
+                tag.setVisibility(View.VISIBLE);
+            } else if (ticket.isWalkIn()) {
+                phoneText.setText(joinedAgo(context, ticket));
+                tag.setText(R.string.console_walk_in_label);
+                tag.setVisibility(View.VISIBLE);
+            } else {
+                phoneText.setText(context.getString(R.string.console_joined_phone_format,
+                        maskPhone(context, ticket.getHolderPhone()), joinedAgo(context, ticket)));
+                tag.setVisibility(View.GONE);
+            }
 
             actionsButton.setOnClickListener(new View.OnClickListener() {
                 @Override
@@ -115,7 +129,17 @@ public class WaitingTicketAdapter
      * "0917 ••• 0002": enough for staff to match a person at the counter without showing the
      * whole number on a screen other people can see.
      */
+    /** "18 min ago", or "Just joined" under a minute. */
+    static String joinedAgo(Context context, Ticket ticket) {
+        long minutes = Duration.between(ticket.getJoinedAt(), Instant.now()).toMinutes();
+        return minutes < 1 ? context.getString(R.string.console_joined_just_now)
+                : context.getString(R.string.console_joined_ago_format, (int) minutes);
+    }
+
     static String maskPhone(Context context, String phone) {
+        if (phone == null) {
+            return "";
+        }
         if (phone.length() < 8) {
             return phone;
         }

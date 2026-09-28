@@ -38,6 +38,7 @@ public class ActiveTicketActivity extends AppCompatActivity {
     private View doneButton;
     private View doneOutlinedButton;
     private View joinAgainButton;
+    private View browseButton;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -53,6 +54,16 @@ public class ActiveTicketActivity extends AppCompatActivity {
         doneButton = findViewById(R.id.ticket_done_button);
         doneOutlinedButton = findViewById(R.id.ticket_done_outlined_button);
         joinAgainButton = findViewById(R.id.ticket_join_again_button);
+        browseButton = findViewById(R.id.ticket_browse_button);
+        browseButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                ActiveTicketStore.finishTicket();
+                startActivity(QueuerHomeActivity.intent(ActiveTicketActivity.this,
+                        QueuerHomeActivity.TAB_BROWSE));
+                finish();
+            }
+        });
 
         findViewById(R.id.ticket_back).setOnClickListener(new View.OnClickListener() {
             @Override
@@ -164,6 +175,14 @@ public class ActiveTicketActivity extends AppCompatActivity {
             case NO_SHOW:
                 renderReleased(ticket);
                 break;
+            case QUEUE_CLOSED:
+                renderEnded(ticket, R.string.ticket_status_queue_closed,
+                        R.string.ticket_closed_headline, R.string.ticket_closed_instruction);
+                break;
+            case REMOVED:
+                renderEnded(ticket, R.string.ticket_status_removed,
+                        R.string.ticket_removed_headline, R.string.ticket_removed_instruction);
+                break;
         }
     }
 
@@ -211,6 +230,21 @@ public class ActiveTicketActivity extends AppCompatActivity {
 
         bindEtaRow(ticket);
         bindArrival(ticket);
+        bindBring(ticket);
+    }
+
+    /** "Bring · Barangay ID · claim stub", only when the organizer filled it in. */
+    private void bindBring(Ticket ticket) {
+        Queue queue = FakeData.queueById(ticket.getQueueId());
+        String bring = queue == null ? null : queue.getBring();
+        View row = findViewById(R.id.ticket_bring_row);
+        int visibility = bring == null ? View.GONE : View.VISIBLE;
+        row.setVisibility(visibility);
+        findViewById(R.id.ticket_bring_divider).setVisibility(visibility);
+        if (bring != null) {
+            ListRow.bind(row, R.drawable.ic_category_relief, getString(R.string.ticket_bring_title), bring);
+            row.findViewById(R.id.row_chevron).setVisibility(View.GONE);
+        }
     }
 
     /** "About 55 min", and what that estimate is based on. */
@@ -296,7 +330,7 @@ public class ActiveTicketActivity extends AppCompatActivity {
         keptNumber(ticket, true).setTextColor(ContextCompat.getColor(this, R.color.ink_faint));
 
         Queue queue = FakeData.queueById(ticket.getQueueId());
-        boolean counts = queue != null && queue.isNoShowPenaltyEnabled();
+        boolean counts = queue != null && queue.isNoShowCooldownEnabled();
         TextView noShows = findViewById(R.id.ticket_kept_no_shows);
         if (counts) {
             stamp(R.id.ticket_kept_stamp_left, R.string.ticket_status_expired, R.color.err);
@@ -320,6 +354,35 @@ public class ActiveTicketActivity extends AppCompatActivity {
 
         doneOutlinedButton.setVisibility(View.VISIBLE);
         joinAgainButton.setVisibility(View.VISIBLE);
+    }
+
+    /**
+     * Queue closed (canvas 24) or removed: not your fault in the first case, so the kept ticket
+     * says the no-show record isn't affected. One way on: browse other queues.
+     */
+    private void renderEnded(Ticket ticket, int title, int headline, int body) {
+        showOutcome(ticket, title);
+        findViewById(R.id.ticket_outcome_tile).setVisibility(View.GONE);
+        setText(R.id.ticket_outcome_headline, getString(headline));
+        setText(R.id.ticket_outcome_body, getString(body));
+
+        keptNumber(ticket, false).setTextColor(ContextCompat.getColor(this, R.color.ink_muted));
+        findViewById(R.id.ticket_kept_stamp_right).setVisibility(View.GONE);
+        findViewById(R.id.ticket_outcome_note).setVisibility(View.GONE);
+
+        boolean closed = ticket.getStatus() == Ticket.Status.QUEUE_CLOSED;
+        stamp(R.id.ticket_kept_stamp_left, title, closed ? R.color.ink_muted : R.color.err);
+        TextView record = findViewById(R.id.ticket_kept_no_shows);
+        if (closed) {
+            setText(R.id.ticket_kept_right_label, getString(R.string.ticket_outcome_record_label));
+            record.setText(R.string.ticket_outcome_not_affected);
+            record.setVisibility(View.VISIBLE);
+        } else {
+            setText(R.id.ticket_kept_right_label, getString(R.string.ticket_outcome_status_label));
+            record.setVisibility(View.GONE);
+        }
+
+        browseButton.setVisibility(View.VISIBLE);
     }
 
     /** What the no-show means for you next time. */
@@ -379,6 +442,7 @@ public class ActiveTicketActivity extends AppCompatActivity {
         doneButton.setVisibility(View.GONE);
         doneOutlinedButton.setVisibility(View.GONE);
         joinAgainButton.setVisibility(View.GONE);
+        browseButton.setVisibility(View.GONE);
     }
 
     private void setPill(int text, @ColorRes int color, @ColorRes int ground) {

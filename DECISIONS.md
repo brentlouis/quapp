@@ -381,7 +381,7 @@ The Builder came at the same time because Edit Queue has to rebuild a Queue from
 
 **Also considered:** A second boolean `paused` — two booleans allow the impossible "closed and paused," which the enum rules out.
 
-**Status:** Open — needs Brent's approval.
+**Status:** Current. Approved with MODELS.md (Sep 28), which adds `UPCOMING`; `isOpen()` became `acceptsJoins()`.
 
 ---
 

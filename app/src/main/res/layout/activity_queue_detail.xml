@@ -105,6 +105,57 @@
                     app:icon="@drawable/ic_navigation" />
             </LinearLayout>
 
+            <!-- Who runs it: verified organizers get the badge -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/space_sm"
+                android:gravity="center_vertical"
+                android:orientation="horizontal">
+
+                <TextView
+                    android:id="@+id/detail_organizer"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:textAppearance="?attr/textAppearanceLabelMedium"
+                    android:textColor="?attr/colorOnSurfaceVariant"
+                    tools:text="Organized by Brgy. Poblacion Council" />
+
+                <ImageView
+                    android:id="@+id/detail_verified_icon"
+                    android:layout_width="@dimen/icon_small"
+                    android:layout_height="@dimen/icon_small"
+                    android:layout_marginStart="@dimen/space_sm"
+                    android:importantForAccessibility="no"
+                    android:src="@drawable/ic_badge_check"
+                    app:tint="@color/ok" />
+
+                <TextView
+                    android:id="@+id/detail_verified_label"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="@dimen/space_xs"
+                    android:text="@string/detail_verified"
+                    android:textAppearance="?attr/textAppearanceLabelMedium"
+                    android:textColor="@color/ok" />
+            </LinearLayout>
+
+            <!-- Unverified organizer: check it against their own announcement -->
+            <TextView
+                android:id="@+id/detail_unverified_note"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/space_sm"
+                android:background="@drawable/bg_note_warn"
+                android:paddingStart="@dimen/space_md"
+                android:paddingTop="@dimen/space_ms"
+                android:paddingEnd="@dimen/space_md"
+                android:paddingBottom="@dimen/space_ms"
+                android:text="@string/detail_unverified_note"
+                android:textAppearance="?attr/textAppearanceBodySmall"
+                android:textColor="?attr/colorOnSurface"
+                android:visibility="gone" />
+
             <!-- The numbers: filled by ReceiptSlip -->
             <LinearLayout
                 android:id="@+id/detail_slip"
@@ -119,6 +170,15 @@
                 android:paddingEnd="@dimen/space_md"
                 android:paddingBottom="@dimen/space_xs"
                 android:showDividers="middle" />
+
+            <TextView
+                android:id="@+id/detail_bring"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/space_ms"
+                android:textAppearance="?attr/textAppearanceBodyMedium"
+                android:textColor="?attr/colorOnSurfaceVariant"
+                tools:text="Bring Barangay ID or proof of residency · claim stub" />
 
             <TextView
                 android:id="@+id/detail_description"

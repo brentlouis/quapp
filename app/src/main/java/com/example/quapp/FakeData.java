@@ -2,6 +2,10 @@ package com.example.quapp;
 
 import android.os.SystemClock;
 
+import java.time.Duration;
+import java.time.Instant;
+import java.time.LocalDate;
+import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -19,6 +23,12 @@ public final class FakeData {
     public static final int SERVICE_TIME_WINDOW = 5;
     private static final long DEFAULT_SERVICE_MS = 5 * 60_000L;
 
+    /** The organizer id FakeData uses for "the logged-in owner" until there are real accounts. */
+    public static final String MY_ORGANIZER_ID = "me";
+    /** The logged-in owner's organization and whether Quapp has verified it. */
+    public static final String MY_ORGANIZER_NAME = "Brgy. Poblacion Council";
+    public static final boolean MY_ORGANIZER_VERIFIED = true;
+
     // Default coordinates (Tagbilaran City) for new queues until there's a map picker.
     private static final double DEFAULT_LATITUDE = 9.6496;
     private static final double DEFAULT_LONGITUDE = 123.8547;
@@ -35,6 +45,8 @@ public final class FakeData {
         final List<Ticket> waiting = new ArrayList<>();
         final RollingAverage serviceTimes = new RollingAverage(SERVICE_TIME_WINDOW);
         Ticket nowServing;
+        /** The person being served didn't confirm in time; already counted as a no-show. */
+        boolean nowServingTimedOut;
         int served;
         int noShows;
         int nextTicketNumber = 1;
@@ -110,18 +122,30 @@ public final class FakeData {
         live.put(queue.getId(), new LiveQueue());
     }
 
-    /** Closing releases everyone still waiting; pausing keeps them so the owner can finish. */
+    /**
+     * Pausing keeps everyone in line so the owner can finish. Closing ends every ticket still in
+     * line as QUEUE_CLOSED, which never counts as a no-show (DECISIONS.md "A fifth ticket status").
+     */
     public static void setQueueStatus(String queueId, Queue.Status status) {
         Queue queue = queueById(queueId);
         if (queue == null) {
             return;
         }
-        saveQueue(queue.toBuilder().setStatus(status).build());
+        Queue.Builder changed = queue.toBuilder().setStatus(status);
+        if (status == Queue.Status.PAUSED) {
+            changed.setPausedAt(Instant.now());
+        } else if (status == Queue.Status.CLOSED) {
+            changed.setClosedAt(Instant.now());
+        } else {
+            changed.setPausedAt(null).setClosedAt(null);
+        }
+        saveQueue(changed.build());
 
         if (status == Queue.Status.CLOSED) {
             LiveQueue state = liveState(queueId);
             state.waiting.clear();
             state.nowServing = null;
+            ActiveTicketStore.closeIfInQueue(queueId);
         }
     }
 
@@ -135,15 +159,43 @@ public final class FakeData {
         return liveState(queueId).nowServing;
     }
 
+    /**
+     * The grace period, seen from the counter: if the person being served was called more than
+     * 3 minutes ago and never confirmed, their slot is released and counted as a no-show, once.
+     * The server does this on its own; FakeData does it whenever the console asks.
+     *
+     * @return true when the person being served has timed out
+     */
+    public static boolean checkGraceExpired(String queueId) {
+        LiveQueue state = liveState(queueId);
+        Queue queue = queueById(queueId);
+        Ticket serving = state.nowServing;
+        if (serving == null || state.nowServingTimedOut || queue == null
+                || !queue.isGracePeriodEnabled() || serving.getCalledAt() == null) {
+            return state.nowServingTimedOut;
+        }
+        if (Instant.now().isAfter(graceDeadline(serving))) {
+            state.nowServingTimedOut = true;
+            state.noShows++;
+        }
+        return state.nowServingTimedOut;
+    }
+
+    /** When the person being served must confirm by. */
+    public static Instant graceDeadline(Ticket serving) {
+        return serving.getCalledAt().plusMillis(CalledActivity.GRACE_PERIOD_MS);
+    }
+
     /** The person currently being served is done; the front of the line is called. */
     public static Ticket callNext(String queueId) {
         LiveQueue state = liveState(queueId);
 
-        if (state.nowServing != null) {
+        // A timed-out ticket was already counted as a no-show, so it isn't also "served".
+        if (state.nowServing != null && !state.nowServingTimedOut) {
             recordServed(state);
         }
 
-        state.nowServing = state.waiting.isEmpty() ? null : state.waiting.remove(0);
+        callFront(state);
         return state.nowServing;
     }
 
@@ -151,11 +203,11 @@ public final class FakeData {
     public static Ticket noShowAndCallNext(String queueId) {
         LiveQueue state = liveState(queueId);
 
-        if (state.nowServing != null) {
+        if (state.nowServing != null && !state.nowServingTimedOut) {
             state.noShows++;
         }
 
-        state.nowServing = state.waiting.isEmpty() ? null : state.waiting.remove(0);
+        callFront(state);
         return state.nowServing;
     }
 
@@ -173,23 +225,22 @@ public final class FakeData {
         }
     }
 
-    /** Someone without a phone joins at the counter. Phone stays empty. */
+    /** Someone without a phone joins at the counter. */
     public static Ticket addWalkIn(String queueId, String holderName) {
         Queue queue = queueById(queueId);
         LiveQueue state = liveState(queueId);
         int number = state.nextTicketNumber++;
 
-        Ticket ticket = new Ticket(
-                queueId + "-t" + number,
-                queueId,
-                queue == null ? "" : queue.getName(),
-                queue == null ? "" : queue.getVenue(),
-                holderName,
-                "",
-                number,
-                state.waiting.size() + 1,
-                forecastMinutes(state, state.waiting.size()),
-                Ticket.Status.WAITING);
+        Ticket ticket = new Ticket.Builder()
+                .setId(queueId + "-t" + number)
+                .setQueue(queueId, queue == null ? "" : queue.getName(),
+                        queue == null ? "" : queue.getVenue())
+                .setHolder(holderName, null)
+                .setWalkIn(true)
+                .setTicketNumber(number)
+                .setPosition(state.waiting.size() + 1)
+                .setEstimatedWaitMinutes(forecastMinutes(state, state.waiting.size()))
+                .build();
 
         state.waiting.add(ticket);
         return ticket;
@@ -205,7 +256,10 @@ public final class FakeData {
                 state.waiting.size(),
                 averageMs / 60_000d,
                 state.serviceTimes.size(),
-                forecastMinutes(state, state.waiting.size()));
+                forecastMinutes(state, state.waiting.size()),
+                // FakeData only has the rolling average; the learning model lives on the server.
+                QueueStats.EstimateSource.ROLLING_AVERAGE,
+                0);
     }
 
     // ---- Queuer history -----------------------------------------------------
@@ -246,8 +300,16 @@ public final class FakeData {
 
         return queue.toBuilder()
                 .setPeopleWaiting(waiting)
+                .setNowServing(state.nowServing == null ? null : state.nowServing.getTicketNumber())
                 .setEstimatedWaitMinutes(eta)
                 .build();
+    }
+
+    /** The front of the line becomes the one being served, stamped with when they were called. */
+    private static void callFront(LiveQueue state) {
+        state.nowServingTimedOut = false;
+        state.nowServing = state.waiting.isEmpty() ? null
+                : state.waiting.remove(0).withStatus(Ticket.Status.CALLED);
     }
 
     /**
@@ -287,161 +349,243 @@ public final class FakeData {
 
     // ---- Seed data ----------------------------------------------------------
 
+    private static final String CITY_HEALTH = "City Health Office";
+
     private static void ensureSeeded() {
         if (seeded) {
             return;
         }
         seeded = true;
 
+        LocalDate today = Format.today();
+        // Open queues are scheduled around the current time, so the demo makes sense whenever
+        // it runs: opened a couple of hours ago, closing a few hours from now.
+        LocalTime opened = hoursFromNow(-2);
+        LocalTime closes = hoursFromNow(5);
+
         seed(new Queue.Builder()
                         .setId("q1")
+                        .setOrganizer(MY_ORGANIZER_ID, MY_ORGANIZER_NAME, MY_ORGANIZER_VERIFIED)
                         .setName("Barangay Relief Distribution")
+                        .setCategory(Category.RELIEF)
+                        .setShortDescription("Family food packs for registered households")
+                        .setDetails("Distribution of family food packs for registered households. One pack per household.")
+                        .setBring("Barangay ID or proof of residency · claim stub")
                         .setVenue("Brgy. Poblacion Hall")
                         .setMunicipality("Tagbilaran City")
                         .setLocation(9.6496, 123.8547)
-                        .setCategory("Relief")
-                        .setDescription("Distribution of family food packs for registered households. Bring a valid ID and your barangay certificate.")
-                        .setServiceHours("Aug 30–31, 8:00 AM – 4:00 PM")
-                        .setSmsOtpEnabled(true)
+                        .setSchedule(today, today.plusDays(1), opened, closes)
                         .setGracePeriodEnabled(true)
-                        .setNoShowPenaltyEnabled(true)
-                        .setProximityCheckEnabled(true)
+                        .setNoShowCooldownEnabled(true)
+                        .setProximity(true, 1000)
                         .build(),
                 42, 55, 18, 3, true);
 
         seed(new Queue.Builder()
                         .setId("q2")
+                        .setOrganizer("o2", CITY_HEALTH, true)
                         .setName("Free Medical Mission")
+                        .setCategory(Category.MEDICAL)
+                        .setShortDescription("Free check-ups, BP tests, and medicines")
+                        .setDetails("General consultation, blood pressure screening, and free maintenance medicine for seniors.")
+                        .setBring("Senior citizen ID if you have one")
                         .setVenue("Tagbilaran City Gym")
                         .setMunicipality("Tagbilaran City")
                         .setLocation(9.6543, 123.8601)
-                        .setCategory("Medical")
-                        .setDescription("General consultation, blood pressure screening, and free maintenance medicine for seniors.")
-                        .setServiceHours("Saturday, 7:00 AM – 12:00 NN")
-                        .setSmsOtpEnabled(true)
+                        .setSchedule(today, today, opened, closes)
                         .setGracePeriodEnabled(true)
                         .build(),
                 18, 25, 0, 0, false);
 
         seed(new Queue.Builder()
                         .setId("q3")
+                        .setOrganizer(MY_ORGANIZER_ID, MY_ORGANIZER_NAME, MY_ORGANIZER_VERIFIED)
                         .setName("Barangay Clearance Processing")
+                        .setCategory(Category.GOVERNMENT)
+                        .setShortDescription("Clearance for work and business permits")
+                        .setDetails("Application and release of barangay clearance for employment and business permits.")
+                        .setBring("Valid ID · ₱50 fee")
                         .setVenue("Brgy. Cogon Office")
                         .setMunicipality("Tagbilaran City")
                         .setLocation(9.6612, 123.8578)
-                        .setCategory("Government")
-                        .setDescription("Application and release of barangay clearance for employment and business permits.")
-                        .setServiceHours("Mon–Fri, 8:00 AM – 5:00 PM")
+                        .setSchedule(today, today, LocalTime.of(8, 0), closes)
                         .setGracePeriodEnabled(true)
                         .build(),
                 7, 12, 11, 1, true);
 
         seed(new Queue.Builder()
                         .setId("q4")
+                        .setOrganizer("o4", "BISU Registrar", true)
                         .setName("Registrar Enrollment Window 2")
+                        .setCategory(Category.EDUCATION)
+                        .setShortDescription("2nd semester enrollment, continuing students")
+                        .setDetails("Second semester enrollment for continuing students. Have your registration form pre-filled.")
+                        .setBring("Pre-filled registration form")
                         .setVenue("BISU Main Campus")
                         .setMunicipality("Tagbilaran City")
                         .setLocation(9.6402, 123.8563)
-                        .setCategory("Education")
-                        .setDescription("Second semester enrollment for continuing students. Have your registration form pre-filled.")
-                        .setServiceHours("Mon–Fri, 8:00 AM – 4:00 PM")
+                        .setSchedule(today, today.plusDays(4), opened, closes)
                         .setGracePeriodEnabled(true)
-                        .setNoShowPenaltyEnabled(true)
+                        .setNoShowCooldownEnabled(true)
                         .build(),
                 63, 90, 0, 0, false);
 
         seed(new Queue.Builder()
                         .setId("q5")
+                        .setOrganizer(MY_ORGANIZER_ID, MY_ORGANIZER_NAME, MY_ORGANIZER_VERIFIED)
                         .setName("Senior Citizen Pension Payout")
+                        .setCategory(Category.GOVERNMENT)
+                        .setShortDescription("Quarterly payout for registered senior citizens")
+                        .setDetails("Quarterly social pension release. Beneficiaries must claim in person or through an authorized representative.")
+                        .setBring("Senior citizen ID · authorization letter for representatives")
                         .setVenue("Brgy. Dao Covered Court")
                         .setMunicipality("Tagbilaran City")
                         .setLocation(9.6689, 123.8695)
-                        .setCategory("Government")
-                        .setDescription("Quarterly social pension release. Beneficiaries must claim in person or through an authorized representative.")
-                        .setServiceHours("Sept 5, 8:00 AM – 3:00 PM")
+                        .setSchedule(today, today, LocalTime.of(7, 0), LocalTime.of(10, 0))
                         .setStatus(Queue.Status.CLOSED)
-                        .setSmsOtpEnabled(true)
+                        .setClosedAt(Instant.now().minus(Duration.ofHours(1)))
                         .setGracePeriodEnabled(true)
-                        .setNoShowPenaltyEnabled(true)
-                        .setProximityCheckEnabled(true)
+                        .setNoShowCooldownEnabled(true)
+                        .setProximity(true, 500)
                         .build(),
                 0, 0, 0, 0, true);
 
         seed(new Queue.Builder()
                         .setId("q6")
+                        .setOrganizer("o6", "Dauis Municipal Agriculture Office", false)
                         .setName("Anti-Rabies Vaccination Drive")
+                        .setCategory(Category.MEDICAL)
+                        .setShortDescription("Free rabies shots for dogs and cats")
+                        .setDetails("Free anti-rabies vaccination for dogs and cats. One pet per queue slot.")
+                        .setBring("Your pet on a leash or in a carrier")
                         .setVenue("Brgy. Booy Health Center")
                         .setMunicipality("Dauis")
                         .setLocation(9.6236, 123.8478)
-                        .setCategory("Medical")
-                        .setDescription("Free anti-rabies vaccination for dogs and cats. One pet per queue slot.")
-                        .setServiceHours("Sept 3, 8:00 AM – 2:00 PM")
+                        .setSchedule(today.plusDays(1), today.plusDays(1), LocalTime.of(8, 0), LocalTime.of(14, 0))
+                        .setStatus(Queue.Status.UPCOMING)
                         .setGracePeriodEnabled(true)
                         .build(),
                 11, 18, 0, 0, false);
 
         seed(new Queue.Builder()
                         .setId("q7")
+                        .setOrganizer("o7", "Panglao Tourism Office", true)
                         .setName("Tourist Assistance Desk")
+                        .setCategory(Category.OTHER)
+                        .setShortDescription("Lost items, transport help, referrals")
+                        .setDetails("Walk-in assistance for lost items, transport help, and accommodation referrals.")
                         .setVenue("Alona Beach Info Center")
                         .setMunicipality("Panglao")
                         .setLocation(9.5786, 123.7486)
-                        .setCategory("Community")
-                        .setDescription("Walk-in assistance for lost items, transport help, and accommodation referrals.")
-                        .setServiceHours("Daily, 9:00 AM – 6:00 PM")
+                        .setSchedule(today, today.plusDays(30), LocalTime.of(9, 0), LocalTime.of(18, 0))
                         .build(),
                 5, 8, 0, 0, false);
 
         seed(new Queue.Builder()
                         .setId("q8")
+                        .setOrganizer("o8", "Baclayon MSWDO", true)
                         .setName("Cash Aid Payout")
+                        .setCategory(Category.RELIEF)
+                        .setShortDescription("AICS financial assistance release")
+                        .setDetails("AICS financial assistance release. Claimants must present the notice sent by the MSWDO.")
+                        .setBring("MSWDO notice · valid ID")
                         .setVenue("Baclayon Municipal Hall")
                         .setMunicipality("Baclayon")
                         .setLocation(9.6244, 123.9128)
-                        .setCategory("Relief")
-                        .setDescription("AICS financial assistance release. Claimants must present the notice sent by the MSWDO.")
-                        .setServiceHours("Sept 2–4, 8:00 AM – 5:00 PM")
-                        .setSmsOtpEnabled(true)
+                        .setSchedule(today, today.plusDays(2), opened, closes)
+                        .setStatus(Queue.Status.PAUSED)
+                        .setPausedAt(Instant.now().minus(Duration.ofMinutes(20)))
                         .setGracePeriodEnabled(true)
-                        .setNoShowPenaltyEnabled(true)
-                        .setProximityCheckEnabled(true)
+                        .setNoShowCooldownEnabled(true)
+                        .setProximity(true, 2000)
                         .build(),
                 87, 120, 0, 0, false);
 
         seed(new Queue.Builder()
                         .setId("q9")
+                        .setOrganizer("o9", "Corella MSWDO", true)
                         .setName("Solo Parent ID Application")
+                        .setCategory(Category.IDS)
+                        .setShortDescription("New and renewal solo parent IDs")
+                        .setDetails("New applications and renewals for solo parent identification cards.")
+                        .setBring("Birth certificate of child · barangay certificate")
                         .setVenue("Corella Municipal Hall")
                         .setMunicipality("Corella")
                         .setLocation(9.7089, 123.9161)
-                        .setCategory("Government")
-                        .setDescription("New applications and renewals for solo parent identification cards.")
-                        .setServiceHours("Tue & Thu, 9:00 AM – 3:00 PM")
-                        .setNoShowPenaltyEnabled(true)
+                        .setSchedule(today.plusDays(2), today.plusDays(2), LocalTime.of(9, 0), LocalTime.of(15, 0))
+                        .setStatus(Queue.Status.UPCOMING)
+                        .setNoShowCooldownEnabled(true)
                         .build(),
                 3, 6, 0, 0, false);
 
         seed(new Queue.Builder()
                         .setId("q10")
+                        .setOrganizer("o10", "Purok 3 Youth Volunteers", false)
                         .setName("School Supplies Distribution")
+                        .setCategory(Category.EDUCATION)
+                        .setShortDescription("Notebooks and school kits, Grades 1–6")
+                        .setDetails("Distribution of notebooks and school kits for Grade 1–6 pupils. Parent or guardian must be present.")
+                        .setBring("Pupil's school ID or report card")
                         .setVenue("Loon Central Elementary")
                         .setMunicipality("Loon")
                         .setLocation(9.7986, 123.7947)
-                        .setCategory("Education")
-                        .setDescription("Distribution of notebooks and school kits for Grade 1–6 pupils. Parent or guardian must be present.")
-                        .setServiceHours("Sept 8, 7:00 AM – 11:00 AM")
+                        .setSchedule(today, today, opened, closes)
                         .setGracePeriodEnabled(true)
-                        .setNoShowPenaltyEnabled(true)
-                        .setProximityCheckEnabled(true)
+                        .setNoShowCooldownEnabled(true)
+                        .setProximity(true, 1000)
                         .build(),
                 29, 40, 0, 0, false);
 
+        seed(new Queue.Builder()
+                        .setId("q11")
+                        .setOrganizer("o11", "Bohol Water Utilities", true)
+                        .setName("Water District Bill Payment")
+                        .setCategory(Category.BILLS)
+                        .setShortDescription("Pay your monthly water bill")
+                        .setVenue("BWUA Office")
+                        .setMunicipality("Tagbilaran City")
+                        .setLocation(9.6478, 123.8531)
+                        .setSchedule(today, today.plusDays(60), LocalTime.of(8, 0), LocalTime.of(17, 0))
+                        .setGracePeriodEnabled(true)
+                        .build(),
+                14, 20, 0, 0, false);
+
+        seed(new Queue.Builder()
+                        .setId("q12")
+                        .setOrganizer("o12", "PESO Bohol", true)
+                        .setName("PESO Job Fair")
+                        .setCategory(Category.JOBS)
+                        .setShortDescription("Local and overseas hiring, walk-in interviews")
+                        .setDetails("Employers from Bohol and Cebu hiring on the spot. Bring several copies of your résumé.")
+                        .setBring("Résumé (5 copies) · valid ID")
+                        .setVenue("Island City Mall Activity Center")
+                        .setMunicipality("Tagbilaran City")
+                        .setLocation(9.6617, 123.8703)
+                        .setSchedule(today.plusDays(1), today.plusDays(1), LocalTime.of(13, 0), LocalTime.of(17, 0))
+                        .setStatus(Queue.Status.UPCOMING)
+                        .setGracePeriodEnabled(true)
+                        .build(),
+                6, 10, 0, 0, false);
+
         nextQueueNumber = queues.size() + 1;
 
-        // A past visit or two so Queue History isn't empty on first open.
-        history.add(pastTicket("q2", 12, Ticket.Status.SERVED));
-        history.add(pastTicket("q6", 5, Ticket.Status.NO_SHOW));
-        history.add(pastTicket("q3", 4, Ticket.Status.SERVED));
+        // A few past visits so Queue History isn't empty on first open.
+        history.add(pastTicket("q2", 12, Ticket.Status.SERVED, 2));
+        history.add(pastTicket("q5", 17, Ticket.Status.QUEUE_CLOSED, 9));
+        history.add(pastTicket("q6", 5, Ticket.Status.NO_SHOW, 14));
+        history.add(pastTicket("q3", 4, Ticket.Status.SERVED, 30));
+    }
+
+    /**
+     * Now, rounded down to the half hour, moved by a number of hours and kept within the day
+     * (so a demo at 10 PM doesn't produce a queue that closes "at 3 AM").
+     */
+    private static LocalTime hoursFromNow(int hours) {
+        LocalTime now = LocalTime.now(Format.MANILA);
+        LocalTime rounded = LocalTime.of(now.getHour(), now.getMinute() < 30 ? 0 : 30);
+        int minutes = rounded.getHour() * 60 + rounded.getMinute() + hours * 60;
+        minutes = Math.max(0, Math.min(minutes, 23 * 60 + 30));
+        return LocalTime.of(minutes / 60, minutes % 60);
     }
 
     /**
@@ -470,35 +614,46 @@ public final class FakeData {
             }
         }
 
+        Instant now = Instant.now();
         for (int i = 0; i < waiting; i++) {
             int number = state.nextTicketNumber++;
-            state.waiting.add(new Ticket(
-                    queue.getId() + "-t" + number,
-                    queue.getId(),
-                    queue.getName(),
-                    queue.getVenue(),
-                    FIRST_NAMES[i % FIRST_NAMES.length] + " "
-                            + LAST_NAMES[(i * 3) % LAST_NAMES.length],
-                    "0917" + (1000000 + number),
-                    number,
-                    i + 1,
-                    forecastMinutes(state, i),
-                    Ticket.Status.WAITING));
+            // Every seventh person joined at the counter; the fourth asked to move back.
+            boolean walkIn = i % 7 == 6;
+            state.waiting.add(new Ticket.Builder()
+                    .setId(queue.getId() + "-t" + number)
+                    .setQueue(queue.getId(), queue.getName(), queue.getVenue())
+                    .setHolder(FIRST_NAMES[i % FIRST_NAMES.length] + " "
+                                    + LAST_NAMES[(i * 3) % LAST_NAMES.length],
+                            walkIn ? null : "0917" + (1000000 + number))
+                    .setWalkIn(walkIn)
+                    .setTicketNumber(number)
+                    .setPosition(i + 1)
+                    .setEstimatedWaitMinutes(forecastMinutes(state, i))
+                    // The first in line joined longest ago.
+                    .setJoinedAt(now.minus(Duration.ofMinutes(3L * (waiting - i))))
+                    .setMovedBack(i == 3 ? now.minus(Duration.ofMinutes(12)) : null)
+                    .build());
         }
 
         live.put(queue.getId(), state);
     }
 
-    private static Ticket pastTicket(String queueId, int number, Ticket.Status status) {
+    private static Ticket pastTicket(String queueId, int number, Ticket.Status status, int daysAgo) {
         Queue queue = null;
         for (Queue candidate : queues) {
             if (candidate.getId().equals(queueId)) {
                 queue = candidate;
             }
         }
-        return new Ticket(queueId + "-past" + number, queueId,
-                queue == null ? "" : queue.getName(),
-                queue == null ? "" : queue.getVenue(),
-                "", "", number, 0, 0, status);
+        Instant finished = Instant.now().minus(Duration.ofDays(daysAgo));
+        return new Ticket.Builder()
+                .setId(queueId + "-past" + number)
+                .setQueue(queueId, queue == null ? "" : queue.getName(),
+                        queue == null ? "" : queue.getVenue())
+                .setTicketNumber(number)
+                .setStatus(status)
+                .setJoinedAt(finished.minus(Duration.ofMinutes(40)))
+                .setFinishedAt(finished)
+                .build();
     }
 }

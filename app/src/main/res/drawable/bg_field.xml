@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- A "select" field: the same box as a text field (DESIGN.md "Fields"), 2dp while pressed -->
+<selector xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:state_pressed="true">
+        <shape android:shape="rectangle">
+            <solid android:color="?attr/colorSurfaceContainer" />
+            <stroke android:width="2dp" android:color="?attr/colorOnSurface" />
+            <corners android:radius="@dimen/radius_sm" />
+        </shape>
+    </item>
+    <item>
+        <shape android:shape="rectangle">
+            <solid android:color="?attr/colorSurfaceContainer" />
+            <stroke android:width="@dimen/hairline" android:color="?attr/colorOutline" />
+            <corners android:radius="@dimen/radius_sm" />
+        </shape>
+    </item>
+</selector>

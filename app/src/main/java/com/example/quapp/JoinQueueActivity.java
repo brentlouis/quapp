@@ -139,17 +139,14 @@ public class JoinQueueActivity extends AppCompatActivity {
         // A served or expired ticket that was never dismissed gets filed before it's replaced.
         ActiveTicketStore.finishTicket();
 
-        Ticket ticket = new Ticket(
-                "t-" + queue.getId(),
-                queue.getId(),
-                queue.getName(),
-                queue.getVenue(),
-                holderName,
-                holderPhone,
-                queue.getPeopleWaiting() + 1,
-                queue.getPeopleWaiting() + 1,
-                queue.getEstimatedWaitMinutes(),
-                Ticket.Status.WAITING);
+        Ticket ticket = new Ticket.Builder()
+                .setId("t-" + queue.getId())
+                .setQueue(queue.getId(), queue.getName(), queue.getVenue())
+                .setHolder(holderName, holderPhone)
+                .setTicketNumber(queue.getPeopleWaiting() + 1)
+                .setPosition(queue.getPeopleWaiting() + 1)
+                .setEstimatedWaitMinutes(queue.getEstimatedWaitMinutes())
+                .build();
 
         ActiveTicketStore.setTicket(ticket);
 

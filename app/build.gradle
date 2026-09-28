@@ -28,10 +28,14 @@ android {
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_11
         targetCompatibility JavaVersion.VERSION_11
+        // java.time (LocalDate, LocalTime, Instant) only ships with Android 8+; desugaring
+        // bundles it into the app so the schedule works back to min SDK 24 (MODELS.md).
+        coreLibraryDesugaringEnabled true
     }
 }
 
 dependencies {
+    coreLibraryDesugaring libs.desugar.jdk.libs
     implementation 'com.google.android.material:material:1.12.0'
     implementation 'androidx.recyclerview:recyclerview:1.3.2'
     implementation libs.activity.ktx

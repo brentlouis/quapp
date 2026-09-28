@@ -206,4 +206,57 @@
     <style name="Widget.Quapp.Dock.Stub">
         <item name="android:paddingTop">@dimen/space_md</item>
     </style>
+    <!-- ===== Select field: looks like a text field, opens a picker (dates, times, lists) ===== -->
+
+    <style name="Widget.Quapp.SelectField" parent="">
+        <item name="android:background">@drawable/bg_field</item>
+        <item name="android:minHeight">52dp</item>
+        <item name="android:gravity">center_vertical</item>
+        <item name="android:paddingStart">@dimen/space_md</item>
+        <item name="android:paddingEnd">@dimen/space_ms</item>
+        <item name="android:drawablePadding">@dimen/space_sm</item>
+        <item name="android:textAppearance">@style/TextAppearance.Quapp.Input</item>
+        <item name="android:textColorHint">@color/ink_faint</item>
+        <item name="android:maxLines">1</item>
+        <item name="android:ellipsize">end</item>
+        <item name="android:clickable">true</item>
+        <item name="android:focusable">true</item>
+        <item name="drawableTint">?attr/colorOnSurfaceVariant</item>
+    </style>
+
+    <!-- ===== Segmented button (DESIGN.md): 44dp, pill ends, the selected segment ink ===== -->
+
+    <style name="Widget.Quapp.Segment" parent="Widget.Material3.Button.OutlinedButton">
+        <item name="backgroundTint">@color/segment_background</item>
+        <item name="android:textColor">@color/segment_foreground</item>
+        <item name="iconTint">@color/segment_foreground</item>
+        <item name="strokeColor">?attr/colorOutline</item>
+        <item name="android:insetTop">0dp</item>
+        <item name="android:insetBottom">0dp</item>
+        <item name="android:minHeight">44dp</item>
+        <item name="android:paddingStart">@dimen/space_sm</item>
+        <item name="android:paddingEnd">@dimen/space_sm</item>
+        <item name="iconPadding">@dimen/space_xs</item>
+        <item name="iconSize">@dimen/icon_small</item>
+        <item name="iconGravity">textStart</item>
+    </style>
+
+    <!-- ===== Bottom sheets (DESIGN.md "Sheets"): paper_raised, 16dp top corners, grab handle ===== -->
+
+    <style name="ThemeOverlay.Quapp.BottomSheetDialog" parent="ThemeOverlay.Material3.BottomSheetDialog">
+        <item name="bottomSheetStyle">@style/Widget.Quapp.BottomSheet</item>
+    </style>
+
+    <style name="Widget.Quapp.BottomSheet" parent="Widget.Material3.BottomSheet">
+        <item name="backgroundTint">?attr/colorSurfaceContainer</item>
+        <item name="shapeAppearance">@style/ShapeAppearance.Quapp.Sheet</item>
+    </style>
+
+    <style name="ShapeAppearance.Quapp.Sheet" parent="">
+        <item name="cornerFamily">rounded</item>
+        <item name="cornerSizeTopLeft">@dimen/radius_sheet</item>
+        <item name="cornerSizeTopRight">@dimen/radius_sheet</item>
+        <item name="cornerSizeBottomLeft">0dp</item>
+        <item name="cornerSizeBottomRight">0dp</item>
+    </style>
 </resources>

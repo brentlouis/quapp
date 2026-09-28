@@ -291,6 +291,18 @@
                         android:text="@string/ticket_directions_action"
                         app:icon="@drawable/ic_navigation" />
                 </LinearLayout>
+
+                <!-- What to bring, when the organizer said -->
+                <com.google.android.material.divider.MaterialDivider
+                    android:id="@+id/ticket_bring_divider"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content" />
+
+                <include
+                    android:id="@+id/ticket_bring_row"
+                    layout="@layout/view_list_row"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content" />
             </LinearLayout>
 
             <!-- ===== Served / slot released (canvas 22, 23) ===== -->
@@ -538,6 +550,15 @@
             android:layout_height="@dimen/button_height_lg"
             android:layout_weight="1"
             android:text="@string/ticket_join_again_action"
+            android:visibility="gone" />
+
+        <!-- Queue closed / removed -->
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/ticket_browse_button"
+            android:layout_width="0dp"
+            android:layout_height="@dimen/button_height_lg"
+            android:layout_weight="1"
+            android:text="@string/ticket_browse_action"
             android:visibility="gone" />
 
         <!-- Served -->

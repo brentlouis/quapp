@@ -51,7 +51,7 @@ public class BrowseFragment extends Fragment implements QueueAdapter.OnQueueClic
     private Chip allCategoriesChip;
 
     // null means "no filter" for both.
-    private String selectedCategory;
+    private Category selectedCategory;
     private String selectedMunicipality;
 
     @Override
@@ -65,7 +65,8 @@ public class BrowseFragment extends Fragment implements QueueAdapter.OnQueueClic
         super.onViewCreated(view, savedInstanceState);
 
         if (savedInstanceState != null) {
-            selectedCategory = savedInstanceState.getString(STATE_CATEGORY);
+            String saved = savedInstanceState.getString(STATE_CATEGORY);
+            selectedCategory = saved == null ? null : Category.valueOf(saved);
             selectedMunicipality = savedInstanceState.getString(STATE_MUNICIPALITY);
         }
 
@@ -120,7 +121,7 @@ public class BrowseFragment extends Fragment implements QueueAdapter.OnQueueClic
     @Override
     public void onSaveInstanceState(@NonNull Bundle outState) {
         super.onSaveInstanceState(outState);
-        outState.putString(STATE_CATEGORY, selectedCategory);
+        outState.putString(STATE_CATEGORY, selectedCategory == null ? null : selectedCategory.name());
         outState.putString(STATE_MUNICIPALITY, selectedMunicipality);
     }
 
@@ -163,8 +164,13 @@ public class BrowseFragment extends Fragment implements QueueAdapter.OnQueueClic
                 colorRes = R.color.status_served;
                 break;
             case NO_SHOW:
+            case REMOVED:
                 ticketStatus.setText(R.string.browse_ticket_expired);
                 colorRes = R.color.status_expired;
+                break;
+            case QUEUE_CLOSED:
+                ticketStatus.setText(R.string.browse_ticket_closed);
+                colorRes = R.color.ink_muted;
                 break;
             case WAITING:
             default:
@@ -204,9 +210,9 @@ public class BrowseFragment extends Fragment implements QueueAdapter.OnQueueClic
         allCategoriesChip = addCategoryChip(inflater, getString(R.string.browse_filter_all), null);
         Chip chipToCheck = allCategoriesChip;
 
-        for (String category : getResources().getStringArray(R.array.queue_categories)) {
-            Chip chip = addCategoryChip(inflater, category, category);
-            if (category.equals(selectedCategory)) {
+        for (Category category : Category.values()) {
+            Chip chip = addCategoryChip(inflater, getString(category.label), category);
+            if (category == selectedCategory) {
                 chipToCheck = chip;
             }
         }
@@ -220,14 +226,14 @@ public class BrowseFragment extends Fragment implements QueueAdapter.OnQueueClic
                     return;
                 }
                 Chip checked = group.findViewById(checkedIds.get(0));
-                selectedCategory = (String) checked.getTag();
+                selectedCategory = (Category) checked.getTag();
                 applyFilters();
             }
         });
     }
 
     /** The tag carries the category the chip filters by; null for "All". */
-    private Chip addCategoryChip(LayoutInflater inflater, String label, String category) {
+    private Chip addCategoryChip(LayoutInflater inflater, String label, Category category) {
         Chip chip = (Chip) inflater.inflate(R.layout.view_filter_chip, categoryGroup, false);
         chip.setId(View.generateViewId());
         chip.setText(label);

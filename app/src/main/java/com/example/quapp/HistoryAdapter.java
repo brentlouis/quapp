@@ -12,6 +12,7 @@ import androidx.core.content.ContextCompat;
 import androidx.core.view.ViewCompat;
 import androidx.recyclerview.widget.RecyclerView;
 
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -50,6 +51,7 @@ public class HistoryAdapter extends RecyclerView.Adapter<HistoryAdapter.HistoryV
         private final TextView queueNameText;
         private final TextView statusText;
         private final TextView detailsText;
+        private final TextView dateText;
         private final View rule;
 
         HistoryViewHolder(@NonNull View itemView) {
@@ -57,6 +59,7 @@ public class HistoryAdapter extends RecyclerView.Adapter<HistoryAdapter.HistoryV
             queueNameText = itemView.findViewById(R.id.history_queue_name);
             statusText = itemView.findViewById(R.id.history_status);
             detailsText = itemView.findViewById(R.id.history_details);
+            dateText = itemView.findViewById(R.id.history_date);
             rule = itemView.findViewById(R.id.history_rule);
         }
 
@@ -65,17 +68,46 @@ public class HistoryAdapter extends RecyclerView.Adapter<HistoryAdapter.HistoryV
             rule.setVisibility(showRule ? View.VISIBLE : View.GONE);
 
             queueNameText.setText(ticket.getQueueName());
-            detailsText.setText(context.getString(R.string.browse_venue_format,
-                    context.getString(R.string.history_ticket_format, ticket.getTicketNumber()),
-                    ticket.getVenue()));
+            detailsText.setText(context.getString(R.string.history_details_format,
+                    ticket.getTicketNumber(), ticket.getVenue()));
+            Instant finished = ticket.getFinishedAt();
+            dateText.setVisibility(finished == null ? View.GONE : View.VISIBLE);
+            if (finished != null) {
+                dateText.setText(Format.day(context, finished));
+            }
 
-            // Only finished tickets reach history, so these are the only two cases.
             // A pill: status colour text on its soft ground (DESIGN.md "Status pills").
-            boolean noShow = ticket.getStatus() == Ticket.Status.NO_SHOW;
-            statusText.setText(noShow ? R.string.history_status_no_show : R.string.history_status_served);
-            statusText.setTextColor(ContextCompat.getColor(context, noShow ? R.color.err : R.color.ok));
+            // Queue closed is neutral: the owner closed it, so it's nobody's fault.
+            int text;
+            int color;
+            int ground;
+            switch (ticket.getStatus()) {
+                case NO_SHOW:
+                    text = R.string.history_status_no_show;
+                    color = R.color.err;
+                    ground = R.color.err_soft;
+                    break;
+                case REMOVED:
+                    text = R.string.history_status_removed;
+                    color = R.color.err;
+                    ground = R.color.err_soft;
+                    break;
+                case QUEUE_CLOSED:
+                    text = R.string.history_status_closed;
+                    color = R.color.ink_muted;
+                    ground = R.color.paper_sunk;
+                    break;
+                case SERVED:
+                default:
+                    text = R.string.history_status_served;
+                    color = R.color.ok;
+                    ground = R.color.ok_soft;
+                    break;
+            }
+            statusText.setText(text);
+            statusText.setTextColor(ContextCompat.getColor(context, color));
             ViewCompat.setBackgroundTintList(statusText, ColorStateList.valueOf(
-                    ContextCompat.getColor(context, noShow ? R.color.err_soft : R.color.ok_soft)));
+                    ContextCompat.getColor(context, ground)));
         }
     }
 }

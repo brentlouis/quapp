@@ -138,9 +138,10 @@ public class MyTicketsFragment extends Fragment {
                 break;
             case SERVED:
             case NO_SHOW:
+            case QUEUE_CLOSED:
+            case REMOVED:
                 section.setText(R.string.my_tickets_section_done);
-                label.setText(ticket.getStatus() == Ticket.Status.SERVED
-                        ? R.string.my_tickets_served : R.string.my_tickets_no_show);
+                label.setText(doneLabel(ticket.getStatus()));
                 headline.setVisibility(View.GONE);
                 headlineSuffix.setText(null);
                 detail.setText(null);
@@ -155,6 +156,20 @@ public class MyTicketsFragment extends Fragment {
                 headlineSuffix.setText(R.string.my_tickets_ahead);
                 detail.setText(getString(R.string.my_tickets_wait, ticket.getEstimatedWaitMinutes()));
                 break;
+        }
+    }
+
+    private static int doneLabel(Ticket.Status status) {
+        switch (status) {
+            case SERVED:
+                return R.string.my_tickets_served;
+            case QUEUE_CLOSED:
+                return R.string.my_tickets_queue_closed;
+            case REMOVED:
+                return R.string.my_tickets_removed;
+            case NO_SHOW:
+            default:
+                return R.string.my_tickets_no_show;
         }
     }
 }

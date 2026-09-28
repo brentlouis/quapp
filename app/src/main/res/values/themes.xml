@@ -73,6 +73,7 @@
         <item name="materialButtonOutlinedStyle">@style/Widget.Quapp.Button.Outlined</item>
         <item name="borderlessButtonStyle">@style/Widget.Quapp.Button.Text</item>
         <item name="snackbarStyle">@style/Widget.Quapp.Snackbar</item>
+        <item name="bottomSheetDialogTheme">@style/ThemeOverlay.Quapp.BottomSheetDialog</item>
         <item name="snackbarTextViewStyle">@style/Widget.Quapp.Snackbar.Text</item>
         <item name="snackbarButtonStyle">@style/Widget.Quapp.Snackbar.Action</item>
 

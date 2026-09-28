@@ -73,7 +73,8 @@ public class QueueAdapter extends RecyclerView.Adapter<QueueAdapter.QueueViewHol
         void bind(final Queue queue, final OnQueueClickListener clickListener) {
             nameText.setText(queue.getName());
             venueText.setText(itemView.getContext().getString(R.string.browse_card_venue_format,
-                    queue.getCategory(), queue.getVenue(), queue.getMunicipality()));
+                    itemView.getContext().getString(queue.getCategory().label),
+                    queue.getVenue(), queue.getMunicipality()));
 
             waitingText.setText(itemView.getContext()
                     .getString(R.string.browse_waiting_format, queue.getPeopleWaiting()));
@@ -85,6 +86,11 @@ public class QueueAdapter extends RecyclerView.Adapter<QueueAdapter.QueueViewHol
                     setStatus(R.string.browse_status_open,
                             com.google.android.material.R.attr.colorPrimaryContainer,
                             com.google.android.material.R.attr.colorOnPrimaryContainer);
+                    break;
+                case UPCOMING:
+                    setStatus(R.string.detail_status_upcoming,
+                            com.google.android.material.R.attr.colorSurfaceVariant,
+                            com.google.android.material.R.attr.colorOnSurfaceVariant);
                     break;
                 case PAUSED:
                     setStatus(R.string.browse_status_paused,

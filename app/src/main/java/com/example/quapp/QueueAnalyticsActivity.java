@@ -65,6 +65,13 @@ public class QueueAnalyticsActivity extends AppCompatActivity {
         projectedValue.setText(getString(R.string.analytics_projected_format,
                 stats.getProjectedWaitMinutes()));
 
+        // Where the estimate came from: the ML model, or the rolling average while this queue
+        // has too little history today (DECISIONS.md "Wait-time estimation learns online").
+        ((TextView) findViewById(R.id.analytics_source)).setText(
+                stats.getEstimateSource() == QueueStats.EstimateSource.MODEL
+                        ? getString(R.string.analytics_source_model, stats.getModelSamples())
+                        : getString(R.string.analytics_source_rolling));
+
         TextView basis = findViewById(R.id.analytics_average_basis);
         int samples = stats.getServiceSampleCount();
         if (samples == 0) {

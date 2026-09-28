@@ -89,7 +89,9 @@ public class TodayQueueAdapter
         private static String detail(Context context, Queue queue, QueueStats stats) {
             List<String> parts = new ArrayList<>();
 
-            if (queue.getStatus() == Queue.Status.PAUSED) {
+            if (queue.getStatus() == Queue.Status.UPCOMING) {
+                parts.add(context.getString(R.string.detail_status_upcoming));
+            } else if (queue.getStatus() == Queue.Status.PAUSED) {
                 parts.add(context.getString(R.string.today_status_paused));
             } else if (queue.getStatus() == Queue.Status.CLOSED) {
                 parts.add(context.getString(R.string.today_status_closed));

@@ -31,9 +31,7 @@ public final class ActiveTicketStore {
     /** True while the ticket still holds a place in line (waiting or being called). */
     public static boolean hasLiveTicket() {
         Ticket ticket = getTicket();
-        return ticket != null
-                && (ticket.getStatus() == Ticket.Status.WAITING
-                || ticket.getStatus() == Ticket.Status.CALLED);
+        return ticket != null && ticket.isLive();
     }
 
     public static void markCalled(long gracePeriodMs) {
@@ -62,16 +60,23 @@ public final class ActiveTicketStore {
         activeTicket = activeTicket.withStatus(Ticket.Status.NO_SHOW);
 
         Queue queue = FakeData.queueById(activeTicket.getQueueId());
-        if (queue != null && queue.isNoShowPenaltyEnabled()) {
+        if (queue != null && queue.isNoShowCooldownEnabled()) {
             Cooldown.recordNoShow();
+        }
+    }
+
+    /** The owner closed this ticket's queue: it ends as QUEUE_CLOSED, never a no-show. */
+    public static void closeIfInQueue(String queueId) {
+        if (activeTicket != null && activeTicket.isLive()
+                && activeTicket.getQueueId().equals(queueId)) {
+            activeTicket = activeTicket.withStatus(Ticket.Status.QUEUE_CLOSED);
+            graceDeadline = 0;
         }
     }
 
     /** "Done" on a finished ticket: file it in history and free the slot. */
     public static void finishTicket() {
-        if (activeTicket != null
-                && (activeTicket.getStatus() == Ticket.Status.SERVED
-                || activeTicket.getStatus() == Ticket.Status.NO_SHOW)) {
+        if (activeTicket != null && !activeTicket.isLive()) {
             FakeData.addToHistory(activeTicket);
         }
         clearTicket();

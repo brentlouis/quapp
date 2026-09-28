@@ -103,6 +103,17 @@
     <string name="detail_eta_value_format">%d min</string>
     <string name="detail_verification_label">How this queue works</string>
     <string name="detail_rule_on">On</string>
+    <string name="detail_organized_by">Organized by %s</string>
+    <string name="detail_verified">Verified</string>
+    <string name="detail_unverified_note">Unverified organizer. Check that this queue matches the organizer\'s own announcement before you go.</string>
+    <string name="detail_bring_format">Bring: %s</string>
+    <string name="detail_status_upcoming">Upcoming</string>
+    <string name="detail_join_early_action">Join early</string>
+    <string name="detail_paused_since_notice">No new joins since %s. People already in line keep their place.</string>
+    <string name="detail_proximity_title_format">Proximity check · within %s</string>
+    <string name="detail_verification_proximity_body">Your location is checked once, when you tap Join. It isn\'t tracked after that.</string>
+    <string name="detail_radius_km">%d km</string>
+    <string name="detail_radius_m">%d m</string>
     <string name="detail_rule_planned">Planned</string>
     <string name="detail_verification_otp_planned">Not available yet.</string>
     <string name="detail_you_will_be">You\'ll be</string>
@@ -110,9 +121,8 @@
     <string name="detail_status_open">Open</string>
     <string name="detail_status_paused">Paused</string>
     <string name="detail_status_closed">Closed</string>
-    <string name="detail_verification_grace">Confirm within 3 minutes when called, or you lose your slot.</string>
-    <string name="detail_verification_penalty">Repeated no-shows lead to a temporary cooldown.</string>
-    <string name="detail_verification_proximity">You must be near the venue to join.</string>
+    <string name="detail_verification_grace">When called, tap \"I\'m here\" within 3 minutes or your slot goes to the next person.</string>
+    <string name="detail_verification_penalty">Two missed slots blocks you from queues like this for 30 minutes.</string>
     <string name="detail_join_action">Join queue</string>
     <string name="detail_closed_action">Queue closed</string>
     <string name="detail_back_description">Back</string>
@@ -202,29 +212,64 @@
     <!-- Create queue -->
     <string name="create_title">New queue</string>
     <string name="create_subtitle">People can find and join this queue remotely.</string>
-    <string name="create_basics_label">Basics</string>
-    <string name="create_name_hint">Queue name</string>
-    <string name="create_venue_hint">Venue</string>
-    <string name="create_municipality_hint">Municipality</string>
-    <string name="create_category_hint">Category</string>
-    <string name="create_description_hint">What is this queue for?</string>
-    <string name="create_hours_hint">Service hours</string>
-    <string name="create_verification_label">Verification</string>
-    <string name="create_verification_note">Pick the checks that suit this queue. You can combine them.</string>
-    <string name="create_otp_label">SMS confirmation</string>
-    <string name="create_otp_summary">Send a code to the queuer\'s number on join.</string>
+    <string name="create_edit_title">Edit queue</string>
+    <string name="create_edit_subtitle">Changes show up for queuers right away.</string>
+    <string name="create_back_description">Back</string>
+    <string name="create_posting_as">Posting as %s</string>
+    <string name="create_section_basics">Basics</string>
+    <string name="create_section_schedule">Schedule</string>
+    <string name="create_section_verification">Verification</string>
+    <string name="create_section_verification_lead">Checks that keep prank joins out of the line.</string>
+    <string name="create_name_label">Queue name</string>
+    <string name="create_name_placeholder">Free Medical Mission</string>
+    <string name="create_venue_label">Venue</string>
+    <string name="create_venue_placeholder">Tagbilaran City Gym</string>
+    <string name="create_municipality_label">Municipality</string>
+    <string name="create_category_label">Category</string>
+    <string name="create_pick_placeholder">Choose</string>
+    <string name="create_short_label">Short description</string>
+    <string name="create_short_placeholder">Free check-ups and medicines</string>
+    <string name="create_short_helper">Shown on queue cards in Browse. Keep it to one line.</string>
+    <string name="create_details_label">Full details (optional)</string>
+    <string name="create_details_placeholder">Who can join and anything people should know before coming. Shown on the queue page.</string>
+    <string name="create_bring_label">What to bring (optional)</string>
+    <string name="create_bring_placeholder">Barangay ID · claim stub</string>
+    <string name="create_one_day">One day</string>
+    <string name="create_multiple_days">Multiple days</string>
+    <string name="create_date_label">Date</string>
+    <string name="create_start_date_label">Start date</string>
+    <string name="create_end_date_label">End date</string>
+    <string name="create_opens_label">Opens</string>
+    <string name="create_closes_label">Closes</string>
+    <plurals name="create_schedule_summary">
+        <item quantity="one">%1$d day (%2$s), %3$s – %4$s. The queue opens and closes on its own.</item>
+        <item quantity="other">%1$d days (%2$s), %3$s – %4$s each day. The queue opens and closes on its own.</item>
+    </plurals>
     <string name="create_grace_label">Presence confirmation</string>
     <string name="create_grace_summary">Queuers confirm within 3 minutes when called.</string>
     <string name="create_penalty_label">No-show cooldown</string>
-    <string name="create_penalty_summary">Block repeat no-shows from joining for a period.</string>
-    <string name="create_proximity_label">Location check</string>
-    <string name="create_proximity_summary">Require queuers to be within 2 km of the venue.</string>
+    <string name="create_penalty_summary">Two missed slots blocks a person for 30 minutes.</string>
+    <string name="create_otp_label">SMS confirmation</string>
+    <string name="create_otp_summary">Not available yet.</string>
+    <string name="create_planned">Planned</string>
+    <string name="create_proximity_label">Proximity check</string>
+    <string name="create_proximity_summary">Queuers must be near the venue to join.</string>
+    <string name="create_radius_label">Join radius</string>
+    <string name="create_radius_500">500 m</string>
+    <string name="create_radius_1000">1 km</string>
+    <string name="create_radius_2000">2 km</string>
+    <string name="create_radius_5000">5 km</string>
+    <string name="create_pin_label">Venue pin</string>
+    <string name="create_pin_default">Centre of %s</string>
+    <string name="create_pin_none">Choose a municipality first</string>
     <string name="create_action">Create queue</string>
-    <string name="create_back_description">Back</string>
-    <string name="create_edit_title">Edit queue</string>
-    <string name="create_edit_subtitle">Changes show up for queuers right away.</string>
     <string name="create_save_action">Save changes</string>
     <string name="create_required_error">Required</string>
+    <string name="create_end_before_start_error">Ends before it starts</string>
+    <string name="create_closes_before_opens_error">Closes before it opens</string>
+    <string name="create_municipality_title">Municipality</string>
+    <string name="category_sheet_title">Category</string>
+    <string name="category_sheet_lead">People filter Browse by category.</string>
 
     <!-- Live console -->
     <string name="console_now_serving_label">Now serving</string>
@@ -345,10 +390,8 @@
     <string name="forgot_back_description">Back to log in</string>
     <string name="forgot_title">Forgot your password?</string>
     <string name="forgot_body">Quapp can\'t send reset codes by text yet. Support can reset it for you.</string>
-    <string name="forgot_step_1_number">1</string>
     <string name="forgot_step_1_title">Email Quapp support</string>
     <string name="forgot_step_1_body">Include your name and the phone number you registered with.</string>
-    <string name="forgot_step_2_number">2</string>
     <string name="forgot_step_2_title">Get a temporary password</string>
     <string name="forgot_step_2_body">We reply within a day. Change it in Profile after you log in.</string>
     <string name="forgot_note">In line right now? Your spot is kept. Show your number to staff at the counter.</string>
@@ -363,4 +406,60 @@
         <item quantity="one">%d queue joined</item>
         <item quantity="other">%d queues joined</item>
     </plurals>
+
+    <!-- Categories (Category enum; label and one-line hint for the picker) -->
+    <string name="category_relief">Relief</string>
+    <string name="category_relief_hint">Food packs, cash aid, disaster response</string>
+    <string name="category_medical">Medical</string>
+    <string name="category_medical_hint">Clinics, medical missions, vaccinations</string>
+    <string name="category_government">Government</string>
+    <string name="category_government_hint">Permits, cedula, civil registry</string>
+    <string name="category_education">Education</string>
+    <string name="category_education_hint">Enrollment, school cashier, scholarships</string>
+    <string name="category_bills">Bills &amp; Payments</string>
+    <string name="category_bills_hint">Water, electric co-op, cashier windows</string>
+    <string name="category_ids">IDs &amp; Registration</string>
+    <string name="category_ids_hint">PhilSys, voter, PhilHealth, SSS, PWD IDs</string>
+    <string name="category_jobs">Jobs</string>
+    <string name="category_jobs_hint">Job fairs, PESO hiring events</string>
+    <string name="category_other">Other</string>
+    <string name="category_other_hint">Anything that doesn\'t fit above</string>
+
+    <!-- Schedule text (Format.schedule) -->
+    <string name="schedule_today">Today</string>
+    <string name="schedule_tomorrow">Tomorrow</string>
+    <string name="schedule_format">%1$s · %2$s – %3$s</string>
+    <!-- Numbered steps and sections -->
+    <string name="step_1">1</string>
+    <string name="step_2">2</string>
+    <string name="step_3">3</string>
+
+    <!-- Model follow-ups (Sep 28) -->
+    <string name="console_status_upcoming">Upcoming · taking early joins</string>
+    <string name="console_awaiting_format">Awaiting \"I\'m here\" · %s left</string>
+    <string name="console_timed_out">Didn\'t confirm in time. Slot released and recorded as a no-show.</string>
+    <string name="console_call_next_name_format">Call next · #%1$d %2$s</string>
+    <string name="console_joined_just_now">Just joined</string>
+    <string name="console_joined_ago_format">%d min ago</string>
+    <string name="console_joined_phone_format">%1$s · %2$s</string>
+    <string name="console_moved_at_format">Moved at %s</string>
+    <string name="console_moved_back_tag">Moved back</string>
+    <string name="my_tickets_queue_closed">Queue closed</string>
+    <string name="my_tickets_removed">Removed from line</string>
+    <string name="browse_ticket_closed">Queue closed</string>
+    <string name="history_status_closed">Queue closed</string>
+    <string name="history_status_removed">Removed</string>
+    <string name="history_details_format">Ticket #%1$d · %2$s</string>
+    <string name="ticket_status_queue_closed">Queue closed</string>
+    <string name="ticket_status_removed">Removed</string>
+    <string name="ticket_closed_headline">The organizer closed this queue</string>
+    <string name="ticket_closed_instruction">Your ticket was released along with everyone still waiting.</string>
+    <string name="ticket_removed_headline">You were removed from the line</string>
+    <string name="ticket_removed_instruction">The organizer took this ticket out of the line.</string>
+    <string name="ticket_outcome_record_label">No-show record</string>
+    <string name="ticket_outcome_not_affected">Not affected</string>
+    <string name="ticket_browse_action">Browse other queues</string>
+    <string name="ticket_bring_title">Bring</string>
+    <string name="analytics_source_model">Learning model · %d people learned from</string>
+    <string name="analytics_source_rolling">Rolling average of recent people · the model takes over once this queue has more history today</string>
 </resources>

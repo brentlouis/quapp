@@ -3,6 +3,8 @@ package com.example.quapp;
 import android.content.Intent;
 import android.content.res.ColorStateList;
 import android.os.Bundle;
+import android.text.Html;
+import android.text.TextUtils;
 import android.view.View;
 import android.widget.ImageButton;
 import android.widget.ImageView;
@@ -103,7 +105,9 @@ public class QueueDetailActivity extends AppCompatActivity {
 
         if (queue.getStatus() == Queue.Status.PAUSED) {
             joinButton.setText(R.string.detail_paused_action);
-            showNotice(notice, getString(R.string.detail_paused_notice));
+            showNotice(notice, queue.getPausedAt() == null ? getString(R.string.detail_paused_notice)
+                    : getString(R.string.detail_paused_since_notice,
+                            Format.time(this, queue.getPausedAt())));
             return;
         }
 
@@ -113,7 +117,7 @@ public class QueueDetailActivity extends AppCompatActivity {
             return;
         }
 
-        if (queue.isNoShowPenaltyEnabled() && Cooldown.isActive()) {
+        if (queue.isNoShowCooldownEnabled() && Cooldown.isActive()) {
             joinButton.setText(R.string.detail_cooldown_action);
             showNotice(notice, getString(R.string.detail_cooldown_notice,
                     Cooldown.remainingMinutes()));
@@ -125,7 +129,9 @@ public class QueueDetailActivity extends AppCompatActivity {
         ((TextView) findViewById(R.id.detail_next_number)).setText(
                 getString(R.string.ticket_number_format, queue.getPeopleWaiting() + 1));
         joinButton.setEnabled(true);
-        joinButton.setText(R.string.detail_join_action);
+        // Upcoming queues take joins too: you hold a number before it opens.
+        joinButton.setText(queue.getStatus() == Queue.Status.UPCOMING
+                ? R.string.detail_join_early_action : R.string.detail_join_action);
         joinButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -146,8 +152,20 @@ public class QueueDetailActivity extends AppCompatActivity {
         ((TextView) findViewById(R.id.detail_venue)).setText(getString(R.string.browse_venue_format,
                 queue.getVenue(), queue.getMunicipality()));
         // The serial line: the category printed like a ticket serial (the Label style caps it).
-        ((TextView) findViewById(R.id.detail_category)).setText(queue.getCategory());
-        ((TextView) findViewById(R.id.detail_description)).setText(queue.getDescription());
+        ((TextView) findViewById(R.id.detail_category)).setText(queue.getCategory().label);
+        // The full details when the organizer wrote them, else the one-line description.
+        ((TextView) findViewById(R.id.detail_description)).setText(queue.getDetails() != null
+                ? queue.getDetails() : queue.getShortDescription());
+
+        TextView bring = findViewById(R.id.detail_bring);
+        bring.setVisibility(queue.getBring() == null ? View.GONE : View.VISIBLE);
+        if (queue.getBring() != null) {
+            bring.setText(Html.fromHtml(getString(R.string.detail_bring_format,
+                    "<b>" + TextUtils.htmlEncode(queue.getBring()) + "</b>"),
+                    Html.FROM_HTML_MODE_LEGACY));
+        }
+
+        bindOrganizer(queue);
 
         bindStatus(queue.getStatus());
 
@@ -158,12 +176,23 @@ public class QueueDetailActivity extends AppCompatActivity {
                         : getString(R.string.detail_eta_value_format, queue.getEstimatedWaitMinutes()));
         ReceiptSlip.addRow(slip, getString(R.string.detail_waiting_label),
                 String.valueOf(queue.getPeopleWaiting()));
-        ReceiptSlip.addRow(slip, getString(R.string.detail_hours_slip_label), queue.getServiceHours());
+        ReceiptSlip.addRow(slip, getString(R.string.detail_hours_slip_label),
+                Format.schedule(this, queue));
 
         bindVerification(queue);
     }
 
-    /** Open is green on its soft ground, paused amber, closed a plain outline-less grey. */
+    /** "Organized by …", with the badge when Quapp checked who runs the account. */
+    private void bindOrganizer(Queue queue) {
+        ((TextView) findViewById(R.id.detail_organizer)).setText(
+                getString(R.string.detail_organized_by, queue.getOrganizerName()));
+        boolean verified = queue.isOrganizerVerified();
+        findViewById(R.id.detail_verified_icon).setVisibility(verified ? View.VISIBLE : View.GONE);
+        findViewById(R.id.detail_verified_label).setVisibility(verified ? View.VISIBLE : View.GONE);
+        findViewById(R.id.detail_unverified_note).setVisibility(verified ? View.GONE : View.VISIBLE);
+    }
+
+    /** Open is green on its soft ground, paused amber, upcoming and closed plain grey. */
     private void bindStatus(Queue.Status status) {
         TextView pill = findViewById(R.id.detail_status);
         int text;
@@ -174,6 +203,11 @@ public class QueueDetailActivity extends AppCompatActivity {
                 text = R.string.detail_status_paused;
                 color = R.color.warn;
                 ground = R.color.warn_soft;
+                break;
+            case UPCOMING:
+                text = R.string.detail_status_upcoming;
+                color = R.color.ink_muted;
+                ground = R.color.paper_sunk;
                 break;
             case CLOSED:
                 text = R.string.detail_status_closed;
@@ -198,31 +232,43 @@ public class QueueDetailActivity extends AppCompatActivity {
      * isn't built (future work), so it always shows as PLANNED.
      */
     private void bindVerification(Queue queue) {
-        bindRule(R.id.detail_rule_proximity, queue.isProximityCheckEnabled(), R.drawable.ic_navigation,
-                R.string.requirement_proximity_title, getString(R.string.detail_verification_proximity));
+        View proximity = findViewById(R.id.detail_rule_proximity);
+        proximity.setVisibility(queue.isProximityCheckEnabled() ? View.VISIBLE : View.GONE);
+        if (queue.isProximityCheckEnabled()) {
+            fillRule(proximity, R.drawable.ic_navigation,
+                    getString(R.string.detail_proximity_title_format, radius(queue.getJoinRadiusMeters())),
+                    getString(R.string.detail_verification_proximity_body), true);
+        }
         bindRule(R.id.detail_rule_grace, queue.isGracePeriodEnabled(), R.drawable.ic_timer,
                 R.string.requirement_grace_title, getString(R.string.detail_verification_grace));
-        bindRule(R.id.detail_rule_penalty, queue.isNoShowPenaltyEnabled(), R.drawable.ic_block,
+        bindRule(R.id.detail_rule_penalty, queue.isNoShowCooldownEnabled(), R.drawable.ic_block,
                 R.string.requirement_penalty_title, getString(R.string.detail_verification_penalty));
 
         View otp = findViewById(R.id.detail_rule_otp);
-        fillRule(otp, R.drawable.ic_sms, R.string.requirement_otp_title,
+        fillRule(otp, R.drawable.ic_sms, getString(R.string.requirement_otp_title),
                 getString(R.string.detail_verification_otp_planned), false);
+    }
+
+    /** "500 m" or "2 km". */
+    private String radius(int meters) {
+        return meters >= 1000 && meters % 1000 == 0
+                ? getString(R.string.detail_radius_km, meters / 1000)
+                : getString(R.string.detail_radius_m, meters);
     }
 
     private void bindRule(int includeId, boolean enabled, int iconRes, int titleRes, String body) {
         View row = findViewById(includeId);
         row.setVisibility(enabled ? View.VISIBLE : View.GONE);
         if (enabled) {
-            fillRule(row, iconRes, titleRes, body, true);
+            fillRule(row, iconRes, getString(titleRes), body, true);
         }
     }
 
-    private void fillRule(View row, int iconRes, int titleRes, String body, boolean on) {
+    private void fillRule(View row, int iconRes, String title, String body, boolean on) {
         ImageView icon = row.findViewById(R.id.requirement_icon);
         icon.setImageResource(iconRes);
         icon.setColorFilter(ContextCompat.getColor(this, on ? R.color.ok : R.color.ink_muted));
-        ((TextView) row.findViewById(R.id.requirement_title)).setText(titleRes);
+        ((TextView) row.findViewById(R.id.requirement_title)).setText(title);
         ((TextView) row.findViewById(R.id.requirement_body)).setText(body);
 
         TextView state = row.findViewById(R.id.requirement_state);

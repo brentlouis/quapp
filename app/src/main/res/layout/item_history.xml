@@ -48,6 +48,15 @@
                 android:maxLines="1"
                 android:textAppearance="?attr/textAppearanceBodySmall"
                 tools:text="Ticket #12 · Tagbilaran City Gym" />
+
+            <TextView
+                android:id="@+id/history_date"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:fontFeatureSettings="tnum"
+                android:maxLines="1"
+                android:textAppearance="?attr/textAppearanceBodySmall"
+                tools:text="Sat, Aug 22" />
         </LinearLayout>
 
         <!-- Status pill: colours set in HistoryAdapter -->

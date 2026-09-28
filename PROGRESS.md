@@ -48,10 +48,10 @@ Team: 2 people. Brent builds the remaining screens and backend, and wires them. 
 ## Milestone 3 — Backend and data (finals)
 
 ### Settle before writing the backend
-- [ ] `serviceHours`: free text → real start/end timestamps
-- [ ] `proximityRadiusMeters` as a per-queue field
+- [x] `serviceHours`: free text → real start/end timestamps (MODELS.md schedule)
+- [x] `proximityRadiusMeters` as a per-queue field (`joinRadiusMeters`)
 - [ ] Constructor's four booleans → Builder or `VerificationConfig`
-- [ ] Written API contract (endpoints + JSON shapes) matching the model classes
+- [x] Written API contract (endpoints + JSON shapes) matching the model classes (MODELS.md)
 
 ### Backend (FastAPI)
 - [ ] Auth

@@ -4,28 +4,31 @@ import static org.junit.Assert.assertEquals;
 
 import org.junit.Test;
 
+import java.time.LocalDate;
+import java.time.LocalTime;
 import java.util.Arrays;
 import java.util.List;
 
 public class QueueFilterTest {
 
     private static Queue queue(String id, String name, String venue,
-                               String municipality, String category) {
+                               String municipality, Category category) {
         return new Queue.Builder()
                 .setId(id)
                 .setName(name)
                 .setVenue(venue)
                 .setMunicipality(municipality)
                 .setCategory(category)
-                .setServiceHours("Daily")
+                .setSchedule(LocalDate.of(2026, 9, 28), LocalDate.of(2026, 9, 28),
+                        LocalTime.of(8, 0), LocalTime.of(17, 0))
                 .build();
     }
 
     private final List<Queue> queues = Arrays.asList(
-            queue("q1", "Barangay Relief Distribution", "Brgy. Poblacion Hall", "Tagbilaran City", "Relief"),
-            queue("q2", "Free Medical Mission", "Tagbilaran City Gym", "Tagbilaran City", "Medical"),
-            queue("q6", "Anti-Rabies Vaccination Drive", "Brgy. Booy Health Center", "Dauis", "Medical"),
-            queue("q7", "Tourist Assistance Desk", "Alona Beach Info Center", "Panglao", "Community"));
+            queue("q1", "Barangay Relief Distribution", "Brgy. Poblacion Hall", "Tagbilaran City", Category.RELIEF),
+            queue("q2", "Free Medical Mission", "Tagbilaran City Gym", "Tagbilaran City", Category.MEDICAL),
+            queue("q6", "Anti-Rabies Vaccination Drive", "Brgy. Booy Health Center", "Dauis", Category.MEDICAL),
+            queue("q7", "Tourist Assistance Desk", "Alona Beach Info Center", "Panglao", Category.OTHER));
 
     @Test
     public void noFiltersReturnsEverything() {
@@ -49,13 +52,13 @@ public class QueueFilterTest {
 
     @Test
     public void categoryAndMunicipalityCombine() {
-        List<Queue> result = QueueFilter.apply(queues, "", "Medical", "Dauis");
+        List<Queue> result = QueueFilter.apply(queues, "", Category.MEDICAL, "Dauis");
         assertEquals(1, result.size());
         assertEquals("q6", result.get(0).getId());
     }
 
     @Test
     public void allFiltersTogetherCanMatchNothing() {
-        assertEquals(0, QueueFilter.apply(queues, "relief", "Medical", null).size());
+        assertEquals(0, QueueFilter.apply(queues, "relief", Category.MEDICAL, null).size());
     }
 }

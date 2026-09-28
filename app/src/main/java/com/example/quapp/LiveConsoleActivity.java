@@ -3,6 +3,7 @@ package com.example.quapp;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
+import android.os.CountDownTimer;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -11,6 +12,7 @@ import android.widget.TextView;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.PopupMenu;
+import androidx.core.content.ContextCompat;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -21,6 +23,7 @@ import com.google.android.material.textfield.TextInputEditText;
 import com.google.android.material.textfield.TextInputLayout;
 
 import java.util.List;
+import java.util.Locale;
 
 public class LiveConsoleActivity extends AppCompatActivity
         implements WaitingTicketAdapter.OnTicketActionListener {
@@ -40,6 +43,9 @@ public class LiveConsoleActivity extends AppCompatActivity
     private TextView servingNumber;
     private TextView servingName;
     private TextView servingPhone;
+    private TextView servingWait;
+    private View servingRule;
+    private CountDownTimer graceTimer;
     private View servingNone;
     private View[] servingViews;
     private TextView waitingHeader;
@@ -88,7 +94,8 @@ public class LiveConsoleActivity extends AppCompatActivity
         callNextButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                Ticket done = FakeData.nowServing(queueId);
+                // After a time-out the previous person is already a no-show; nothing to announce.
+                Ticket done = FakeData.checkGraceExpired(queueId) ? null : FakeData.nowServing(queueId);
                 FakeData.callNext(queueId);
                 render();
                 if (done != null) {
@@ -124,6 +131,12 @@ public class LiveConsoleActivity extends AppCompatActivity
         render();
     }
 
+    @Override
+    protected void onPause() {
+        super.onPause();
+        cancelGraceTimer();
+    }
+
     private void cacheViews() {
         ticketList = findViewById(R.id.console_list);
         emptyState = findViewById(R.id.console_empty);
@@ -135,6 +148,8 @@ public class LiveConsoleActivity extends AppCompatActivity
         servingName = findViewById(R.id.console_serving_name);
         servingPhone = findViewById(R.id.console_serving_phone);
         servingNone = findViewById(R.id.console_serving_none);
+        servingWait = findViewById(R.id.console_serving_wait);
+        servingRule = findViewById(R.id.console_serving_rule);
         servingViews = new View[]{servingNumber, servingName, servingPhone,
                 findViewById(R.id.console_serving_tear)};
         waitingHeader = findViewById(R.id.console_waiting_header);
@@ -279,6 +294,9 @@ public class LiveConsoleActivity extends AppCompatActivity
         queueName.setText(queue.getName());
 
         switch (queue.getStatus()) {
+            case UPCOMING:
+                statusText.setText(R.string.console_status_upcoming);
+                break;
             case OPEN:
                 statusText.setText(R.string.console_status_open);
                 break;
@@ -290,10 +308,11 @@ public class LiveConsoleActivity extends AppCompatActivity
                 break;
         }
 
-        bindNowServing(nowServing);
+        boolean timedOut = FakeData.checkGraceExpired(queueId);
+        bindNowServing(nowServing, timedOut);
 
         waitingHeader.setText(getString(R.string.console_up_next_format, waitingTickets.size()));
-        bindDock(nowServing, waitingTickets, closed);
+        bindDock(nowServing, timedOut, waitingTickets, closed);
         walkInButton.setEnabled(!closed);
 
         if (waitingTickets.isEmpty()) {
@@ -309,20 +328,69 @@ public class LiveConsoleActivity extends AppCompatActivity
         ticketAdapter.submitTickets(waitingTickets);
     }
 
-    private void bindNowServing(Ticket nowServing) {
+    private void bindNowServing(Ticket nowServing, boolean timedOut) {
+        cancelGraceTimer();
         boolean someone = nowServing != null;
         for (View v : servingViews) {
             v.setVisibility(someone ? View.VISIBLE : View.GONE);
         }
         servingNone.setVisibility(someone ? View.GONE : View.VISIBLE);
         if (!someone) {
+            servingWait.setVisibility(View.GONE);
+            servingRule.setVisibility(View.GONE);
             return;
         }
         servingNumber.setText(getString(R.string.console_ticket_format, nowServing.getTicketNumber()));
+        // Marigold while being served; dimmed once the slot is released (DESIGN.md section 6).
+        servingNumber.setTextColor(ContextCompat.getColor(this,
+                timedOut ? R.color.on_spotlight_muted : R.color.signal));
         servingName.setText(nowServing.getHolderName());
-        boolean walkIn = nowServing.getHolderPhone().isEmpty();
-        servingPhone.setText(walkIn ? getString(R.string.console_walk_in_label)
+        servingPhone.setText(nowServing.isWalkIn() ? getString(R.string.console_walk_in_label)
                 : WaitingTicketAdapter.maskPhone(this, nowServing.getHolderPhone()));
+
+        bindGraceLine(nowServing, timedOut);
+    }
+
+    /**
+     * Under the name: the grace countdown while waiting for "I'm here", or that the slot was
+     * released. Only for queues with the presence check on.
+     */
+    private void bindGraceLine(Ticket nowServing, boolean timedOut) {
+        boolean grace = queue.isGracePeriodEnabled() && nowServing.getCalledAt() != null;
+        servingWait.setVisibility(grace ? View.VISIBLE : View.GONE);
+        servingRule.setVisibility(grace ? View.VISIBLE : View.GONE);
+        if (!grace) {
+            return;
+        }
+        if (timedOut) {
+            servingWait.setText(R.string.console_timed_out);
+            servingWait.setTextColor(ContextCompat.getColor(this, R.color.err_on_spotlight));
+            return;
+        }
+        servingWait.setTextColor(ContextCompat.getColor(this, R.color.on_spotlight));
+        long left = FakeData.graceDeadline(nowServing).toEpochMilli() - System.currentTimeMillis();
+        graceTimer = new CountDownTimer(Math.max(left, 0), 1_000L) {
+            @Override
+            public void onTick(long millisUntilFinished) {
+                long seconds = millisUntilFinished / 1000L;
+                servingWait.setText(getString(R.string.console_awaiting_format,
+                        String.format(Locale.US, "%d:%02d", seconds / 60L, seconds % 60L)));
+            }
+
+            @Override
+            public void onFinish() {
+                // Time's up: render again, which records the no-show and switches the dock.
+                render();
+            }
+        };
+        graceTimer.start();
+    }
+
+    private void cancelGraceTimer() {
+        if (graceTimer != null) {
+            graceTimer.cancel();
+            graceTimer = null;
+        }
     }
 
     /**
@@ -330,12 +398,18 @@ public class LiveConsoleActivity extends AppCompatActivity
      * "Served · call #24". With nobody yet: just "Call #24". Paused still lets the owner work
      * through the line; closed stops everything.
      */
-    private void bindDock(Ticket nowServing, List<Ticket> waiting, boolean closed) {
+    private void bindDock(Ticket nowServing, boolean timedOut, List<Ticket> waiting, boolean closed) {
         Ticket next = waiting.isEmpty() ? null : waiting.get(0);
-        noShowButton.setVisibility(nowServing == null ? View.GONE : View.VISIBLE);
+        // A timed-out slot is already a no-show, so only "Call next" is left.
+        noShowButton.setVisibility(nowServing == null || timedOut ? View.GONE : View.VISIBLE);
         noShowButton.setEnabled(!closed);
 
-        if (nowServing == null) {
+        if (timedOut) {
+            callNextButton.setText(next == null ? getString(R.string.console_call_next)
+                    : getString(R.string.console_call_next_name_format,
+                            next.getTicketNumber(), next.getHolderName()));
+            callNextButton.setEnabled(!closed);
+        } else if (nowServing == null) {
             callNextButton.setText(next == null ? getString(R.string.console_call_next)
                     : getString(R.string.console_call_format, next.getTicketNumber()));
             callNextButton.setEnabled(!closed && next != null);

@@ -144,6 +144,32 @@
             app:layout_constraintTop_toBottomOf="@id/console_serving_name"
             tools:text="0917 ••• 0002" />
 
+        <!-- The grace period from the counter: counting down, or timed out -->
+        <com.google.android.material.divider.MaterialDivider
+            android:id="@+id/console_serving_rule"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/space_ms"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/console_serving_number" />
+
+        <TextView
+            android:id="@+id/console_serving_wait"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/space_ms"
+            android:drawablePadding="@dimen/space_sm"
+            android:fontFeatureSettings="tnum"
+            android:gravity="center_vertical"
+            android:textAppearance="?attr/textAppearanceLabelMedium"
+            app:drawableStartCompat="@drawable/ic_timer"
+            app:drawableTint="?attr/colorOnSurfaceVariant"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/console_serving_rule"
+            tools:text="Awaiting &quot;I'm here&quot; · 2:14 left" />
+
         <!-- Nobody called yet: the number and name are replaced by one line -->
         <TextView
             android:id="@+id/console_serving_none"
