@@ -4,6 +4,7 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.ImageButton;
+import android.widget.ImageView;
 import android.widget.TextView;
 
 import androidx.appcompat.app.AppCompatActivity;
@@ -33,6 +34,10 @@ public class JoinQueueActivity extends AppCompatActivity {
 
         bindQueue();
         bindRequirements();
+
+        if (savedInstanceState == null) {
+            prefillFromSession();
+        }
 
         ImageButton backButton = findViewById(R.id.join_back);
         backButton.setOnClickListener(new View.OnClickListener() {
@@ -72,20 +77,21 @@ public class JoinQueueActivity extends AppCompatActivity {
 
         section.setVisibility(View.VISIBLE);
 
-        bindRequirement(R.id.join_requirement_otp, queue.isSmsOtpEnabled(),
-                R.string.join_otp_title, R.string.join_otp_body);
+        bindRequirement(R.id.join_requirement_otp, queue.isSmsOtpEnabled(), R.drawable.ic_sms,
+                R.string.requirement_otp_title, R.string.join_otp_body);
 
-        bindRequirement(R.id.join_requirement_grace, queue.isGracePeriodEnabled(),
-                R.string.join_grace_title, R.string.join_grace_body);
+        bindRequirement(R.id.join_requirement_grace, queue.isGracePeriodEnabled(), R.drawable.ic_timer,
+                R.string.requirement_grace_title, R.string.join_grace_body);
 
-        bindRequirement(R.id.join_requirement_penalty, queue.isNoShowPenaltyEnabled(),
-                R.string.join_penalty_title, R.string.join_penalty_body);
+        bindRequirement(R.id.join_requirement_penalty, queue.isNoShowPenaltyEnabled(), R.drawable.ic_block,
+                R.string.requirement_penalty_title, R.string.join_penalty_body);
 
-        bindRequirement(R.id.join_requirement_proximity, queue.isProximityCheckEnabled(),
-                R.string.join_proximity_title, R.string.join_proximity_body);
+        bindRequirement(R.id.join_requirement_proximity, queue.isProximityCheckEnabled(), R.drawable.ic_place,
+                R.string.requirement_proximity_title, R.string.join_proximity_body);
     }
 
-    private void bindRequirement(int includeId, boolean enabled, int titleRes, int bodyRes) {
+    private void bindRequirement(int includeId, boolean enabled, int iconRes,
+                                 int titleRes, int bodyRes) {
         View block = findViewById(includeId);
 
         if (!enabled) {
@@ -95,21 +101,45 @@ public class JoinQueueActivity extends AppCompatActivity {
 
         block.setVisibility(View.VISIBLE);
 
+        ImageView iconView = block.findViewById(R.id.requirement_icon);
         TextView titleText = block.findViewById(R.id.requirement_title);
         TextView bodyText = block.findViewById(R.id.requirement_body);
 
+        iconView.setImageResource(iconRes);
         titleText.setText(titleRes);
         bodyText.setText(bodyRes);
+    }
+
+    /** Fills in the logged-in user's details so most people just tap Confirm. */
+    private void prefillFromSession() {
+        Session session = new Session(this);
+        TextInputEditText nameInput = findViewById(R.id.join_name_input);
+        TextInputEditText phoneInput = findViewById(R.id.join_phone_input);
+
+        if (session.getName() != null) {
+            nameInput.setText(session.getName());
+        }
+        phoneInput.setText(session.getPhone());
     }
 
     private void submitJoin() {
         TextInputEditText nameInput = findViewById(R.id.join_name_input);
         TextInputEditText phoneInput = findViewById(R.id.join_phone_input);
 
-        String holderName = nameInput.getText() == null
-                ? "" : nameInput.getText().toString().trim();
-        String holderPhone = phoneInput.getText() == null
-                ? "" : phoneInput.getText().toString().trim();
+        String holderName = Forms.text(nameInput);
+        String holderPhone = Validation.normalizePhone(Forms.text(phoneInput));
+
+        boolean valid = Forms.check(findViewById(R.id.join_name_layout),
+                !Validation.isBlank(holderName), getString(R.string.join_name_error));
+        valid &= Forms.check(findViewById(R.id.join_phone_layout),
+                Validation.isValidPhone(holderPhone), getString(R.string.join_phone_error));
+
+        if (!valid) {
+            return;
+        }
+
+        // A served or expired ticket that was never dismissed gets filed before it's replaced.
+        ActiveTicketStore.finishTicket();
 
         Ticket ticket = new Ticket(
                 "t-" + queue.getId(),

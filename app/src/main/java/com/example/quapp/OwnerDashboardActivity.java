@@ -11,7 +11,9 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class OwnerDashboardActivity extends AppCompatActivity
         implements OwnedQueueAdapter.OnOwnedQueueClickListener {
@@ -19,6 +21,7 @@ public class OwnerDashboardActivity extends AppCompatActivity
     private OwnedQueueAdapter queueAdapter;
     private RecyclerView queueList;
     private View emptyState;
+    private ExtendedFloatingActionButton createFab;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -35,11 +38,18 @@ public class OwnerDashboardActivity extends AppCompatActivity
         queueAdapter = new OwnedQueueAdapter(this);
         queueList.setAdapter(queueAdapter);
 
-        ExtendedFloatingActionButton createFab = findViewById(R.id.dashboard_create_fab);
+        createFab = findViewById(R.id.dashboard_create_fab);
         createFab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 startActivity(new Intent(OwnerDashboardActivity.this, CreateQueueActivity.class));
+            }
+        });
+
+        findViewById(R.id.dashboard_profile).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                startActivity(new Intent(OwnerDashboardActivity.this, ProfileActivity.class));
             }
         });
 
@@ -50,20 +60,32 @@ public class OwnerDashboardActivity extends AppCompatActivity
                 startActivity(new Intent(OwnerDashboardActivity.this, CreateQueueActivity.class));
             }
         });
+    }
 
+    /** Reloaded on every return, so new, edited, paused or closed queues show up. */
+    @Override
+    protected void onResume() {
+        super.onResume();
         loadQueues();
     }
 
     private void loadQueues() {
         List<Queue> ownedQueues = FakeData.ownedQueues();
 
+        // The empty state has its own create button; showing the FAB too would double it.
         if (ownedQueues.isEmpty()) {
             queueList.setVisibility(View.GONE);
             emptyState.setVisibility(View.VISIBLE);
+            createFab.hide();
         } else {
             queueList.setVisibility(View.VISIBLE);
             emptyState.setVisibility(View.GONE);
-            queueAdapter.submitQueues(ownedQueues);
+            createFab.show();
+            Map<String, QueueStats> stats = new HashMap<>();
+            for (Queue queue : ownedQueues) {
+                stats.put(queue.getId(), FakeData.stats(queue.getId()));
+            }
+            queueAdapter.submitQueues(ownedQueues, stats);
         }
     }
 

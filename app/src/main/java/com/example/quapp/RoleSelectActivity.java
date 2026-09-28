@@ -1,6 +1,5 @@
 package com.example.quapp;
 
-import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
 
@@ -22,15 +21,22 @@ public class RoleSelectActivity extends AppCompatActivity {
         queuerCard.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                startActivity(new Intent(RoleSelectActivity.this, BrowseActivity.class));
+                chooseRole(Session.Role.QUEUER);
             }
         });
 
         ownerCard.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                startActivity(new Intent(RoleSelectActivity.this, OwnerDashboardActivity.class));
+                chooseRole(Session.Role.OWNER);
             }
         });
+    }
+
+    /** Remembered, so next launch goes straight to this side. Switching lives in Profile. */
+    private void chooseRole(Session.Role role) {
+        Session session = new Session(this);
+        session.setRole(role);
+        startActivity(session.homeIntent(this));
     }
 }

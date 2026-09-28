@@ -10,8 +10,9 @@
 
     <TextView
         android:id="@+id/waiting_number"
-        android:layout_width="48dp"
+        android:layout_width="@dimen/touch_target_min"
         android:layout_height="wrap_content"
+        android:fontFeatureSettings="tnum"
         android:gravity="center"
         android:textAppearance="?attr/textAppearanceTitleMedium"
         android:textColor="?attr/colorPrimary"
@@ -48,32 +49,18 @@
         app:layout_constraintTop_toBottomOf="@id/waiting_name"
         tools:text="09171000002" />
 
-    <LinearLayout
+    <!-- One quiet overflow per row instead of two buttons: the list is mostly for reading. -->
+    <ImageButton
         android:id="@+id/waiting_actions"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:orientation="horizontal"
+        android:layout_width="@dimen/touch_target_min"
+        android:layout_height="@dimen/touch_target_min"
+        android:background="?attr/selectableItemBackgroundBorderless"
+        android:contentDescription="@string/console_ticket_actions_description"
+        android:padding="@dimen/icon_inset"
+        android:src="@drawable/ic_more_vert"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toTopOf="parent">
-
-        <com.google.android.material.button.MaterialButton
-            android:id="@+id/waiting_serve"
-            style="@style/Widget.Material3.Button.TextButton"
-            android:layout_width="wrap_content"
-            android:layout_height="@dimen/touch_target_min"
-            android:minWidth="0dp"
-            android:text="@string/console_serve_action" />
-
-        <com.google.android.material.button.MaterialButton
-            android:id="@+id/waiting_no_show"
-            style="@style/Widget.Material3.Button.TextButton"
-            android:layout_width="wrap_content"
-            android:layout_height="@dimen/touch_target_min"
-            android:minWidth="0dp"
-            android:text="@string/console_no_show_action"
-            android:textColor="?attr/colorError" />
-
-    </LinearLayout>
+        app:layout_constraintTop_toTopOf="parent"
+        app:tint="?attr/colorOnSurfaceVariant" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

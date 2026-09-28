@@ -13,28 +13,41 @@
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_marginStart="@dimen/space_md"
-        android:layout_marginTop="@dimen/space_md"
-        android:layout_marginEnd="@dimen/space_md"
+        android:layout_marginEnd="@dimen/space_sm"
         android:text="@string/dashboard_title"
         android:textAppearance="?attr/textAppearanceHeadlineMedium"
         android:textColor="?attr/colorOnSurface"
-        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintBottom_toBottomOf="@id/dashboard_profile"
+        app:layout_constraintEnd_toStartOf="@id/dashboard_profile"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        app:layout_constraintTop_toTopOf="@id/dashboard_profile" />
+
+    <ImageButton
+        android:id="@+id/dashboard_profile"
+        android:layout_width="@dimen/touch_target_min"
+        android:layout_height="@dimen/touch_target_min"
+        android:layout_marginTop="@dimen/space_sm"
+        android:layout_marginEnd="@dimen/space_sm"
+        android:background="?attr/selectableItemBackgroundBorderless"
+        android:contentDescription="@string/dashboard_profile_description"
+        android:padding="@dimen/space_sm"
+        android:src="@drawable/ic_person"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:tint="?attr/colorOnSurface" />
 
     <TextView
         android:id="@+id/dashboard_subtitle"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_marginStart="@dimen/space_md"
-        android:layout_marginTop="@dimen/space_xs"
         android:layout_marginEnd="@dimen/space_md"
         android:text="@string/dashboard_subtitle"
         android:textAppearance="?attr/textAppearanceBodyMedium"
         android:textColor="?attr/colorOnSurfaceVariant"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/dashboard_title" />
+        app:layout_constraintTop_toBottomOf="@id/dashboard_profile" />
 
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/dashboard_list"

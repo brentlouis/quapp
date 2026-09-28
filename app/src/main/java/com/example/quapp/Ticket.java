@@ -81,4 +81,10 @@ public class Ticket {
     public Status getStatus() {
         return status;
     }
+
+    /** Tickets are immutable, so a status change produces a new copy. */
+    public Ticket withStatus(Status newStatus) {
+        return new Ticket(id, queueId, queueName, venue, holderName, holderPhone,
+                ticketNumber, position, estimatedWaitMinutes, newStatus);
+    }
 }

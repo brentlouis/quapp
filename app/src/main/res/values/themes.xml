@@ -1,11 +1,49 @@
 <resources xmlns:tools="http://schemas.android.com/tools">
-    <style name="Theme.Quapp" parent="Theme.Material3.DayNight.NoActionBar">
+    <!-- Shared by the light and night themes: the display face for headlines and numbers. -->
+    <style name="Base.Theme.Quapp" parent="Theme.Material3.DayNight.NoActionBar">
+        <item name="textAppearanceDisplayLarge">@style/TextAppearance.Quapp.DisplayLarge</item>
+        <item name="textAppearanceDisplayMedium">@style/TextAppearance.Quapp.DisplayMedium</item>
+        <item name="textAppearanceDisplaySmall">@style/TextAppearance.Quapp.DisplaySmall</item>
+        <item name="textAppearanceHeadlineLarge">@style/TextAppearance.Quapp.HeadlineLarge</item>
+        <item name="textAppearanceHeadlineMedium">@style/TextAppearance.Quapp.HeadlineMedium</item>
+        <item name="textAppearanceHeadlineSmall">@style/TextAppearance.Quapp.HeadlineSmall</item>
+    </style>
+
+    <style name="TextAppearance.Quapp.DisplayLarge" parent="TextAppearance.Material3.DisplayLarge">
+        <item name="fontFamily">@font/barlow_semibold</item>
+        <item name="android:fontFamily">@font/barlow_semibold</item>
+    </style>
+    <style name="TextAppearance.Quapp.DisplayMedium" parent="TextAppearance.Material3.DisplayMedium">
+        <item name="fontFamily">@font/barlow_semibold</item>
+        <item name="android:fontFamily">@font/barlow_semibold</item>
+    </style>
+    <style name="TextAppearance.Quapp.DisplaySmall" parent="TextAppearance.Material3.DisplaySmall">
+        <item name="fontFamily">@font/barlow_semibold</item>
+        <item name="android:fontFamily">@font/barlow_semibold</item>
+    </style>
+    <style name="TextAppearance.Quapp.HeadlineLarge" parent="TextAppearance.Material3.HeadlineLarge">
+        <item name="fontFamily">@font/barlow_semibold</item>
+        <item name="android:fontFamily">@font/barlow_semibold</item>
+    </style>
+    <style name="TextAppearance.Quapp.HeadlineMedium" parent="TextAppearance.Material3.HeadlineMedium">
+        <item name="fontFamily">@font/barlow_semibold</item>
+        <item name="android:fontFamily">@font/barlow_semibold</item>
+    </style>
+    <style name="TextAppearance.Quapp.HeadlineSmall" parent="TextAppearance.Material3.HeadlineSmall">
+        <item name="fontFamily">@font/barlow_semibold</item>
+        <item name="android:fontFamily">@font/barlow_semibold</item>
+    </style>
+
+    <style name="Theme.Quapp" parent="Base.Theme.Quapp">
         <item name="colorPrimary">@color/teal_40</item>
         <item name="colorOnPrimary">@color/white</item>
         <item name="colorPrimaryContainer">@color/teal_90</item>
         <item name="colorOnPrimaryContainer">@color/teal_10</item>
 
         <item name="colorSecondary">@color/slate_40</item>
+        <item name="colorOnSecondary">@color/white</item>
+        <item name="colorSecondaryContainer">@color/slate_90</item>
+        <item name="colorOnSecondaryContainer">@color/slate_10</item>
 
         <item name="colorSurface">@color/surface_light</item>
         <item name="colorOnSurface">@color/on_surface_light</item>
@@ -15,13 +53,14 @@
         <item name="colorOutline">@color/outline_light</item>
         <item name="colorError">@color/error_light</item>
 
-        <item name="android:statusBarColor">@color/teal_40</item>
+        <item name="android:statusBarColor">@color/surface_light</item>
         <item name="android:windowLightStatusBar">true</item>
-        <item name="android:windowLightNavigationBar">true</item>
+        <item name="android:windowLightNavigationBar" tools:targetApi="27">true</item>
     </style>
 
     <style name="Theme.Quapp.Splash" parent="Theme.Quapp">
         <item name="android:windowBackground">@color/teal_40</item>
+        <item name="android:statusBarColor">@color/teal_40</item>
         <item name="android:windowLightStatusBar">false</item>
     </style>
 </resources>

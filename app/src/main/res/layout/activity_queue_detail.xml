@@ -26,7 +26,7 @@
         android:id="@+id/detail_scroll"
         android:layout_width="0dp"
         android:layout_height="0dp"
-        app:layout_constraintBottom_toTopOf="@id/detail_join_button"
+        app:layout_constraintBottom_toTopOf="@id/detail_notice"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/detail_back">
@@ -76,51 +76,13 @@
                 android:layout_marginTop="@dimen/space_lg"
                 android:orientation="horizontal">
 
-                <LinearLayout
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:orientation="vertical">
+                <include
+                    android:id="@+id/detail_eta"
+                    layout="@layout/view_stat" />
 
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="@string/detail_waiting_label"
-                        android:textAppearance="?attr/textAppearanceLabelSmall"
-                        android:textColor="?attr/colorOnSurfaceVariant" />
-
-                    <TextView
-                        android:id="@+id/detail_waiting_value"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:textAppearance="?attr/textAppearanceHeadlineSmall"
-                        android:textColor="?attr/colorOnSurface"
-                        tools:text="42" />
-
-                </LinearLayout>
-
-                <LinearLayout
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:orientation="vertical">
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="@string/detail_eta_label"
-                        android:textAppearance="?attr/textAppearanceLabelSmall"
-                        android:textColor="?attr/colorOnSurfaceVariant" />
-
-                    <TextView
-                        android:id="@+id/detail_eta_value"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:textAppearance="?attr/textAppearanceHeadlineSmall"
-                        android:textColor="?attr/colorOnSurface"
-                        tools:text="55 min" />
-
-                </LinearLayout>
+                <include
+                    android:id="@+id/detail_waiting"
+                    layout="@layout/view_stat" />
 
             </LinearLayout>
 
@@ -129,8 +91,8 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="@dimen/space_lg"
                 android:text="@string/detail_hours_label"
-                android:textAppearance="?attr/textAppearanceLabelSmall"
-                android:textColor="?attr/colorOnSurfaceVariant" />
+                android:textAppearance="?attr/textAppearanceTitleSmall"
+                android:textColor="?attr/colorOnSurface" />
 
             <TextView
                 android:id="@+id/detail_hours_value"
@@ -146,8 +108,8 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="@dimen/space_lg"
                 android:text="@string/detail_about_label"
-                android:textAppearance="?attr/textAppearanceLabelSmall"
-                android:textColor="?attr/colorOnSurfaceVariant" />
+                android:textAppearance="?attr/textAppearanceTitleSmall"
+                android:textColor="?attr/colorOnSurface" />
 
             <TextView
                 android:id="@+id/detail_description"
@@ -169,51 +131,32 @@
                 <TextView
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
+                    android:layout_marginBottom="@dimen/space_xs"
                     android:text="@string/detail_verification_label"
-                    android:textAppearance="?attr/textAppearanceLabelSmall"
-                    android:textColor="?attr/colorOnSurfaceVariant" />
+                    android:textAppearance="?attr/textAppearanceTitleSmall"
+                    android:textColor="?attr/colorOnSurface" />
 
-                <TextView
-                    android:id="@+id/detail_verification_otp"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="@dimen/space_sm"
-                    android:text="@string/detail_verification_otp"
-                    android:textAppearance="?attr/textAppearanceBodyMedium"
-                    android:textColor="?attr/colorOnSurface"
+                <include
+                    android:id="@+id/detail_rule_otp"
+                    layout="@layout/view_requirement"
                     android:visibility="gone"
                     tools:visibility="visible" />
 
-                <TextView
-                    android:id="@+id/detail_verification_grace"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="@dimen/space_sm"
-                    android:text="@string/detail_verification_grace"
-                    android:textAppearance="?attr/textAppearanceBodyMedium"
-                    android:textColor="?attr/colorOnSurface"
+                <include
+                    android:id="@+id/detail_rule_grace"
+                    layout="@layout/view_requirement"
                     android:visibility="gone"
                     tools:visibility="visible" />
 
-                <TextView
-                    android:id="@+id/detail_verification_penalty"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="@dimen/space_sm"
-                    android:text="@string/detail_verification_penalty"
-                    android:textAppearance="?attr/textAppearanceBodyMedium"
-                    android:textColor="?attr/colorOnSurface"
+                <include
+                    android:id="@+id/detail_rule_penalty"
+                    layout="@layout/view_requirement"
                     android:visibility="gone"
                     tools:visibility="visible" />
 
-                <TextView
-                    android:id="@+id/detail_verification_proximity"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="@dimen/space_sm"
-                    android:text="@string/detail_verification_proximity"
-                    android:textAppearance="?attr/textAppearanceBodyMedium"
-                    android:textColor="?attr/colorOnSurface"
+                <include
+                    android:id="@+id/detail_rule_proximity"
+                    layout="@layout/view_requirement"
                     android:visibility="gone"
                     tools:visibility="visible" />
 
@@ -222,6 +165,23 @@
         </LinearLayout>
 
     </androidx.core.widget.NestedScrollView>
+
+    <!-- Explains why Join is disabled: paused queue, cooldown, or already in another line. -->
+    <TextView
+        android:id="@+id/detail_notice"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="@dimen/space_md"
+        android:layout_marginEnd="@dimen/space_md"
+        android:layout_marginBottom="@dimen/space_sm"
+        android:textAppearance="?attr/textAppearanceBodyMedium"
+        android:textColor="?attr/colorOnSurfaceVariant"
+        android:visibility="gone"
+        app:layout_constraintBottom_toTopOf="@id/detail_join_button"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        tools:text="You missed your slot too many times. Queues with a no-show cooldown open to you again in 28 min."
+        tools:visibility="visible" />
 
     <com.google.android.material.button.MaterialButton
         android:id="@+id/detail_join_button"

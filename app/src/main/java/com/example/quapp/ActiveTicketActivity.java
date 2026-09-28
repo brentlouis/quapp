@@ -1,5 +1,6 @@
 package com.example.quapp;
 
+import android.content.res.ColorStateList;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.os.CountDownTimer;
@@ -9,8 +10,11 @@ import android.widget.TextView;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.ContextCompat;
+import androidx.core.graphics.ColorUtils;
 
 import com.google.android.material.button.MaterialButton;
+import com.google.android.material.color.MaterialColors;
+import com.google.android.material.progressindicator.CircularProgressIndicator;
 
 import java.util.Locale;
 
@@ -19,15 +23,23 @@ public class ActiveTicketActivity extends AppCompatActivity {
     private static final long GRACE_PERIOD_MS = 180_000L;
     private static final long COUNTDOWN_TICK_MS = 1_000L;
 
-    private Ticket ticket;
     private CountDownTimer graceTimer;
 
-    private TextView statusBanner;
-    private TextView ticketNumber;
-    private TextView countdownText;
-    private TextView instructionText;
-    private TextView positionText;
+    // Track behind the grace ring: the content color at 25% opacity.
+    private static final int RING_TRACK_ALPHA = 64;
+
+    private View hero;
+    private TextView statusText;
+    private TextView aheadText;
+    private TextView aheadLabel;
     private TextView etaText;
+    private CircularProgressIndicator graceRing;
+    private TextView countdownText;
+    private TextView headlineText;
+    private TextView instructionText;
+    private TextView numberLabel;
+    private TextView ticketNumber;
+    private MaterialButton leaveButton;
     private MaterialButton primaryButton;
 
     @Override
@@ -36,7 +48,7 @@ public class ActiveTicketActivity extends AppCompatActivity {
         setContentView(R.layout.activity_active_ticket);
         SystemBars.applyPadding(findViewById(R.id.ticket_root));
 
-        ticket = ActiveTicketStore.getTicket();
+        Ticket ticket = ActiveTicketStore.getTicket();
 
         if (ticket == null) {
             finish();
@@ -44,8 +56,7 @@ public class ActiveTicketActivity extends AppCompatActivity {
         }
 
         cacheViews();
-        bindStaticDetails();
-        renderState(ticket.getStatus());
+        bindStaticDetails(ticket);
 
         ImageButton backButton = findViewById(R.id.ticket_back);
         backButton.setOnClickListener(new View.OnClickListener() {
@@ -56,31 +67,72 @@ public class ActiveTicketActivity extends AppCompatActivity {
         });
     }
 
+    /**
+     * Rendered here rather than in onCreate so the screen catches up if the
+     * grace window ran out while the queuer was somewhere else.
+     */
+    @Override
+    protected void onResume() {
+        super.onResume();
+
+        Ticket ticket = ActiveTicketStore.getTicket();
+        if (ticket == null) {
+            finish();
+            return;
+        }
+        renderState(ticket.getStatus());
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        // The deadline lives in ActiveTicketStore, so stopping the display timer loses nothing.
+        cancelGraceTimer();
+    }
+
     private void cacheViews() {
-        statusBanner = findViewById(R.id.ticket_status_banner);
-        ticketNumber = findViewById(R.id.ticket_number);
-        countdownText = findViewById(R.id.ticket_countdown);
-        instructionText = findViewById(R.id.ticket_instruction);
-        positionText = findViewById(R.id.ticket_position);
+        hero = findViewById(R.id.ticket_hero);
+        statusText = findViewById(R.id.ticket_status);
+        aheadText = findViewById(R.id.ticket_ahead);
+        aheadLabel = findViewById(R.id.ticket_ahead_label);
         etaText = findViewById(R.id.ticket_eta);
+        graceRing = findViewById(R.id.ticket_ring);
+        countdownText = findViewById(R.id.ticket_countdown);
+        headlineText = findViewById(R.id.ticket_headline);
+        instructionText = findViewById(R.id.ticket_instruction);
+        numberLabel = findViewById(R.id.ticket_number_label);
+        ticketNumber = findViewById(R.id.ticket_number);
+        leaveButton = findViewById(R.id.ticket_leave_button);
         primaryButton = findViewById(R.id.ticket_primary_button);
     }
 
-    private void bindStaticDetails() {
+    private void bindStaticDetails(Ticket ticket) {
         TextView queueName = findViewById(R.id.ticket_queue_name);
         TextView venue = findViewById(R.id.ticket_venue);
 
         queueName.setText(ticket.getQueueName());
         venue.setText(ticket.getVenue());
 
-        ticketNumber.setText(String.valueOf(ticket.getTicketNumber()));
-        positionText.setText(String.valueOf(ticket.getPosition()));
-        etaText.setText(getString(R.string.detail_eta_value_format,
-                ticket.getEstimatedWaitMinutes()));
+        ticketNumber.setText(getString(R.string.ticket_number_format, ticket.getTicketNumber()));
+        etaText.setText(getString(R.string.ticket_eta_format, ticket.getEstimatedWaitMinutes()));
+
+        // Position counts the queuer too, so the people ahead are one fewer.
+        int ahead = ticket.getPosition() - 1;
+        if (ahead > 0) {
+            aheadText.setText(String.valueOf(ahead));
+            aheadLabel.setText(R.string.ticket_ahead_label);
+        } else {
+            aheadText.setText(null);
+            aheadLabel.setText(R.string.ticket_next_label);
+        }
     }
 
     private void renderState(Ticket.Status status) {
         cancelGraceTimer();
+        hideStateViews();
+        aheadText.setOnLongClickListener(null);
+        aheadLabel.setOnLongClickListener(null);
+        countdownText.setOnLongClickListener(null);
 
         switch (status) {
             case WAITING:
@@ -98,14 +150,22 @@ public class ActiveTicketActivity extends AppCompatActivity {
         }
     }
 
+    /** Waiting is calm, so it uses the brand container colors rather than a status color. */
     private void renderWaiting() {
-        setBanner(R.string.ticket_status_waiting, R.color.status_waiting);
-        countdownText.setVisibility(View.GONE);
-        instructionText.setVisibility(View.GONE);
+        applyHeroColors(
+                MaterialColors.getColor(hero, com.google.android.material.R.attr.colorPrimaryContainer),
+                MaterialColors.getColor(hero, com.google.android.material.R.attr.colorOnPrimaryContainer));
+        statusText.setText(R.string.ticket_status_waiting);
 
-        primaryButton.setText(R.string.ticket_leave_action);
-        primaryButton.setEnabled(true);
-        primaryButton.setOnClickListener(new View.OnClickListener() {
+        // An empty count means "you're next", and the label alone says that.
+        if (aheadText.getText().length() > 0) {
+            aheadText.setVisibility(View.VISIBLE);
+        }
+        aheadLabel.setVisibility(View.VISIBLE);
+        etaText.setVisibility(View.VISIBLE);
+
+        leaveButton.setVisibility(View.VISIBLE);
+        leaveButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 ActiveTicketStore.clearTicket();
@@ -113,81 +173,140 @@ public class ActiveTicketActivity extends AppCompatActivity {
             }
         });
 
-        // Demo hook: long-press the number to simulate being called.
-        ticketNumber.setOnLongClickListener(new View.OnLongClickListener() {
+        // Demo hook: long-press the count to simulate being called.
+        View.OnLongClickListener simulateCall = new View.OnLongClickListener() {
             @Override
             public boolean onLongClick(View view) {
+                ActiveTicketStore.markCalled(GRACE_PERIOD_MS);
                 renderState(Ticket.Status.CALLED);
                 return true;
             }
-        });
+        };
+        aheadText.setOnLongClickListener(simulateCall);
+        aheadLabel.setOnLongClickListener(simulateCall);
     }
 
     private void renderCalled() {
-        setBanner(R.string.ticket_status_called, R.color.status_called);
+        applyStatusColors(R.color.status_called);
+        statusText.setText(R.string.ticket_status_called);
 
+        graceRing.setVisibility(View.VISIBLE);
         countdownText.setVisibility(View.VISIBLE);
         instructionText.setVisibility(View.VISIBLE);
         instructionText.setText(R.string.ticket_called_instruction);
 
-        positionText.setText(R.string.browse_eta_none);
-
+        primaryButton.setVisibility(View.VISIBLE);
         primaryButton.setText(R.string.ticket_here_action);
-        primaryButton.setEnabled(true);
         primaryButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
+                ActiveTicketStore.markServed();
                 renderState(Ticket.Status.SERVED);
             }
         });
 
-        startGraceTimer();
+        // Demo hook: long-press the countdown to skip to the end of the grace period,
+        // so the no-show and cooldown flow can be shown without waiting 3 minutes.
+        countdownText.setOnLongClickListener(new View.OnLongClickListener() {
+            @Override
+            public boolean onLongClick(View view) {
+                expire();
+                return true;
+            }
+        });
+
+        startGraceTimer(ActiveTicketStore.graceRemainingMs());
     }
 
     private void renderServed() {
-        setBanner(R.string.ticket_status_served, R.color.status_served);
+        applyStatusColors(R.color.status_served);
+        statusText.setText(R.string.ticket_status_served);
 
-        countdownText.setVisibility(View.GONE);
+        headlineText.setVisibility(View.VISIBLE);
+        headlineText.setText(R.string.ticket_served_headline);
         instructionText.setVisibility(View.VISIBLE);
         instructionText.setText(R.string.ticket_served_instruction);
 
-        primaryButton.setText(R.string.ticket_done_action);
-        primaryButton.setEnabled(true);
-        primaryButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                ActiveTicketStore.clearTicket();
-                finish();
-            }
-        });
+        showDoneButton();
     }
 
     private void renderExpired() {
-        setBanner(R.string.ticket_status_expired, R.color.status_expired);
+        applyStatusColors(R.color.status_expired);
+        statusText.setText(R.string.ticket_status_expired);
 
-        countdownText.setVisibility(View.GONE);
+        headlineText.setVisibility(View.VISIBLE);
+        headlineText.setText(R.string.ticket_expired_headline);
         instructionText.setVisibility(View.VISIBLE);
-        instructionText.setText(R.string.ticket_expired_instruction);
+        instructionText.setText(expiredInstruction());
 
+        showDoneButton();
+    }
+
+    /** The expired message depends on whether this no-show counted toward a cooldown. */
+    private String expiredInstruction() {
+        Ticket ticket = ActiveTicketStore.getTicket();
+        Queue queue = ticket == null ? null : FakeData.queueById(ticket.getQueueId());
+
+        if (queue == null || !queue.isNoShowPenaltyEnabled()) {
+            return getString(R.string.ticket_expired_instruction);
+        }
+        if (Cooldown.isActive()) {
+            return getString(R.string.ticket_expired_cooldown_instruction,
+                    Cooldown.remainingMinutes());
+        }
+        return getString(R.string.ticket_expired_warning_instruction, Cooldown.DURATION_MINUTES);
+    }
+
+    private void showDoneButton() {
+        primaryButton.setVisibility(View.VISIBLE);
         primaryButton.setText(R.string.ticket_done_action);
-        primaryButton.setEnabled(true);
         primaryButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                ActiveTicketStore.clearTicket();
+                ActiveTicketStore.finishTicket();
                 finish();
             }
         });
     }
 
-    private void setBanner(int textRes, int colorRes) {
-        statusBanner.setText(textRes);
-        statusBanner.setBackgroundColor(ContextCompat.getColor(this, colorRes));
-        statusBanner.setTextColor(Color.WHITE);
+    private void expire() {
+        ActiveTicketStore.markNoShow();
+        renderState(Ticket.Status.NO_SHOW);
     }
 
-    private void startGraceTimer() {
-        graceTimer = new CountDownTimer(GRACE_PERIOD_MS, COUNTDOWN_TICK_MS) {
+    /** Each render starts with nothing state-specific visible, then shows what it needs. */
+    private void hideStateViews() {
+        aheadText.setVisibility(View.GONE);
+        aheadLabel.setVisibility(View.GONE);
+        etaText.setVisibility(View.GONE);
+        graceRing.setVisibility(View.GONE);
+        countdownText.setVisibility(View.GONE);
+        headlineText.setVisibility(View.GONE);
+        instructionText.setVisibility(View.GONE);
+        leaveButton.setVisibility(View.GONE);
+        primaryButton.setVisibility(View.GONE);
+    }
+
+    /** Called, served and expired fill the panel with their status color and white text. */
+    private void applyStatusColors(int colorRes) {
+        applyHeroColors(ContextCompat.getColor(this, colorRes), Color.WHITE);
+    }
+
+    private void applyHeroColors(int containerColor, int contentColor) {
+        hero.setBackgroundTintList(ColorStateList.valueOf(containerColor));
+
+        TextView[] texts = {statusText, aheadText, aheadLabel, etaText, countdownText,
+                headlineText, instructionText, numberLabel, ticketNumber};
+        for (TextView text : texts) {
+            text.setTextColor(contentColor);
+        }
+
+        graceRing.setIndicatorColor(contentColor);
+        graceRing.setTrackColor(ColorUtils.setAlphaComponent(contentColor, RING_TRACK_ALPHA));
+    }
+
+    private void startGraceTimer(long remainingMs) {
+        graceTimer = new CountDownTimer(remainingMs, COUNTDOWN_TICK_MS) {
             @Override
             public void onTick(long millisUntilFinished) {
                 long totalSeconds = millisUntilFinished / 1000L;
@@ -196,11 +315,15 @@ public class ActiveTicketActivity extends AppCompatActivity {
 
                 countdownText.setText(String.format(Locale.US,
                         getString(R.string.ticket_countdown_format), minutes, seconds));
+
+                // The ring drains from full to empty across the whole grace period.
+                graceRing.setProgressCompat(
+                        (int) (millisUntilFinished * graceRing.getMax() / GRACE_PERIOD_MS), true);
             }
 
             @Override
             public void onFinish() {
-                renderState(Ticket.Status.NO_SHOW);
+                expire();
             }
         };
 
@@ -212,11 +335,5 @@ public class ActiveTicketActivity extends AppCompatActivity {
             graceTimer.cancel();
             graceTimer = null;
         }
-    }
-
-    @Override
-    protected void onDestroy() {
-        super.onDestroy();
-        cancelGraceTimer();
     }
 }

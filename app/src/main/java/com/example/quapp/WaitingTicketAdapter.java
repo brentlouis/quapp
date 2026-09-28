@@ -1,14 +1,15 @@
 package com.example.quapp;
 
 import android.view.LayoutInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageButton;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
+import androidx.appcompat.widget.PopupMenu;
 import androidx.recyclerview.widget.RecyclerView;
-
-import com.google.android.material.button.MaterialButton;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -57,37 +58,54 @@ public class WaitingTicketAdapter
         private final TextView numberText;
         private final TextView nameText;
         private final TextView phoneText;
-        private final MaterialButton serveButton;
-        private final MaterialButton noShowButton;
+        private final ImageButton actionsButton;
 
         WaitingViewHolder(@NonNull View itemView) {
             super(itemView);
             numberText = itemView.findViewById(R.id.waiting_number);
             nameText = itemView.findViewById(R.id.waiting_name);
             phoneText = itemView.findViewById(R.id.waiting_phone);
-            serveButton = itemView.findViewById(R.id.waiting_serve);
-            noShowButton = itemView.findViewById(R.id.waiting_no_show);
+            actionsButton = itemView.findViewById(R.id.waiting_actions);
         }
 
         void bind(final Ticket ticket, final OnTicketActionListener actionListener) {
             numberText.setText(itemView.getContext()
                     .getString(R.string.console_ticket_format, ticket.getTicketNumber()));
             nameText.setText(ticket.getHolderName());
-            phoneText.setText(ticket.getHolderPhone());
+            // Walk-ins have no phone; say so instead of leaving a blank line.
+            if (ticket.getHolderPhone().isEmpty()) {
+                phoneText.setText(R.string.console_walk_in_label);
+            } else {
+                phoneText.setText(ticket.getHolderPhone());
+            }
 
-            serveButton.setOnClickListener(new View.OnClickListener() {
+            actionsButton.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View view) {
-                    actionListener.onServeTicket(ticket);
+                    showActions(view, ticket, actionListener);
                 }
             });
+        }
 
-            noShowButton.setOnClickListener(new View.OnClickListener() {
+        private void showActions(View anchor, final Ticket ticket,
+                                 final OnTicketActionListener actionListener) {
+            PopupMenu popup = new PopupMenu(anchor.getContext(), anchor);
+            popup.inflate(R.menu.menu_waiting_ticket);
+            popup.setOnMenuItemClickListener(new PopupMenu.OnMenuItemClickListener() {
                 @Override
-                public void onClick(View view) {
-                    actionListener.onNoShowTicket(ticket);
+                public boolean onMenuItemClick(MenuItem item) {
+                    if (item.getItemId() == R.id.waiting_action_serve) {
+                        actionListener.onServeTicket(ticket);
+                        return true;
+                    }
+                    if (item.getItemId() == R.id.waiting_action_no_show) {
+                        actionListener.onNoShowTicket(ticket);
+                        return true;
+                    }
+                    return false;
                 }
             });
+            popup.show();
         }
     }
 }

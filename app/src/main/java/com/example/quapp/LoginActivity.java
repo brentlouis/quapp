@@ -7,6 +7,7 @@ import android.view.View;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.google.android.material.button.MaterialButton;
+import com.google.android.material.textfield.TextInputEditText;
 
 public class LoginActivity extends AppCompatActivity {
 
@@ -22,7 +23,7 @@ public class LoginActivity extends AppCompatActivity {
         submitButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                startActivity(new Intent(LoginActivity.this, RoleSelectActivity.class));
+                submitLogin();
             }
         });
 
@@ -32,5 +33,27 @@ public class LoginActivity extends AppCompatActivity {
                 startActivity(new Intent(LoginActivity.this, RegisterActivity.class));
             }
         });
+    }
+
+    private void submitLogin() {
+        TextInputEditText phoneInput = findViewById(R.id.login_phone_input);
+        TextInputEditText passwordInput = findViewById(R.id.login_password_input);
+
+        String phone = Validation.normalizePhone(Forms.text(phoneInput));
+        String password = Forms.text(passwordInput);
+
+        boolean valid = Forms.check(findViewById(R.id.login_phone_layout),
+                Validation.isValidPhone(phone), getString(R.string.login_phone_error));
+        valid &= Forms.check(findViewById(R.id.login_password_layout),
+                !Validation.isBlank(password), getString(R.string.login_password_error));
+
+        if (!valid) {
+            return;
+        }
+
+        // No backend yet, so any well-formed login is accepted. The password is never stored.
+        Session session = new Session(this);
+        session.logIn(phone);
+        startActivity(session.homeIntent(this));
     }
 }

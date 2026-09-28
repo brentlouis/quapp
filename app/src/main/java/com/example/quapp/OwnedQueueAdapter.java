@@ -10,7 +10,9 @@ import androidx.core.content.ContextCompat;
 import androidx.recyclerview.widget.RecyclerView;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class OwnedQueueAdapter
         extends RecyclerView.Adapter<OwnedQueueAdapter.OwnedQueueViewHolder> {
@@ -20,15 +22,19 @@ public class OwnedQueueAdapter
     }
 
     private final List<Queue> queues = new ArrayList<>();
+    private final Map<String, QueueStats> statsById = new HashMap<>();
     private final OnOwnedQueueClickListener clickListener;
 
     public OwnedQueueAdapter(OnOwnedQueueClickListener clickListener) {
         this.clickListener = clickListener;
     }
 
-    public void submitQueues(List<Queue> newQueues) {
+    /** Stats are keyed by queue id; the adapter only displays them, never fetches them. */
+    public void submitQueues(List<Queue> newQueues, Map<String, QueueStats> newStats) {
         queues.clear();
         queues.addAll(newQueues);
+        statsById.clear();
+        statsById.putAll(newStats);
         notifyDataSetChanged();
     }
 
@@ -42,7 +48,8 @@ public class OwnedQueueAdapter
 
     @Override
     public void onBindViewHolder(@NonNull OwnedQueueViewHolder holder, int position) {
-        holder.bind(queues.get(position), clickListener);
+        Queue queue = queues.get(position);
+        holder.bind(queue, statsById.get(queue.getId()), clickListener);
     }
 
     @Override
@@ -67,16 +74,35 @@ public class OwnedQueueAdapter
             servedText = itemView.findViewById(R.id.owned_served);
         }
 
-        void bind(final Queue queue, final OnOwnedQueueClickListener clickListener) {
+        void bind(final Queue queue, QueueStats stats,
+                  final OnOwnedQueueClickListener clickListener) {
             nameText.setText(queue.getName());
-            venueText.setText(queue.getVenue());
             waitingText.setText(String.valueOf(queue.getPeopleWaiting()));
+            servedText.setText(String.valueOf(stats == null ? 0 : stats.getServedToday()));
 
-            // Placeholder until served counts come from the backend.
-            servedText.setText(String.valueOf(queue.isOpen() ? 18 : 0));
+            int dotColor;
+            switch (queue.getStatus()) {
+                case PAUSED:
+                    dotColor = R.color.status_called;
+                    venueText.setText(itemView.getContext().getString(R.string.browse_venue_format,
+                            queue.getVenue(),
+                            itemView.getContext().getString(R.string.dashboard_status_paused)));
+                    break;
+                case CLOSED:
+                    dotColor = R.color.status_expired;
+                    venueText.setText(itemView.getContext().getString(R.string.browse_venue_format,
+                            queue.getVenue(),
+                            itemView.getContext().getString(R.string.dashboard_status_closed)));
+                    break;
+                case OPEN:
+                default:
+                    dotColor = R.color.status_served;
+                    venueText.setText(queue.getVenue());
+                    break;
+            }
 
-            int dotColor = queue.isOpen() ? R.color.status_served : R.color.status_expired;
-            statusDot.getBackground().setTint(
+            // mutate() gives this row its own copy; without it, rows can share one tinted drawable.
+            statusDot.getBackground().mutate().setTint(
                     ContextCompat.getColor(itemView.getContext(), dotColor));
 
             itemView.setOnClickListener(new View.OnClickListener() {

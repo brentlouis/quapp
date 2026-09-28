@@ -27,7 +27,6 @@
         android:text="@string/splash_tagline"
         android:textAppearance="?attr/textAppearanceBodyMedium"
         android:textColor="@color/white"
-        android:alpha="0.85"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"

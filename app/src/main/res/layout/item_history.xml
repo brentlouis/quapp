@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Not a card: history rows are a record to read, not objects to tap into. -->
+<androidx.constraintlayout.widget.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:paddingStart="@dimen/space_md"
+    android:paddingTop="@dimen/space_md"
+    android:paddingEnd="@dimen/space_md"
+    android:paddingBottom="@dimen/space_md">
+
+    <TextView
+        android:id="@+id/history_queue_name"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:ellipsize="end"
+        android:maxLines="2"
+        android:textAppearance="?attr/textAppearanceTitleMedium"
+        android:textColor="?attr/colorOnSurface"
+        app:layout_constraintEnd_toStartOf="@id/history_status"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        tools:text="Free Medical Mission" />
+
+    <TextView
+        android:id="@+id/history_status"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="@dimen/space_sm"
+        android:textAppearance="?attr/textAppearanceLabelSmall"
+        app:layout_constraintBaseline_toBaselineOf="@id/history_queue_name"
+        app:layout_constraintEnd_toEndOf="parent"
+        tools:text="Served"
+        tools:textColor="@color/status_served" />
+
+    <TextView
+        android:id="@+id/history_details"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/space_xs"
+        android:ellipsize="end"
+        android:maxLines="1"
+        android:textAppearance="?attr/textAppearanceBodyMedium"
+        android:textColor="?attr/colorOnSurfaceVariant"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/history_queue_name"
+        tools:text="Ticket #12 · Tagbilaran City Gym" />
+
+</androidx.constraintlayout.widget.ConstraintLayout>

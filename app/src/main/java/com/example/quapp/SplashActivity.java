@@ -1,6 +1,5 @@
 package com.example.quapp;
 
-import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
@@ -26,7 +25,9 @@ public class SplashActivity extends AppCompatActivity {
         new Handler(Looper.getMainLooper()).postDelayed(new Runnable() {
             @Override
             public void run() {
-                startActivity(new Intent(SplashActivity.this, LoginActivity.class));
+                // A remembered session skips Login and Role Select entirely.
+                Session session = new Session(SplashActivity.this);
+                startActivity(session.homeIntent(SplashActivity.this));
                 finish();
             }
         }, SPLASH_DELAY_MS);

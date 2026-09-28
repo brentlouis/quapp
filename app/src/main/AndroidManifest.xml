@@ -33,6 +33,9 @@
         <activity android:name=".OwnerDashboardActivity"/>
         <activity android:name=".CreateQueueActivity"/>
         <activity android:name=".LiveConsoleActivity"/>
+        <activity android:name=".QueueAnalyticsActivity" />
+        <activity android:name=".ProfileActivity" />
+        <activity android:name=".HistoryActivity" />
     </application>
 
 </manifest>

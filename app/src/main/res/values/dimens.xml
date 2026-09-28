@@ -7,5 +7,13 @@
     <dimen name="space_xl">32dp</dimen>
 
     <dimen name="corner_radius">12dp</dimen>
+    <dimen name="corner_radius_lg">28dp</dimen>
     <dimen name="touch_target_min">48dp</dimen>
+    <dimen name="icon_size">24dp</dimen>
+    <!-- Centers a 24dp icon in a 48dp touch target. -->
+    <dimen name="icon_inset">12dp</dimen>
+
+    <!-- Active Ticket grace-period ring -->
+    <dimen name="ticket_ring_size">200dp</dimen>
+    <dimen name="ticket_ring_thickness">8dp</dimen>
 </resources>

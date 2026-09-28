@@ -1,27 +1,45 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<!-- One verification rule: icon, name, one-line explanation. Used by Join and Queue Detail. -->
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:orientation="vertical"
     android:paddingTop="@dimen/space_sm"
     android:paddingBottom="@dimen/space_sm">
 
+    <ImageView
+        android:id="@+id/requirement_icon"
+        android:layout_width="@dimen/icon_size"
+        android:layout_height="@dimen/icon_size"
+        android:contentDescription="@null"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:tint="?attr/colorPrimary"
+        tools:src="@drawable/ic_timer" />
+
     <TextView
         android:id="@+id/requirement_title"
-        android:layout_width="match_parent"
+        android:layout_width="0dp"
         android:layout_height="wrap_content"
+        android:layout_marginStart="@dimen/space_md"
         android:textAppearance="?attr/textAppearanceTitleSmall"
         android:textColor="?attr/colorOnSurface"
-        tools:text="SMS confirmation" />
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toEndOf="@id/requirement_icon"
+        app:layout_constraintTop_toTopOf="parent"
+        tools:text="Presence confirmation" />
 
     <TextView
         android:id="@+id/requirement_body"
-        android:layout_width="match_parent"
+        android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_marginTop="@dimen/space_xs"
         android:textAppearance="?attr/textAppearanceBodyMedium"
         android:textColor="?attr/colorOnSurfaceVariant"
-        tools:text="A 6-digit code will be sent to your number." />
+        app:layout_constraintEnd_toEndOf="@id/requirement_title"
+        app:layout_constraintStart_toStartOf="@id/requirement_title"
+        app:layout_constraintTop_toBottomOf="@id/requirement_title"
+        tools:text="When called, tap I'm here within 3 minutes or your slot is released." />
 
-</LinearLayout>
+</androidx.constraintlayout.widget.ConstraintLayout>

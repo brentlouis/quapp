@@ -9,6 +9,8 @@
     <string name="login_password_hint">Password</string>
     <string name="login_action">Log in</string>
     <string name="login_register_prompt">No account yet? Register</string>
+    <string name="login_phone_error">Enter an 11-digit number starting with 09</string>
+    <string name="login_password_error">Enter your password</string>
 
     <!-- Register -->
     <string name="register_heading">Create account</string>
@@ -19,6 +21,10 @@
     <string name="register_confirm_hint">Confirm password</string>
     <string name="register_action">Create account</string>
     <string name="register_login_prompt">Already have an account? Log in</string>
+    <string name="register_name_error">Enter your full name</string>
+    <string name="register_phone_error">Enter an 11-digit number starting with 09</string>
+    <string name="register_password_error">Use at least %d characters</string>
+    <string name="register_confirm_error">Passwords don\'t match</string>
 
     <!-- Role select -->
     <string name="role_heading">How will you use Quapp?</string>
@@ -27,16 +33,31 @@
     <string name="role_queuer_description">Browse public queues and hold your place from anywhere.</string>
     <string name="role_owner_title">Manage a queue</string>
     <string name="role_owner_description">Create queues and call people forward as you serve them.</string>
-    <string name="role_option_icon_description">@null</string>
 
     <!-- Browse -->
     <string name="browse_title">Public queues</string>
-    <string name="browse_status_open">OPEN</string>
-    <string name="browse_status_closed">CLOSED</string>
+    <string name="browse_status_open">Open</string>
+    <string name="browse_status_closed">Closed</string>
     <string name="browse_waiting_format">%d waiting</string>
-    <string name="browse_eta_format">~%d min</string>
     <string name="browse_eta_none">—</string>
     <string name="browse_venue_format">%1$s · %2$s</string>
+    <string name="browse_card_venue_format">%1$s · %2$s · %3$s</string>
+    <string name="browse_eta_unit">min wait</string>
+    <string name="browse_status_paused">Paused</string>
+    <string name="browse_profile_description">Profile</string>
+    <string name="browse_search_hint">Search queues or venues</string>
+    <string name="browse_filter_all">All</string>
+    <string name="browse_location_all">All locations</string>
+    <string name="browse_location_dialog_title">Filter by location</string>
+    <string name="browse_empty_title">No queues match</string>
+    <string name="browse_empty_body">Try a different search, or clear the filters to see every queue.</string>
+    <string name="browse_empty_action">Clear filters</string>
+    <string name="browse_ticket_label">Your ticket</string>
+    <string name="browse_ticket_format">#%1$d · %2$s</string>
+    <string name="browse_ticket_waiting">Waiting · #%d in line</string>
+    <string name="browse_ticket_called">You\'re being called. Tap to confirm.</string>
+    <string name="browse_ticket_served">Served · tap to finish</string>
+    <string name="browse_ticket_expired">Slot released · tap to finish</string>
 
     <!-- Queue detail -->
     <string name="detail_waiting_label">In queue</string>
@@ -44,7 +65,7 @@
     <string name="detail_eta_value_format">%d min</string>
     <string name="detail_hours_label">Service hours</string>
     <string name="detail_about_label">About this queue</string>
-    <string name="detail_verification_label">Before you join</string>
+    <string name="detail_verification_label">How this queue works</string>
     <string name="detail_verification_otp">You\'ll confirm a code sent by SMS.</string>
     <string name="detail_verification_grace">Confirm within 3 minutes when called, or you lose your slot.</string>
     <string name="detail_verification_penalty">Repeated no-shows lead to a temporary cooldown.</string>
@@ -52,29 +73,35 @@
     <string name="detail_join_action">Join queue</string>
     <string name="detail_closed_action">Queue closed</string>
     <string name="detail_back_description">Back</string>
+    <string name="detail_paused_action">Queue paused</string>
+    <string name="detail_view_ticket_action">View your ticket</string>
+    <string name="detail_cooldown_action">On cooldown</string>
+    <string name="detail_busy_action">Already in a queue</string>
+    <string name="detail_paused_notice">The owner has paused new joins. Check back soon.</string>
+    <string name="detail_cooldown_notice">You missed your slot too many times. Queues with a no-show cooldown open to you again in %d min.</string>
+    <string name="detail_busy_notice">You\'re already in line for %s. Leave that queue first to join this one.</string>
 
     <!-- Join -->
     <string name="join_title">Join queue</string>
     <string name="join_name_hint">Your name</string>
     <string name="join_phone_hint">Phone number</string>
     <string name="join_requirements_label">This queue requires</string>
-    <string name="join_otp_title">SMS confirmation</string>
+    <string name="requirement_otp_title">SMS confirmation</string>
     <string name="join_otp_body">A 6-digit code will be sent to your number. Confirm it within 5 minutes.</string>
-    <string name="join_grace_title">Presence confirmation</string>
+    <string name="requirement_grace_title">Presence confirmation</string>
     <string name="join_grace_body">When called, tap \"I\'m here\" within 3 minutes or your slot is released.</string>
-    <string name="join_penalty_title">No-show cooldown</string>
+    <string name="requirement_penalty_title">No-show cooldown</string>
     <string name="join_penalty_body">Missing your slot repeatedly blocks you from joining queues for a period.</string>
-    <string name="join_proximity_title">Location check</string>
+    <string name="requirement_proximity_title">Location check</string>
     <string name="join_proximity_body">You must be within 2 km of the venue to join this queue.</string>
     <string name="join_position_format">You\'ll be #%d in line</string>
     <string name="join_action">Confirm and join</string>
     <string name="join_back_description">Back</string>
+    <string name="join_name_error">Enter your name</string>
+    <string name="join_phone_error">Enter an 11-digit number starting with 09</string>
 
     <!-- Active ticket -->
     <string name="ticket_number_label">Your number</string>
-    <string name="ticket_position_label">Ahead of you</string>
-    <string name="ticket_eta_label">Est. wait</string>
-    <string name="ticket_position_format">%d</string>
     <string name="ticket_status_waiting">Waiting</string>
     <string name="ticket_status_called">You\'re being called</string>
     <string name="ticket_status_served">Served</string>
@@ -85,8 +112,16 @@
     <string name="ticket_here_action">I\'m here</string>
     <string name="ticket_leave_action">Leave queue</string>
     <string name="ticket_done_action">Done</string>
-    <string name="ticket_countdown_format">%02d:%02d</string>
+    <string name="ticket_countdown_format">%1$02d:%2$02d</string>
+    <string name="ticket_number_format">#%d</string>
+    <string name="ticket_ahead_label">ahead of you</string>
+    <string name="ticket_next_label">You\'re next</string>
+    <string name="ticket_eta_format">About %d min</string>
+    <string name="ticket_served_headline">You\'re all set</string>
+    <string name="ticket_expired_headline">Your slot was released</string>
     <string name="ticket_back_description">Back</string>
+    <string name="ticket_expired_warning_instruction">You didn\'t confirm in time. One more no-show starts a %d-minute cooldown on queues like this.</string>
+    <string name="ticket_expired_cooldown_instruction">You didn\'t confirm in time. Queues with a no-show cooldown are blocked for the next %d min.</string>
 
     <!-- Owner dashboard -->
     <string name="dashboard_title">Your queues</string>
@@ -97,6 +132,9 @@
     <string name="dashboard_empty_title">No queues yet</string>
     <string name="dashboard_empty_body">Create your first queue and people can start joining it remotely.</string>
     <string name="dashboard_empty_action">Create a queue</string>
+    <string name="dashboard_profile_description">Profile</string>
+    <string name="dashboard_status_paused">Paused</string>
+    <string name="dashboard_status_closed">Closed</string>
 
     <!-- Create queue -->
     <string name="create_title">New queue</string>
@@ -120,6 +158,10 @@
     <string name="create_proximity_summary">Require queuers to be within 2 km of the venue.</string>
     <string name="create_action">Create queue</string>
     <string name="create_back_description">Back</string>
+    <string name="create_edit_title">Edit queue</string>
+    <string name="create_edit_subtitle">Changes show up for queuers right away.</string>
+    <string name="create_save_action">Save changes</string>
+    <string name="create_required_error">Required</string>
 
     <!-- Live console -->
     <string name="console_now_serving_label">Now serving</string>
@@ -130,8 +172,84 @@
     <string name="console_serve_action">Served</string>
     <string name="console_no_show_action">No-show</string>
     <string name="console_ticket_format">#%d</string>
+    <string name="console_ticket_actions_description">Ticket actions</string>
     <string name="console_empty_title">Queue is empty</string>
     <string name="console_empty_body">No one is waiting right now.</string>
     <string name="console_called_format">#%1$d · %2$s</string>
     <string name="console_back_description">Back</string>
+    <string name="console_menu_description">Queue options</string>
+    <string name="console_status_open">Open · accepting joins</string>
+    <string name="console_status_paused">Paused · not accepting new joins</string>
+    <string name="console_status_closed">Closed</string>
+    <string name="console_menu_edit">Edit details</string>
+    <string name="console_menu_pause">Pause new joins</string>
+    <string name="console_menu_resume">Resume joins</string>
+    <string name="console_menu_close">Close queue</string>
+    <string name="console_menu_reopen">Reopen queue</string>
+    <string name="console_menu_insights">Insights</string>
+    <string name="console_close_title">Close this queue?</string>
+    <string name="console_close_confirm">Close queue</string>
+    <string name="console_cancel">Cancel</string>
+    <string name="console_walk_in_action">Add walk-in</string>
+    <string name="console_walk_in_title">Add walk-in</string>
+    <string name="console_walk_in_message">For someone at the counter without a phone. They join at the back of the line.</string>
+    <string name="console_walk_in_hint">Name</string>
+    <string name="console_walk_in_confirm">Add</string>
+    <string name="console_walk_in_error">Enter a name</string>
+    <string name="console_walk_in_added">#%1$d · %2$s added to the line</string>
+    <string name="console_walk_in_label">Walk-in</string>
+    <string name="console_closed_title">Queue is closed</string>
+    <string name="console_closed_body">Reopen it from the menu to take new joins.</string>
+
+    <!-- Insights -->
+    <string name="analytics_title">Insights</string>
+    <string name="analytics_back_description">Back</string>
+    <string name="analytics_today_label">Today</string>
+    <string name="analytics_served_label">Served</string>
+    <string name="analytics_no_shows_label">No-shows</string>
+    <string name="analytics_no_show_rate_label">No-show rate</string>
+    <string name="analytics_waiting_label">Waiting now</string>
+    <string name="analytics_percent_format">%d%%</string>
+    <string name="analytics_forecast_label">Wait forecast</string>
+    <string name="analytics_average_label">Average time per person</string>
+    <string name="analytics_average_format">%.1f min</string>
+    <string name="analytics_average_none">No one served yet. Using a 5-minute default until there\'s data.</string>
+    <string name="analytics_projected_label">Wait for someone joining now</string>
+    <string name="analytics_projected_format">~%d min</string>
+
+    <!-- Profile -->
+    <string name="profile_title">Profile</string>
+    <string name="profile_back_description">Back</string>
+    <string name="profile_name_fallback">Quapp user</string>
+    <string name="profile_role_label">Using Quapp for</string>
+    <string name="profile_role_queuer">Joining queues</string>
+    <string name="profile_role_owner">Managing queues</string>
+    <string name="profile_history_action">Queue history</string>
+    <string name="profile_switch_to_owner">Switch to managing queues</string>
+    <string name="profile_switch_to_queuer">Switch to joining queues</string>
+    <string name="profile_logout_action">Log out</string>
+    <string name="profile_logout_title">Log out?</string>
+    <string name="profile_logout_message">You\'ll need to log in again to join or manage queues.</string>
+    <string name="profile_logout_ticket_message">You\'re still in line for %s. Logging out gives up your place.</string>
+    <string name="profile_cancel">Cancel</string>
+
+    <!-- History -->
+    <string name="history_title">Queue history</string>
+    <string name="history_back_description">Back</string>
+    <string name="history_ticket_format">Ticket #%d</string>
+    <string name="history_status_served">Served</string>
+    <string name="history_status_no_show">No-show</string>
+    <string name="history_empty_title">No past queues yet</string>
+    <string name="history_empty_body">Queues you finish, served or missed, show up here.</string>
+    <string name="history_empty_action">Browse queues</string>
+
+    <plurals name="console_close_message">
+        <item quantity="one">The %d person still waiting will be released. You can reopen the queue later.</item>
+        <item quantity="other">The %d people still waiting will be released. You can reopen the queue later.</item>
+    </plurals>
+
+    <plurals name="analytics_average_basis">
+        <item quantity="one">Rolling average of the last person served.</item>
+        <item quantity="other">Rolling average of the last %d people served.</item>
+    </plurals>
 </resources>

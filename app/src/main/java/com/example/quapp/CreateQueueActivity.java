@@ -8,9 +8,28 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.materialswitch.MaterialSwitch;
-import com.google.android.material.snackbar.Snackbar;
+import com.google.android.material.textfield.MaterialAutoCompleteTextView;
+import com.google.android.material.textfield.TextInputEditText;
+import com.google.android.material.textfield.TextInputLayout;
 
+/**
+ * Creates a queue, or edits one when started with {@link #EXTRA_QUEUE_ID}.
+ * One screen for both, because the form is identical — only the title,
+ * the button label and the starting values change.
+ */
 public class CreateQueueActivity extends AppCompatActivity {
+
+    /** Optional. Present = edit that queue; absent = create a new one. */
+    public static final String EXTRA_QUEUE_ID = "com.example.quapp.EXTRA_EDIT_QUEUE_ID";
+
+    private Queue existingQueue;
+
+    private TextInputEditText nameInput;
+    private TextInputEditText venueInput;
+    private MaterialAutoCompleteTextView municipalityInput;
+    private MaterialAutoCompleteTextView categoryInput;
+    private TextInputEditText hoursInput;
+    private TextInputEditText descriptionInput;
 
     private MaterialSwitch otpSwitch;
     private MaterialSwitch graceSwitch;
@@ -22,6 +41,22 @@ public class CreateQueueActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_create_queue);
         SystemBars.applyPaddingWithKeyboard(findViewById(R.id.create_root));
+
+        String queueId = getIntent().getStringExtra(EXTRA_QUEUE_ID);
+        if (queueId != null) {
+            existingQueue = FakeData.queueById(queueId);
+            if (existingQueue == null) {
+                finish();
+                return;
+            }
+        }
+
+        nameInput = findViewById(R.id.create_name_input);
+        venueInput = findViewById(R.id.create_venue_input);
+        municipalityInput = findViewById(R.id.create_municipality_input);
+        categoryInput = findViewById(R.id.create_category_input);
+        hoursInput = findViewById(R.id.create_hours_input);
+        descriptionInput = findViewById(R.id.create_description_input);
 
         otpSwitch = setUpToggle(R.id.create_toggle_otp,
                 R.string.create_otp_label, R.string.create_otp_summary, false);
@@ -35,6 +70,21 @@ public class CreateQueueActivity extends AppCompatActivity {
         proximitySwitch = setUpToggle(R.id.create_toggle_proximity,
                 R.string.create_proximity_label, R.string.create_proximity_summary, false);
 
+        MaterialButton submitButton = findViewById(R.id.create_submit_button);
+
+        if (existingQueue != null) {
+            TextView title = findViewById(R.id.create_title_text);
+            TextView subtitle = findViewById(R.id.create_subtitle_text);
+            title.setText(R.string.create_edit_title);
+            subtitle.setText(R.string.create_edit_subtitle);
+            submitButton.setText(R.string.create_save_action);
+
+            // After rotation the views restore their own state; prefilling again would undo edits.
+            if (savedInstanceState == null) {
+                prefill(existingQueue);
+            }
+        }
+
         findViewById(R.id.create_back).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -42,11 +92,10 @@ public class CreateQueueActivity extends AppCompatActivity {
             }
         });
 
-        MaterialButton submitButton = findViewById(R.id.create_submit_button);
         submitButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                submitQueue(view);
+                submitQueue();
             }
         });
     }
@@ -73,9 +122,68 @@ public class CreateQueueActivity extends AppCompatActivity {
         return toggle;
     }
 
-    private void submitQueue(View anchor) {
-        // TODO: read fields, validate, persist. Navigation-only for now.
-        Snackbar.make(anchor, R.string.create_action, Snackbar.LENGTH_SHORT).show();
+    private void prefill(Queue queue) {
+        nameInput.setText(queue.getName());
+        venueInput.setText(queue.getVenue());
+        // false = don't filter the dropdown down to just this value.
+        municipalityInput.setText(queue.getMunicipality(), false);
+        categoryInput.setText(queue.getCategory(), false);
+        hoursInput.setText(queue.getServiceHours());
+        descriptionInput.setText(queue.getDescription());
+
+        otpSwitch.setChecked(queue.isSmsOtpEnabled());
+        graceSwitch.setChecked(queue.isGracePeriodEnabled());
+        penaltySwitch.setChecked(queue.isNoShowPenaltyEnabled());
+        proximitySwitch.setChecked(queue.isProximityCheckEnabled());
+    }
+
+    private void submitQueue() {
+        String name = Forms.text(nameInput);
+        String venue = Forms.text(venueInput);
+        String municipality = Forms.text(municipalityInput);
+        String category = Forms.text(categoryInput);
+        String hours = Forms.text(hoursInput);
+        String description = Forms.text(descriptionInput);
+
+        // Checked in on-screen order, and all of them, so every problem shows at once.
+        boolean valid = required(R.id.create_name_layout, name);
+        valid &= required(R.id.create_venue_layout, venue);
+        valid &= required(R.id.create_municipality_layout, municipality);
+        valid &= required(R.id.create_category_layout, category);
+        valid &= required(R.id.create_hours_layout, hours);
+
+        if (!valid) {
+            return;
+        }
+
+        // Editing keeps id, location and open/paused/closed status; creating starts fresh.
+        Queue.Builder builder = existingQueue != null
+                ? existingQueue.toBuilder()
+                : new Queue.Builder()
+                        .setId(FakeData.newQueueId())
+                        .setLocation(FakeData.defaultLatitude(), FakeData.defaultLongitude())
+                        .setStatus(Queue.Status.OPEN);
+
+        Queue queue = builder
+                .setName(name)
+                .setVenue(venue)
+                .setMunicipality(municipality)
+                .setCategory(category)
+                .setServiceHours(hours)
+                .setDescription(description)
+                .setSmsOtpEnabled(otpSwitch.isChecked())
+                .setGracePeriodEnabled(graceSwitch.isChecked())
+                .setNoShowPenaltyEnabled(penaltySwitch.isChecked())
+                .setProximityCheckEnabled(proximitySwitch.isChecked())
+                .build();
+
+        FakeData.saveQueue(queue);
         finish();
+    }
+
+    private boolean required(int layoutId, String value) {
+        TextInputLayout layout = findViewById(layoutId);
+        return Forms.check(layout, !Validation.isBlank(value),
+                getString(R.string.create_required_error));
     }
 }

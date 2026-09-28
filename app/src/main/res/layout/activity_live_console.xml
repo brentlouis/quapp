@@ -22,6 +22,20 @@
         app:layout_constraintTop_toTopOf="parent"
         app:tint="?attr/colorOnSurface" />
 
+    <ImageButton
+        android:id="@+id/console_menu"
+        android:layout_width="@dimen/touch_target_min"
+        android:layout_height="@dimen/touch_target_min"
+        android:layout_marginTop="@dimen/space_sm"
+        android:layout_marginEnd="@dimen/space_sm"
+        android:background="?attr/selectableItemBackgroundBorderless"
+        android:contentDescription="@string/console_menu_description"
+        android:padding="@dimen/space_sm"
+        android:src="@drawable/ic_more_vert"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:tint="?attr/colorOnSurface" />
+
     <TextView
         android:id="@+id/console_queue_name"
         android:layout_width="0dp"
@@ -37,6 +51,20 @@
         app:layout_constraintTop_toBottomOf="@id/console_back"
         tools:text="Barangay Relief Distribution" />
 
+    <TextView
+        android:id="@+id/console_status"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="@dimen/space_md"
+        android:layout_marginTop="@dimen/space_xs"
+        android:layout_marginEnd="@dimen/space_md"
+        android:textAppearance="?attr/textAppearanceBodyMedium"
+        android:textColor="?attr/colorOnSurfaceVariant"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/console_queue_name"
+        tools:text="Open · accepting joins" />
+
     <com.google.android.material.card.MaterialCardView
         android:id="@+id/console_now_serving"
         style="@style/Widget.Material3.CardView.Filled"
@@ -48,7 +76,7 @@
         app:cardCornerRadius="@dimen/corner_radius"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/console_queue_name">
+        app:layout_constraintTop_toBottomOf="@id/console_status">
 
         <LinearLayout
             android:layout_width="match_parent"
@@ -93,14 +121,26 @@
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_marginStart="@dimen/space_md"
-        android:layout_marginTop="@dimen/space_lg"
-        android:layout_marginEnd="@dimen/space_md"
+        android:layout_marginEnd="@dimen/space_sm"
         android:textAppearance="?attr/textAppearanceLabelSmall"
         android:textColor="?attr/colorOnSurfaceVariant"
-        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintBottom_toBottomOf="@id/console_walk_in"
+        app:layout_constraintEnd_toStartOf="@id/console_walk_in"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/console_call_next"
+        app:layout_constraintTop_toTopOf="@id/console_walk_in"
         tools:text="8 in queue" />
+
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/console_walk_in"
+        style="@style/Widget.Material3.Button.TextButton.Icon"
+        android:layout_width="wrap_content"
+        android:layout_height="@dimen/touch_target_min"
+        android:layout_marginTop="@dimen/space_md"
+        android:layout_marginEnd="@dimen/space_sm"
+        android:text="@string/console_walk_in_action"
+        app:icon="@drawable/ic_add"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/console_call_next" />
 
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/console_list"
@@ -114,7 +154,7 @@
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/console_waiting_header"
+        app:layout_constraintTop_toBottomOf="@id/console_walk_in"
         tools:itemCount="5"
         tools:listitem="@layout/item_waiting_ticket" />
 
@@ -130,9 +170,10 @@
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/console_waiting_header">
+        app:layout_constraintTop_toBottomOf="@id/console_walk_in">
 
         <TextView
+            android:id="@+id/console_empty_title"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="@string/console_empty_title"
@@ -140,6 +181,7 @@
             android:textColor="?attr/colorOnSurface" />
 
         <TextView
+            android:id="@+id/console_empty_body"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="@dimen/space_sm"

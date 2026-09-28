@@ -4,6 +4,7 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.ImageButton;
+import android.widget.ImageView;
 import android.widget.TextView;
 
 import androidx.appcompat.app.AppCompatActivity;
@@ -14,21 +15,20 @@ public class QueueDetailActivity extends AppCompatActivity {
 
     public static final String EXTRA_QUEUE_ID = "com.example.quapp.EXTRA_QUEUE_ID";
 
+    private String queueId;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_queue_detail);
         SystemBars.applyPadding(findViewById(R.id.detail_root));
 
-        String queueId = getIntent().getStringExtra(EXTRA_QUEUE_ID);
-        Queue queue = FakeData.queueById(queueId);
+        queueId = getIntent().getStringExtra(EXTRA_QUEUE_ID);
 
-        if (queue == null) {
+        if (FakeData.queueById(queueId) == null) {
             finish();
             return;
         }
-
-        bindQueue(queue);
 
         ImageButton backButton = findViewById(R.id.detail_back);
         backButton.setOnClickListener(new View.OnClickListener() {
@@ -37,32 +37,98 @@ public class QueueDetailActivity extends AppCompatActivity {
                 finish();
             }
         });
+    }
 
+    /** Re-bound on every return: the ticket or cooldown may have changed while away. */
+    @Override
+    protected void onResume() {
+        super.onResume();
+
+        Queue queue = FakeData.queueById(queueId);
+        if (queue == null) {
+            finish();
+            return;
+        }
+
+        bindQueue(queue);
+        bindJoinButton(queue);
+    }
+
+    /**
+     * Checked in priority order — the first one that applies decides the button:
+     * already holding this queue's ticket, queue not open, holding another
+     * queue's ticket, on cooldown, or free to join.
+     */
+    private void bindJoinButton(final Queue queue) {
         MaterialButton joinButton = findViewById(R.id.detail_join_button);
+        TextView notice = findViewById(R.id.detail_notice);
+        Ticket ticket = ActiveTicketStore.getTicket();
 
-        if (queue.isOpen()) {
+        notice.setVisibility(View.GONE);
+        joinButton.setEnabled(false);
+        joinButton.setOnClickListener(null);
+
+        if (ticket != null && ticket.getQueueId().equals(queue.getId())) {
             joinButton.setEnabled(true);
-            joinButton.setText(R.string.detail_join_action);
+            joinButton.setText(R.string.detail_view_ticket_action);
             joinButton.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View view) {
-                    Intent intent = new Intent(QueueDetailActivity.this, JoinQueueActivity.class);
-                    intent.putExtra(JoinQueueActivity.EXTRA_QUEUE_ID, queue.getId());
-                    startActivity(intent);
+                    startActivity(new Intent(QueueDetailActivity.this, ActiveTicketActivity.class));
                 }
             });
-        } else {
-            joinButton.setEnabled(false);
-            joinButton.setText(R.string.detail_closed_action);
+            return;
         }
+
+        if (queue.getStatus() == Queue.Status.CLOSED) {
+            joinButton.setText(R.string.detail_closed_action);
+            return;
+        }
+
+        if (queue.getStatus() == Queue.Status.PAUSED) {
+            joinButton.setText(R.string.detail_paused_action);
+            showNotice(notice, getString(R.string.detail_paused_notice));
+            return;
+        }
+
+        if (ActiveTicketStore.hasLiveTicket()) {
+            joinButton.setText(R.string.detail_busy_action);
+            showNotice(notice, getString(R.string.detail_busy_notice, ticket.getQueueName()));
+            return;
+        }
+
+        if (queue.isNoShowPenaltyEnabled() && Cooldown.isActive()) {
+            joinButton.setText(R.string.detail_cooldown_action);
+            showNotice(notice, getString(R.string.detail_cooldown_notice,
+                    Cooldown.remainingMinutes()));
+            return;
+        }
+
+        joinButton.setEnabled(true);
+        joinButton.setText(R.string.detail_join_action);
+        joinButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Intent intent = new Intent(QueueDetailActivity.this, JoinQueueActivity.class);
+                intent.putExtra(JoinQueueActivity.EXTRA_QUEUE_ID, queue.getId());
+                startActivity(intent);
+            }
+        });
+    }
+
+    private void showNotice(TextView notice, String text) {
+        notice.setText(text);
+        notice.setVisibility(View.VISIBLE);
     }
 
     private void bindQueue(Queue queue) {
         TextView nameText = findViewById(R.id.detail_name);
         TextView venueText = findViewById(R.id.detail_venue);
         TextView categoryText = findViewById(R.id.detail_category);
-        TextView waitingValue = findViewById(R.id.detail_waiting_value);
-        TextView etaValue = findViewById(R.id.detail_eta_value);
+        View waitingStat = findViewById(R.id.detail_waiting);
+        View etaStat = findViewById(R.id.detail_eta);
+        TextView waitingValue = waitingStat.findViewById(R.id.stat_value);
+        TextView etaValue = etaStat.findViewById(R.id.stat_value);
         TextView hoursValue = findViewById(R.id.detail_hours_value);
         TextView descriptionText = findViewById(R.id.detail_description);
 
@@ -70,15 +136,17 @@ public class QueueDetailActivity extends AppCompatActivity {
         venueText.setText(getString(R.string.browse_venue_format,
                 queue.getVenue(), queue.getMunicipality()));
         categoryText.setText(queue.getCategory());
+        ((TextView) waitingStat.findViewById(R.id.stat_label)).setText(R.string.detail_waiting_label);
+        ((TextView) etaStat.findViewById(R.id.stat_label)).setText(R.string.detail_eta_label);
         waitingValue.setText(String.valueOf(queue.getPeopleWaiting()));
         hoursValue.setText(queue.getServiceHours());
         descriptionText.setText(queue.getDescription());
 
-        if (queue.isOpen()) {
+        if (queue.getStatus() == Queue.Status.CLOSED) {
+            etaValue.setText(R.string.browse_eta_none);
+        } else {
             etaValue.setText(getString(R.string.detail_eta_value_format,
                     queue.getEstimatedWaitMinutes()));
-        } else {
-            etaValue.setText(R.string.browse_eta_none);
         }
 
         bindVerification(queue);
@@ -94,13 +162,29 @@ public class QueueDetailActivity extends AppCompatActivity {
 
         section.setVisibility(View.VISIBLE);
 
-        showIf(R.id.detail_verification_otp, queue.isSmsOtpEnabled());
-        showIf(R.id.detail_verification_grace, queue.isGracePeriodEnabled());
-        showIf(R.id.detail_verification_penalty, queue.isNoShowPenaltyEnabled());
-        showIf(R.id.detail_verification_proximity, queue.isProximityCheckEnabled());
+        bindRule(R.id.detail_rule_otp, queue.isSmsOtpEnabled(), R.drawable.ic_sms,
+                R.string.requirement_otp_title, R.string.detail_verification_otp);
+        bindRule(R.id.detail_rule_grace, queue.isGracePeriodEnabled(), R.drawable.ic_timer,
+                R.string.requirement_grace_title, R.string.detail_verification_grace);
+        bindRule(R.id.detail_rule_penalty, queue.isNoShowPenaltyEnabled(), R.drawable.ic_block,
+                R.string.requirement_penalty_title, R.string.detail_verification_penalty);
+        bindRule(R.id.detail_rule_proximity, queue.isProximityCheckEnabled(), R.drawable.ic_place,
+                R.string.requirement_proximity_title, R.string.detail_verification_proximity);
     }
 
-    private void showIf(int viewId, boolean visible) {
-        findViewById(viewId).setVisibility(visible ? View.VISIBLE : View.GONE);
+    private void bindRule(int includeId, boolean enabled, int iconRes, int titleRes, int bodyRes) {
+        View row = findViewById(includeId);
+        row.setVisibility(enabled ? View.VISIBLE : View.GONE);
+        if (!enabled) {
+            return;
+        }
+
+        ImageView icon = row.findViewById(R.id.requirement_icon);
+        TextView title = row.findViewById(R.id.requirement_title);
+        TextView body = row.findViewById(R.id.requirement_body);
+
+        icon.setImageResource(iconRes);
+        title.setText(titleRes);
+        body.setText(bodyRes);
     }
 }
