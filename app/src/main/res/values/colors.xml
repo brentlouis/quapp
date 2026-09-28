@@ -1,38 +1,52 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!-- Civic Paper tokens. DESIGN.md section 2 says where each one is used.
+     Layouts use ?attr/ roles; these are referenced directly only by the theme,
+     the status colours, crema tear lines and signal (inside the spotlight). -->
 <resources>
-    <!-- Palette -->
-    <color name="teal_40">#0E5A52</color>
-    <color name="teal_90">#B8E5DD</color>
-    <color name="teal_10">#00201C</color>
-    <color name="slate_40">#4A635F</color>
-    <color name="slate_90">#CCE8E2</color>
-    <color name="slate_10">#06201C</color>
+    <!-- Paper -->
+    <color name="paper">#F2EDE3</color>
+    <color name="paper_raised">#FBF8F2</color>
+    <color name="paper_sunk">#E9E2D4</color>
+    <color name="line">#D8CFBE</color>
+    <color name="outline">#8C8474</color>
 
-    <color name="surface_light">#FBFDFB</color>
-    <color name="surface_variant_light">#DBE5E1</color>
-    <color name="on_surface_light">#191C1B</color>
-    <color name="on_surface_variant_light">#3F4947</color>
-    <color name="outline_light">#6F7976</color>
-    <color name="error_light">#BA1A1A</color>
-    <color name="white">#FFFFFF</color>
+    <!-- Ink -->
+    <color name="ink">#17150F</color>
+    <color name="ink_muted">#4F4A40</color>
+    <color name="ink_faint">#6E6859</color>
 
-    <!-- Queue status — app-specific semantics, not theme roles -->
-    <color name="status_waiting">#1565C0</color>
-    <color name="status_called">#BF360C</color>
-    <color name="status_served">#2E7D32</color>
-    <color name="status_expired">#C62828</color>
+    <!-- The spotlight: the one espresso ticket per screen -->
+    <color name="spotlight">#2B211C</color>
+    <color name="on_spotlight">#F6EFE6</color>
+    <color name="on_spotlight_muted">#D2C4B4</color>
+    <color name="spotlight_line">#4A3A30</color>
 
-    <!-- Dark theme -->
-    <color name="teal_80">#7DD3C5</color>
-    <color name="teal_20">#003730</color>
-    <color name="teal_30">#005046</color>
-    <color name="slate_80">#B1CCC6</color>
-    <color name="slate_20">#1C3531</color>
-    <color name="slate_30">#334B47</color>
-    <color name="surface_dark">#0E1513</color>
-    <color name="surface_variant_dark">#3F4947</color>
-    <color name="on_surface_dark">#DEE4E1</color>
-    <color name="on_surface_variant_dark">#BFC9C5</color>
-    <color name="outline_dark">#899390</color>
-    <color name="error_dark">#FFB4AB</color>
+    <!-- Coffee accents -->
+    <color name="crema">#C8A27A</color>
+    <color name="roast">#6B4A2F</color>
+
+    <!-- Signal (marigold): only on the spotlight, only for called / now serving -->
+    <color name="signal">#F2C14E</color>
+    <color name="on_signal">#1C140E</color>
+
+    <!-- Status on paper -->
+    <color name="ok">#2F6B47</color>
+    <color name="ok_soft">#DCEAD9</color>
+    <color name="warn">#80590C</color>
+    <color name="warn_soft">#F1E5C8</color>
+    <color name="err">#B3261E</color>
+    <color name="err_soft">#F6DCD8</color>
+    <color name="on_err">#FFFFFF</color>
+
+    <!-- Status on the spotlight (lighter so they read on espresso) -->
+    <color name="ok_on_spotlight">#9FD9B0</color>
+    <color name="warn_on_spotlight">#E9C77E</color>
+    <color name="err_on_spotlight">#F2A69C</color>
+
+    <!-- Ticket status, kept as names so existing screens compile until they are rebuilt.
+         Waiting is neutral; Called is the spotlight. -->
+    <color name="status_waiting">@color/ink_muted</color>
+    <color name="status_called">@color/spotlight</color>
+    <color name="status_served">@color/ok</color>
+    <color name="status_expired">@color/err</color>
 </resources>

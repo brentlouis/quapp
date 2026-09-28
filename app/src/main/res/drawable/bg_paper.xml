@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- The screen ground: paper, with the printed grain tiled on top.
+     Set as android:windowBackground, so every Activity gets it. Cards and fields stay flat. -->
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:drawable="@color/paper" />
+    <item>
+        <bitmap
+            android:src="@drawable/paper_grain"
+            android:tileMode="repeat" />
+    </item>
+</layer-list>

@@ -122,11 +122,11 @@ Designed on the Claude Design canvas; none of it is built. Decisions are in DECI
 - [ ] Settle the data models and FastAPI schema before any coding (see DECISIONS.md "Data models are settled before coding")
 - [x] Organizer verification settled (phone check by hand, unverified may post with limits, suspend and revoke)
 ### Build: foundations first (DESIGN.md sections 2–4, 7, 8, 10)
-- [ ] Colours: Civic Paper tokens in `colors.xml`; M3 roles mapped in `Theme.Quapp` (light only, parent `Theme.Material3.Light.NoActionBar`); delete `values-night/themes.xml`
-- [ ] Fonts: DM Serif Display, IBM Plex Sans (400–700), IBM Plex Mono (500/600) in `res/font`; remove `barlow_semibold.ttf`
-- [ ] Type: `TextAppearance.Quapp.*` styles, M3 roles mapped, custom `textAppearanceTicketNumber` / `Stat` / `StatHero` attrs
-- [ ] Dimens: add `space_ms` (12dp), radii (`radius_sm/md/sheet`), punch sizes
-- [ ] Paper grain: `paper_grain.png` tile + `bg_paper` layer-list as `windowBackground`
+- [x] Colours: Civic Paper tokens in `colors.xml`; M3 roles mapped in `Theme.Quapp` (light only, parent `Theme.Material3.Light.NoActionBar`); delete `values-night/themes.xml`
+- [x] Fonts: DM Serif Display, IBM Plex Sans (400–700), IBM Plex Mono (500/600) in `res/font`; remove `barlow_semibold.ttf`
+- [x] Type: `TextAppearance.Quapp.*` styles, M3 roles mapped, custom `textAppearanceTicketNumber` / `Stat` / `StatHero` attrs
+- [x] Dimens: add `space_ms` (12dp), radii (`radius_sm/md/sheet`), punch sizes
+- [x] Paper grain: `paper_grain.png` tile + `bg_paper` layer-list as `windowBackground`
 - [ ] `ThemeOverlay.Quapp.Spotlight` and `Theme.Quapp.Called`
 - [ ] Punch `EdgeTreatment` (spotlight, nav tab, badge, selected chip) and the dashed tear-line drawable
 - [ ] Logo: ticket mark vector, splash on paper, adaptive launcher icon, notification small icon

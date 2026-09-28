@@ -1,0 +1,137 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Civic Paper type (DESIGN.md section 3). Layouts never set textSize: they point at these
+     through ?attr/textAppearance… roles mapped in themes.xml.
+
+     Each style names the exact font file for its weight. Picking 500/600 out of a font family
+     only works on API 28+, and min SDK is 24.
+     fontFamily (app) is read by AppCompat below API 26; android:fontFamily on 26+. -->
+<resources>
+
+    <!-- ===== DM Serif Display: headlines and numbers that name a ticket. Never below 20sp, never bold. ===== -->
+
+    <style name="TextAppearance.Quapp.Display" parent="TextAppearance.Material3.HeadlineMedium">
+        <item name="fontFamily">@font/dm_serif_display</item>
+        <item name="android:fontFamily">@font/dm_serif_display</item>
+        <item name="android:textStyle">normal</item>
+        <item name="android:textSize">32sp</item>
+        <item name="lineHeight">35sp</item>
+        <item name="android:letterSpacing">-0.005</item>
+    </style>
+
+    <style name="TextAppearance.Quapp.Title" parent="TextAppearance.Material3.TitleLarge">
+        <item name="fontFamily">@font/dm_serif_display</item>
+        <item name="android:fontFamily">@font/dm_serif_display</item>
+        <item name="android:textStyle">normal</item>
+        <item name="android:textSize">22sp</item>
+        <item name="lineHeight">26sp</item>
+        <item name="android:letterSpacing">0</item>
+    </style>
+
+    <style name="TextAppearance.Quapp.TicketNumber" parent="TextAppearance.Material3.DisplayLarge">
+        <item name="fontFamily">@font/dm_serif_display</item>
+        <item name="android:fontFamily">@font/dm_serif_display</item>
+        <item name="android:textStyle">normal</item>
+        <item name="android:textSize">56sp</item>
+        <item name="lineHeight">53sp</item>
+        <item name="android:letterSpacing">-0.01</item>
+    </style>
+
+    <style name="TextAppearance.Quapp.TicketNumber.Called">
+        <item name="android:textSize">132sp</item>
+        <item name="lineHeight">119sp</item>
+    </style>
+
+    <!-- ===== IBM Plex Sans: everything read ===== -->
+
+    <style name="TextAppearance.Quapp.HeadingSmall" parent="TextAppearance.Material3.TitleMedium">
+        <item name="fontFamily">@font/ibm_plex_sans_semibold</item>
+        <item name="android:fontFamily">@font/ibm_plex_sans_semibold</item>
+        <item name="android:textStyle">normal</item>
+        <item name="android:textSize">17sp</item>
+        <item name="lineHeight">21sp</item>
+        <item name="android:letterSpacing">0</item>
+    </style>
+
+    <!-- List primaries and card titles on paper -->
+    <style name="TextAppearance.Quapp.ListPrimary" parent="TextAppearance.Material3.TitleSmall">
+        <item name="fontFamily">@font/ibm_plex_sans_semibold</item>
+        <item name="android:fontFamily">@font/ibm_plex_sans_semibold</item>
+        <item name="android:textStyle">normal</item>
+        <item name="android:textSize">15sp</item>
+        <item name="lineHeight">20sp</item>
+        <item name="android:letterSpacing">0</item>
+    </style>
+
+    <style name="TextAppearance.Quapp.Body" parent="TextAppearance.Material3.BodyLarge">
+        <item name="fontFamily">@font/ibm_plex_sans_regular</item>
+        <item name="android:fontFamily">@font/ibm_plex_sans_regular</item>
+        <item name="android:textStyle">normal</item>
+        <item name="android:textSize">15sp</item>
+        <item name="lineHeight">22sp</item>
+        <item name="android:letterSpacing">0</item>
+    </style>
+
+    <style name="TextAppearance.Quapp.BodyStrong" parent="TextAppearance.Quapp.Body">
+        <item name="fontFamily">@font/ibm_plex_sans_semibold</item>
+        <item name="android:fontFamily">@font/ibm_plex_sans_semibold</item>
+        <item name="android:textSize">16sp</item>
+        <item name="lineHeight">21sp</item>
+    </style>
+
+    <style name="TextAppearance.Quapp.Caption" parent="TextAppearance.Material3.BodySmall">
+        <item name="fontFamily">@font/ibm_plex_sans_regular</item>
+        <item name="android:fontFamily">@font/ibm_plex_sans_regular</item>
+        <item name="android:textStyle">normal</item>
+        <item name="android:textSize">13sp</item>
+        <item name="lineHeight">18sp</item>
+        <item name="android:letterSpacing">0</item>
+        <item name="android:textColor">?attr/colorOnSurfaceVariant</item>
+    </style>
+
+    <style name="TextAppearance.Quapp.Button" parent="TextAppearance.Material3.LabelLarge">
+        <item name="fontFamily">@font/ibm_plex_sans_semibold</item>
+        <item name="android:fontFamily">@font/ibm_plex_sans_semibold</item>
+        <item name="android:textStyle">normal</item>
+        <item name="android:textSize">15sp</item>
+        <item name="lineHeight">18sp</item>
+        <item name="android:letterSpacing">0</item>
+        <item name="android:textAllCaps">false</item>
+    </style>
+
+    <!-- Bottom-nav labels and chip counts -->
+    <style name="TextAppearance.Quapp.LabelMedium" parent="TextAppearance.Material3.LabelMedium">
+        <item name="fontFamily">@font/ibm_plex_sans_medium</item>
+        <item name="android:fontFamily">@font/ibm_plex_sans_medium</item>
+        <item name="android:textStyle">normal</item>
+        <item name="android:textSize">12.5sp</item>
+        <item name="lineHeight">16sp</item>
+        <item name="android:letterSpacing">0</item>
+    </style>
+
+    <!-- ===== IBM Plex Mono: data. Anything that counts or ticks. ===== -->
+
+    <style name="TextAppearance.Quapp.Stat" parent="TextAppearance.Material3.TitleLarge">
+        <item name="fontFamily">@font/ibm_plex_mono_semibold</item>
+        <item name="android:fontFamily">@font/ibm_plex_mono_semibold</item>
+        <item name="android:textStyle">normal</item>
+        <item name="android:textSize">22sp</item>
+        <item name="lineHeight">24sp</item>
+        <item name="android:letterSpacing">-0.02</item>
+    </style>
+
+    <style name="TextAppearance.Quapp.StatHero" parent="TextAppearance.Quapp.Stat">
+        <item name="android:textSize">26sp</item>
+        <item name="lineHeight">29sp</item>
+    </style>
+
+    <!-- Status pills, section labels ("IN TAGBILARAN CITY · 4"), stat labels -->
+    <style name="TextAppearance.Quapp.Label" parent="TextAppearance.Material3.LabelSmall">
+        <item name="fontFamily">@font/ibm_plex_mono_medium</item>
+        <item name="android:fontFamily">@font/ibm_plex_mono_medium</item>
+        <item name="android:textStyle">normal</item>
+        <item name="android:textSize">12sp</item>
+        <item name="lineHeight">16sp</item>
+        <item name="android:letterSpacing">0.08</item>
+        <item name="android:textAllCaps">true</item>
+    </style>
+</resources>
