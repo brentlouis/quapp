@@ -6,4 +6,13 @@
     <attr name="textAppearanceTicketNumberCalled" format="reference" />
     <attr name="textAppearanceStat" format="reference" />
     <attr name="textAppearanceStatHero" format="reference" />
+
+    <!-- TearLineView: the dashed crema line -->
+    <declare-styleable name="TearLineView">
+        <attr name="tearOrientation" format="enum">
+            <enum name="horizontal" value="0" />
+            <enum name="vertical" value="1" />
+        </attr>
+        <attr name="tearColor" format="color" />
+    </declare-styleable>
 </resources>

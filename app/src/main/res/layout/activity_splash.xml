@@ -1,44 +1,59 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!-- Splash (canvas 00): the ticket mark, the wordmark and a thin loading bar on paper.
+     No background: the theme's paper-and-grain window background shows through. -->
 <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/splash_root"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
-    android:id="@+id/splash_root">
+    android:paddingStart="@dimen/space_lg"
+    android:paddingEnd="@dimen/space_lg">
 
-    <TextView
-        android:id="@+id/splash_wordmark"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="@string/app_name"
-        android:textAppearance="?attr/textAppearanceDisplaySmall"
-        android:textColor="?attr/colorOnSurface"
-        app:layout_constraintBottom_toTopOf="@id/splash_tagline"
-        app:layout_constraintEnd_toEndOf="parent"
+    <ImageView
+        android:id="@+id/splash_mark"
+        android:layout_width="112dp"
+        android:layout_height="140dp"
+        android:importantForAccessibility="no"
+        android:src="@drawable/ic_quapp_mark"
+        app:layout_constraintBottom_toTopOf="@id/splash_wordmark"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintVertical_chainStyle="packed" />
 
     <TextView
+        android:id="@+id/splash_wordmark"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/space_lg"
+        android:text="@string/app_name"
+        android:textAppearance="?attr/textAppearanceDisplayLarge"
+        app:layout_constraintBottom_toTopOf="@id/splash_tagline"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/splash_mark" />
+
+    <TextView
         android:id="@+id/splash_tagline"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginTop="@dimen/space_sm"
+        android:layout_marginTop="@dimen/space_xs"
         android:text="@string/splash_tagline"
-        android:textAppearance="?attr/textAppearanceBodyMedium"
-        android:textColor="?attr/colorOnSurface"
+        android:textAppearance="?attr/textAppearanceBodyLarge"
+        android:textColor="?attr/colorOnSurfaceVariant"
         app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/splash_wordmark" />
 
-    <com.google.android.material.progressindicator.CircularProgressIndicator
+    <com.google.android.material.progressindicator.LinearProgressIndicator
         android:id="@+id/splash_progress"
-        android:layout_width="wrap_content"
+        android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_marginBottom="@dimen/space_xl"
+        android:contentDescription="@string/splash_loading"
         android:indeterminate="true"
         app:indicatorColor="?attr/colorPrimary"
-        app:trackThickness="3dp"
+        app:trackColor="?attr/colorSurfaceVariant"
+        app:trackThickness="4dp"
+        app:trackCornerRadius="2dp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent" />
