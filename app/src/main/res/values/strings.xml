@@ -66,7 +66,7 @@
 
     <!-- Role select -->
     <string name="role_heading">How will you use Quapp?</string>
-    <string name="role_subheading">You can switch anytime.</string>
+    <string name="role_subheading">You can switch anytime in Profile.</string>
     <string name="role_queuer_title">Join a queue</string>
     <string name="role_queuer_description">Browse public queues and hold your place from anywhere.</string>
     <string name="role_owner_title">Manage a queue</string>

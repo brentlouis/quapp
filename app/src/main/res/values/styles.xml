@@ -130,4 +130,13 @@
         <item name="android:paddingTop">@dimen/space_ms</item>
         <item name="android:paddingBottom">@dimen/space_ms</item>
     </style>
+    <!-- ===== Card (DESIGN.md section 9): paper_raised, 1dp line, radius_md, flat ===== -->
+
+    <style name="Widget.Quapp.Card" parent="Widget.Material3.CardView.Outlined">
+        <item name="cardBackgroundColor">?attr/colorSurfaceContainer</item>
+        <item name="strokeColor">?attr/colorOutlineVariant</item>
+        <item name="strokeWidth">@dimen/hairline</item>
+        <item name="cardCornerRadius">@dimen/radius_md</item>
+        <item name="cardElevation">0dp</item>
+    </style>
 </resources>

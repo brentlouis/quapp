@@ -25,28 +25,7 @@
             android:paddingEnd="@dimen/space_md"
             android:paddingBottom="@dimen/space_lg">
 
-            <!-- Brand: the ticket mark and the wordmark, read as one "Quapp" -->
-            <LinearLayout
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:contentDescription="@string/app_name"
-                android:gravity="center_vertical"
-                android:orientation="horizontal">
-
-                <ImageView
-                    android:layout_width="@dimen/login_mark_width"
-                    android:layout_height="@dimen/login_mark_height"
-                    android:importantForAccessibility="no"
-                    android:src="@drawable/ic_quapp_mark" />
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginStart="@dimen/space_sm"
-                    android:importantForAccessibility="no"
-                    android:text="@string/app_name"
-                    android:textAppearance="?attr/textAppearanceHeadlineSmall" />
-            </LinearLayout>
+            <include layout="@layout/view_brand" />
 
             <TextView
                 android:id="@+id/login_heading"
