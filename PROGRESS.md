@@ -113,13 +113,14 @@ Designed on the Claude Design canvas; none of it is built. Decisions are in DECI
 **Direction chosen (Sep 28): Civic Paper** (canvas "Quapp Civic Paper", written up in `DESIGN.md` in the repo root). The Now Serving and monochrome canvases are reference only.
 ### Decide first
 - [x] Bottom navigation: hybrid. Fragments only for tab screens, in `QueuerHomeActivity` and `OwnerHomeActivity`; everything else stays an Activity
-- [ ] Proximity check back in scope? (location permission, map picker, field testing)
-- [ ] Model changes: `Ticket.Status.QUEUE_CLOSED`, `Queue.Status.UPCOMING`, schedule fields replacing `serviceHours`, 8 categories in `arrays.xml`
-- [ ] Multiple tickets with non-overlapping hours (replaces the one-queue-at-a-time rule)
+- [x] Proximity check back in scope: yes, per-queue radius, checked once at Join
+- [x] Model changes: `Ticket.Status.QUEUE_CLOSED`, `Queue.Status.UPCOMING`, schedule fields replacing `serviceHours`, 8 categories (all in `MODELS.md`)
+- [x] Multiple tickets with non-overlapping hours (replaces the one-queue-at-a-time rule)
 - [x] Visual direction: Civic Paper, espresso + marigold (Sep 28; replaced Now Serving the same day)
 - [x] Called screen stays the one loud moment (whole screen espresso, number and "I'm here" in marigold)
 - [x] One logo (ticket mark), light theme only, 12dp spacing step, Upcoming neutral (see DECISIONS.md)
-- [ ] Settle the data models and FastAPI schema before any coding (see DECISIONS.md "Data models are settled before coding")
+- [x] Settle the data models and FastAPI schema before any coding: `MODELS.md` (Sep 28)
+- [x] "I need more time": queuer picks minutes, the estimator turns them into places
 - [x] Organizer verification settled (phone check by hand, unverified may post with limits, suspend and revoke)
 ### Build: foundations first (DESIGN.md sections 2–4, 7, 8, 10)
 - [x] Colours: Civic Paper tokens in `colors.xml`; M3 roles mapped in `Theme.Quapp` (light only, parent `Theme.Material3.Light.NoActionBar`); delete `values-night/themes.xml`

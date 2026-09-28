@@ -1,6 +1,6 @@
 # Quapp — instructions for Claude Code
 
-Quapp is a public community queue management app for an Android course at BISU. Queue owners (LGU staff, clinics, organizers) create public queues; queuers browse and join remotely. Wait-time forecasting (rolling average) and one anti-prank verification strategy (grace period with "I'm here" confirmation) are in scope; everything else in the proposal is future work.
+Quapp is a public community queue management app for an Android course at BISU. Queue owners (LGU staff, clinics, organizers) create public queues; queuers browse and join remotely. Wait-time forecasting (rolling average, also used to turn "I need more time" into places moved back), three anti-prank checks (grace period with "I'm here", no-show cooldown, proximity at join), several tickets per queuer (hours can't overlap), and organizer trust and safety (verified badge, reports, removals, suspension, admin web page) are in scope. SMS confirmation and the proposal's other forecasting method are future work. The data contract is `MODELS.md`.
 
 Before changing anything structural, read `DECISIONS.md` — it records why things are the way they are. `DESIGN.md` is the visual system (Civic Paper): colours, type, spacing, the ticket details and where each one goes; build every screen from it and the design canvas it links to. `PROGRESS.md` is the task list: tick items in the same commit as the work.
 
@@ -26,7 +26,7 @@ Follow `DESIGN.md` for how things look, and `.claude/skills/android-ui-design/SK
 - RecyclerView for every list. Adapters expose a listener interface; click listeners are set in `bind`, not the ViewHolder constructor.
 - Pass ids between Activities, not objects. Extra keys are `public static final String` constants on the receiving Activity.
 - `finish()` to go back, `startActivity` to go forward.
-- Models are immutable (`final` fields, no setters). Don't add fields to `Queue`/`Ticket` casually — they must match the future API contract; propose the change first.
+- Models are immutable (`final` fields, no setters). They follow `MODELS.md` exactly; change the contract there first (and propose it), then the code.
 - Status values are enums, never strings.
 
 ## How to work with me (Brent)

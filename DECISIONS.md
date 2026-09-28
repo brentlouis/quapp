@@ -26,6 +26,8 @@ Last updated: 2026-09-28.
 
 **Decision:** Build one verification strategy end to end (grace period with "I'm here" confirmation) and one forecasting method (rolling average). Document the other three strategies and the historical regression as future work.
 
+*Superseded Sep 28 by "Scope after the redesign": grace period, cooldown and proximity are built; SMS and the regression stay future work.*
+
 **Why:** The proposal specifies four verification strategies, two forecasting algorithms, and a simulation harness. That's thesis-sized. Grace period is the right one to keep — most visual, demos well, and needs no SMS gateway or location permissions. SMS OTP needs a paid gateway; geo-proximity needs location permissions and field testing.
 
 **Also considered:** Building all four so the comparison could run through the UI — skipped, because the comparison doesn't need the app at all (next entry).
@@ -664,7 +666,7 @@ Queues open and close automatically from their schedule. Queuer Browse has no st
 
 **Why:** Showing unbuilt checks as working invites "show me" at the defense. Proximity was requested back into scope, and per-queue radius resolves the open question about the radius.
 
-**Status:** Open. Adding proximity changes "Cut the proposal down to a buildable subset". It needs location permission, a map picker and field testing. Mocked since: Queue Detail lists the rule ("Join within 1 km"); tapping Join opens a sheet explaining the check before Android's location prompt; outside the radius, Queue Detail shows "You're 4.2 km away" with Directions and Check again. Location is read once at join time, with no background tracking.
+**Status:** Current (Sep 28, see "Scope after the redesign"). It needs location permission, a map picker and field testing. Mocked since: Queue Detail lists the rule ("Join within 1 km"); tapping Join opens a sheet explaining the check before Android's location prompt; outside the radius, Queue Detail shows "You're 4.2 km away" with Directions and Check again. Location is read once at join time, with no background tracking.
 
 ---
 
@@ -739,7 +741,7 @@ Notification permission (explained before Android asks), the "you're being calle
 
 **Why:** It turns some no-shows into late arrivals, which is the metric the verification work is judged on. Log how often it's used for the evaluation.
 
-**Status:** Open (design). Needs a `movedBack` flag on `Ticket` and a reorder rule on the backend.
+**Status:** Current, amended Sep 28: the queuer says how much time they need, and the estimator decides how many places that is (see "Scope after the redesign"). Fields in MODELS.md.
 
 ---
 
@@ -762,7 +764,7 @@ Notification permission (explained before Android asks), the "you're being calle
 
 **Why:** Anyone can post a public queue, so a fake "Relief Distribution" is a real scam risk that the prank-queuer checks don't cover. A manual flag closes that gap without building a verification process.
 
-**Status:** Open (design). Model change: `verified` on the owner account.
+**Status:** Current (Sep 28). `verification_status` on the User, `organizer_verified` on each Queue (MODELS.md).
 
 ---
 
@@ -842,7 +844,7 @@ The "Quapp Now Serving" canvas (49 screens plus Help and support and Location de
 
 **Why:** The redesign added fields to nearly every screen. Changing models after the Android side is written means rewriting adapters and layouts twice.
 
-**Status:** Open.
+**Status:** Current. Settled Sep 28 in `MODELS.md` (see "Scope after the redesign").
 
 ---
 
@@ -1060,6 +1062,25 @@ A crema tear line runs above every bottom button bar and along the top of the bo
 **Also considered:** Recreating `ActiveTicketActivity` with a different theme when the status changes. That's more code and it flickers.
 
 **Status:** Current. Built Sep 28.
+
+---
+
+## Scope after the redesign (Sep 28)
+
+**Decision:** The models in `MODELS.md` are the contract, and they cover this scope:
+- **Proximity check is built.** Per-queue join radius (500 m, 1 km, 2 km, 5 km), location read once at Join, no background tracking. `Queue.joinRadiusMeters`.
+- **Several tickets per queuer**, as long as the queues' hours don't overlap on the same day. Replaces the one-queue-at-a-time rule. The server checks overlap at join.
+- **"I need more time" is built, and the estimator decides the distance.** The queuer picks how much time they need (5–45 min). Places moved back = that time ÷ the rolling-average minutes per person, rounded up, capped at the end of the line. Once per ticket, keeps the number, never a no-show.
+- **Trust and safety is built in full:** verified badge, Report a queue, organizer removals with a reason, suspension, 2 accounts per device, and the admin web page on FastAPI.
+- Also settled: schedule (start/end date, opening/closing time) replaces `serviceHours`; `Queue.Status.UPCOMING`; `Ticket.Status.QUEUE_CLOSED` and `REMOVED`; eight categories as an enum; `bring`, `shortDescription` + `details`; `joinedAt`, `calledAt`, `finishedAt` on tickets; `smsOtpEnabled` dropped (SMS stays future work, shown as PLANNED); minimum password length 8.
+
+**Why:** Brent's call. Moving back by time instead of a fixed 5 places fits how people are late (a jeepney ride, not "5 people"), and it puts the course's AI/ML requirement to work twice: the same rolling-average estimate drives both the ETA and the move-back distance.
+
+**Trade-off:** This supersedes "Cut the proposal down to a buildable subset". Three checks instead of one, a multi-ticket My tickets, location permission and field testing, and a backend roughly twice the size (accounts, reports, removals, admin page). Build order keeps the risk down: queuer and owner flows first, then proximity, then trust and safety, then the admin page.
+
+**Also considered:** Keeping proximity and trust and safety as future work, one ticket at a time, and a fixed 5-place move back (the recommended smaller scope).
+
+**Status:** Current.
 
 ---
 
