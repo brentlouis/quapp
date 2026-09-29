@@ -1,6 +1,6 @@
 # Quapp backend: the build plan
 
-How to build the FastAPI server, one step at a time, from an empty `backend/` folder to the demo. Brent writes the code; Claude reviews each step (DECISIONS.md "Backend: PostgreSQL and SQLAlchemy, in backend/").
+How to build the FastAPI server, one step at a time, from an empty `backend/` folder to the demo. Claude writes each step, explained so Brent can defend every line; Brent reviews and runs it before the next step starts (DECISIONS.md "Backend: PostgreSQL and SQLAlchemy, in backend/").
 
 - **The contract is `MODELS.md`.** JSON shapes, enums, endpoints and the database tables all live there. If a step needs something the contract doesn't have, change `MODELS.md` first, then the code.
 - **Every step ends with "Done when".** Don't start the next step until it's true, and commit at the end of each one.
