@@ -196,14 +196,36 @@ An organizer taking someone out of the line, with a reason.
 
 ---
 
+## Errors
+
+Every error has the same JSON body, so the app can pick a message by `error` without parsing text:
+
+```json
+{"error": "DEVICE_LIMIT", "message": "This phone already has 2 accounts."}
+```
+
+`message` is plain English the app may show as-is. Some errors add fields (listed below).
+
+| HTTP | `error` | When | Extra fields |
+|---|---|---|---|
+| 401 | `NOT_SIGNED_IN` | No token, or a token that was logged out | |
+| 401 | `WRONG_CREDENTIALS` | Login with an unknown phone or a wrong password (the same answer for both) | |
+| 403 | `SUSPENDED` | Login, or any signed-in call, by a suspended user | `suspended_reason`, `suspended_at` |
+| 409 | `PHONE_TAKEN` | Register with a phone that has an account | |
+| 409 | `DEVICE_LIMIT` | Register a third account on one install | |
+| 422 | `INVALID_INPUT` | A field fails validation (bad phone, short password, missing field) | `fields`: `{"phone": "…"}` |
+
+Later steps add their own codes here (join rules, the one-live-queue limit, …).
+
 ## Endpoints
 
 Auth is a bearer token from `/auth/login`. "Owner" means the queue's organizer.
 
 | Method | Path | Who | Does |
 |---|---|---|---|
-| POST | `/auth/register` | anyone | name, phone, password (min 8), device_install_id → token + User |
+| POST | `/auth/register` | anyone | name, phone, password (8 to 72 characters), device_install_id → token + User. Spaces and dashes in the phone are ignored (`0917 123 4567`) |
 | POST | `/auth/login` | anyone | phone, password → token + User (403 if suspended) |
+| POST | `/auth/logout` | user | ends this token's session → 204 |
 | GET | `/me` | user | the User |
 | GET | `/queues?municipality=&category=&q=` | anyone | Browse: UPCOMING, OPEN, PAUSED (no CLOSED) |
 | GET | `/queues/{id}` | anyone | one Queue |

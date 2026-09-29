@@ -10,11 +10,14 @@ from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
 
 from fastapi import Depends, FastAPI
+from fastapi.exceptions import RequestValidationError
 from sqlalchemy import text
 from sqlalchemy.orm import Session
 
 from app import models  # noqa: F401  imported so every table is registered on Base
 from app.database import Base, engine, get_db
+from app.errors import ApiError, api_error_handler, validation_error_handler
+from app.routers import auth
 
 
 @asynccontextmanager
@@ -26,6 +29,12 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
 
 
 app = FastAPI(title="Quapp API", lifespan=lifespan)
+
+# Every error goes out in the MODELS.md "Errors" shape
+app.add_exception_handler(ApiError, api_error_handler)
+app.add_exception_handler(RequestValidationError, validation_error_handler)
+
+app.include_router(auth.router)
 
 
 @app.get("/health")
