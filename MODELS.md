@@ -4,7 +4,7 @@ The shared contract between the Android app (Java models, Retrofit) and the Fast
 Settled Sep 28, 2026 (see DECISIONS.md "Data models settled"). Change it here first, then in code.
 
 Conventions:
-- JSON is `snake_case`; Java fields are `camelCase`. Gson maps them with `@SerializedName`.
+- JSON is `snake_case`; Java fields are `camelCase`. Gson maps every name automatically (`FieldNamingPolicy.LOWER_CASE_WITH_UNDERSCORES` in `ApiClient`), so a Java field must be named exactly like its JSON field in camelCase: `holder_phone` ↔ `holderPhone`.
 - Enums travel as their names in caps (`"OPEN"`). In Java they're enums, never strings.
 - Times are ISO 8601 in **Asia/Manila**. A moment in time: `"2026-09-27T10:05:00+08:00"`. A date: `"2026-09-27"`. A time of day: `"08:00"`.
   In Java: `Instant`, `LocalDate`, `LocalTime` (java.time, through core library desugaring since min SDK is 24).

@@ -46,6 +46,8 @@
     <string name="login_create_account">Create account</string>
     <string name="login_phone_error">Enter an 11-digit number starting with 09</string>
     <string name="login_password_error">Enter your password</string>
+    <string name="login_busy">Logging in…</string>
+    <string name="login_wrong">Wrong number or password.</string>
 
     <!-- Register -->
     <string name="register_heading">Create account</string>
@@ -63,6 +65,11 @@
     <string name="register_phone_error">Enter an 11-digit number starting with 09</string>
     <string name="register_password_error">Use at least %d characters</string>
     <string name="register_confirm_error">Passwords don\'t match. Retype it to confirm.</string>
+    <string name="register_busy">Creating account…</string>
+    <string name="register_phone_taken">That number already has an account. Log in instead.</string>
+
+    <!-- Any screen that talks to the server -->
+    <string name="api_offline">Can\'t reach Quapp. Check your connection and try again.</string>
 
     <!-- Role select -->
     <string name="role_heading">How will you use Quapp?</string>

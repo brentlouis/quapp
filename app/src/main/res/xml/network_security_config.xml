@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Android refuses plain http:// by default since Android 9. The Quapp server runs on a PC over
+     http (it has no certificate), so http is allowed. If the server moves to a host with https,
+     delete cleartextTrafficPermitted (DECISIONS.md "The app talks to the server over http"). -->
+<network-security-config>
+    <base-config cleartextTrafficPermitted="true" />
+</network-security-config>

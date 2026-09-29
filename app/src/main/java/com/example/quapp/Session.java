@@ -4,15 +4,16 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 
-import java.util.HashSet;
-import java.util.Set;
+import androidx.annotation.Nullable;
+
+import java.util.UUID;
 
 /**
- * Who's logged in and which side of the app they use. Stored in SharedPreferences
- * so it survives the app being closed — that's the "session persistence".
+ * Who's signed in and which side of the app they use. Stored in SharedPreferences so it
+ * survives the app being closed — that's the "session persistence".
  *
- * Passwords are never stored. With no backend yet, login accepts any valid
- * phone and password; the real check moves to the server's auth endpoint.
+ * Signed in means holding a token from the server (/auth/login or /auth/register). ApiClient
+ * sends it with every request. The password is never stored; only the server sees it.
  */
 public class Session {
 
@@ -22,7 +23,8 @@ public class Session {
     }
 
     private static final String PREFS_NAME = "quapp_session";
-    private static final String KEY_LOGGED_IN = "logged_in";
+    private static final String KEY_TOKEN = "token";
+    private static final String KEY_USER_ID = "user_id";
     private static final String KEY_NAME = "name";
     private static final String KEY_PHONE = "phone";
     private static final String KEY_ROLE = "role";
@@ -30,13 +32,11 @@ public class Session {
     private static final String KEY_NOTIFICATIONS_ASKED = "notifications_asked";
 
     /**
-     * What this install remembers across accounts, so logging out doesn't reset it. Stands in
-     * for the server's device_install_id count (MODELS.md) until there's a backend.
+     * What this install keeps across accounts, so signing out doesn't reset it: its install
+     * id. The server allows 2 accounts per id (the device limit, canvas 56; MODELS.md "User").
      */
     private static final String DEVICE_PREFS_NAME = "quapp_device";
-    private static final String KEY_DEVICE_ACCOUNTS = "accounts";
-    /** One phone can hold 2 accounts, so a shared family phone still works (canvas 56). */
-    public static final int MAX_ACCOUNTS_PER_DEVICE = 2;
+    private static final String KEY_INSTALL_ID = "install_id";
 
     private final SharedPreferences prefs;
     private final SharedPreferences devicePrefs;
@@ -49,10 +49,22 @@ public class Session {
     }
 
     public boolean isLoggedIn() {
-        return prefs.getBoolean(KEY_LOGGED_IN, false);
+        return getToken() != null;
     }
 
-    /** Null if this phone never registered on this device. */
+    /** The server's token for "Authorization: Bearer …", or null when signed out. */
+    @Nullable
+    public String getToken() {
+        return prefs.getString(KEY_TOKEN, null);
+    }
+
+    @Nullable
+    public String getUserId() {
+        return prefs.getString(KEY_USER_ID, null);
+    }
+
+    /** Null before anyone has signed in on this install. */
+    @Nullable
     public String getName() {
         return prefs.getString(KEY_NAME, null);
     }
@@ -62,63 +74,56 @@ public class Session {
     }
 
     /** Null until the user picks one on Role Select. */
+    @Nullable
     public Role getRole() {
         String stored = prefs.getString(KEY_ROLE, null);
         return stored == null ? null : Role.valueOf(stored);
     }
 
-    public void register(String name, String phone) {
-        Set<String> accounts = deviceAccounts();
-        accounts.add(phone);
-        devicePrefs.edit().putStringSet(KEY_DEVICE_ACCOUNTS, accounts).apply();
-
+    /**
+     * Signed in, by register or login: keeps the token and who it belongs to. The role is
+     * asked again (Role Select), since it may be a different person on a shared phone.
+     */
+    public void signIn(String token, User user) {
         prefs.edit()
-                .putBoolean(KEY_LOGGED_IN, true)
-                .putString(KEY_NAME, name)
-                .putString(KEY_PHONE, phone)
+                .putString(KEY_TOKEN, token)
+                .putString(KEY_USER_ID, user.getId())
+                .putString(KEY_NAME, user.getName())
+                .putString(KEY_PHONE, user.getPhone())
                 .remove(KEY_ROLE)
                 .apply();
     }
 
-    /** Keeps the registered name only if it's the same phone logging back in. */
-    public void logIn(String phone) {
-        SharedPreferences.Editor editor = prefs.edit()
-                .putBoolean(KEY_LOGGED_IN, true)
-                .remove(KEY_ROLE);
+    /** Forgets the token. The phone number stays, so Login can offer it again. */
+    public void logOut() {
+        prefs.edit()
+                .remove(KEY_TOKEN)
+                .remove(KEY_USER_ID)
+                .remove(KEY_ROLE)
+                .apply();
+    }
 
-        if (!phone.equals(getPhone())) {
-            editor.remove(KEY_NAME);
+    /**
+     * This install's id, made once and kept for good: a random UUID, so it says nothing about
+     * the phone itself. Sent with registration for the device limit.
+     */
+    public String installId() {
+        String id = devicePrefs.getString(KEY_INSTALL_ID, null);
+        if (id == null) {
+            id = UUID.randomUUID().toString();
+            devicePrefs.edit().putString(KEY_INSTALL_ID, id).apply();
         }
-
-        editor.putString(KEY_PHONE, phone).apply();
+        return id;
     }
 
     /** The town Browse is set to. Null until the first-visit question is answered. */
+    @Nullable
     public String getTown() {
         return prefs.getString(KEY_TOWN, null);
     }
 
     public void setTown(String town) {
         prefs.edit().putString(KEY_TOWN, town).apply();
-    }
-
-    /**
-     * The phone numbers that created an account on this install. A copy: Android's own set
-     * from getStringSet must never be changed in place.
-     */
-    public Set<String> deviceAccounts() {
-        Set<String> accounts = new HashSet<>(
-                devicePrefs.getStringSet(KEY_DEVICE_ACCOUNTS, new HashSet<String>()));
-        // Registered before this list existed: that account still counts.
-        if (accounts.isEmpty() && getName() != null && !getPhone().isEmpty()) {
-            accounts.add(getPhone());
-        }
-        return accounts;
-    }
-
-    /** The device limit (canvas 56): no third account on the same phone. */
-    public boolean deviceAccountLimitReached() {
-        return deviceAccounts().size() >= MAX_ACCOUNTS_PER_DEVICE;
     }
 
     /** The notification permission screen (canvas 20) is shown once, after the first join. */
@@ -132,13 +137,6 @@ public class Session {
 
     public void setRole(Role role) {
         prefs.edit().putString(KEY_ROLE, role.name()).apply();
-    }
-
-    public void logOut() {
-        prefs.edit()
-                .putBoolean(KEY_LOGGED_IN, false)
-                .remove(KEY_ROLE)
-                .apply();
     }
 
     /**

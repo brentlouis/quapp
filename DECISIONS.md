@@ -1280,6 +1280,18 @@ The organizer line on Queue detail opens the badge sheet (52) for both verified 
 
 ---
 
+## The app talks to the server with Retrofit, over http, from one client
+
+**Decision:** Every server call goes through `ApiClient` (one Retrofit and OkHttp client) and comes back through `ApiCallback`. `ApiClient` adds the signed-in token, reads JSON with Gson (snake_case names mapped to the models' camelCase fields automatically, and java.time adapters for moments, dates and times), and gets the server's address from `quapp.apiUrl` in `local.properties`, defaulting to `http://127.0.0.1:8000/` with `adb reverse tcp:8000 tcp:8000` forwarding it to the PC (the emulator and a phone on USB). The emulator's `10.0.2.2` shortcut was tried first: on this emulator apps use its virtual Wi-Fi, where 10.0.2.2 doesn't reach the PC (only the shell's route does), so every request timed out. `ApiCallback` turns every answer into success or an `ApiError` with the server's code, and handles SUSPENDED and NOT_SIGNED_IN the same way on every screen. The app allows plain http (`network_security_config.xml`), because the server runs on a PC with no certificate. The device limit is the server's now: the app sends a random install id made once per install (`Session.installId`).
+
+**Why:** One place for the address, the token, the JSON format and the error handling means each screen only writes what's its own. Automatic name mapping means no `@SerializedName` on every field, as long as the names match. http is what a PC on the same network can serve; https needs a domain and a certificate.
+
+**Also considered:** `@SerializedName` on every field (the first plan in MODELS.md; lots of repetition for no gain here). Volley or plain `HttpURLConnection` (more code per request). Allowing http only for listed addresses (the PC's address changes between networks).
+
+**Status:** Current (BACKEND.md phase 10). If the server moves to a host with https, remove `cleartextTrafficPermitted`.
+
+---
+
 ## "You've been called" reaches the phone by polling
 
 **Decision:** The app asks the server again every few seconds while a screen that can change is open: Active ticket and My tickets every 10 seconds (`GET /tickets/{id}`, `GET /me/tickets`), the Live console every 5 (`GET /queues/{id}/line`). The called notification fires when a poll sees the ticket turn CALLED. Nothing new on the server: those endpoints already exist.

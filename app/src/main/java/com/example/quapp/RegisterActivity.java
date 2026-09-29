@@ -4,6 +4,8 @@ import android.os.Bundle;
 import android.view.View;
 import android.widget.TextView;
 
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.google.android.material.button.MaterialButton;
@@ -11,6 +13,12 @@ import com.google.android.material.textfield.TextInputEditText;
 import com.google.android.material.textfield.TextInputLayout;
 
 public class RegisterActivity extends AppCompatActivity {
+
+    /** The server's limit (routers/auth.py MAX_ACCOUNTS_PER_DEVICE), for the limit's wording. */
+    private static final int MAX_ACCOUNTS_PER_DEVICE = 2;
+
+    private MaterialButton submitButton;
+    private View.OnClickListener backToLogin;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -23,7 +31,7 @@ public class RegisterActivity extends AppCompatActivity {
         passwordLayout.setHelperText(
                 getString(R.string.register_password_helper, Validation.MIN_PASSWORD_LENGTH));
 
-        View.OnClickListener backToLogin = new View.OnClickListener() {
+        backToLogin = new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 finish();
@@ -31,7 +39,7 @@ public class RegisterActivity extends AppCompatActivity {
         };
         findViewById(R.id.register_back).setOnClickListener(backToLogin);
 
-        MaterialButton submitButton = findViewById(R.id.register_submit_button);
+        submitButton = findViewById(R.id.register_submit_button);
         MaterialButton loginButton = findViewById(R.id.register_login_button);
 
         submitButton.setOnClickListener(new View.OnClickListener() {
@@ -42,21 +50,14 @@ public class RegisterActivity extends AppCompatActivity {
         });
 
         loginButton.setOnClickListener(backToLogin);
-
-        bindDeviceLimit(submitButton, backToLogin);
     }
 
     /**
-     * Canvas 56: this phone already made the most accounts it can. The form stays visible but
-     * does nothing; the one button goes back to Log in. The server enforces the same limit by
-     * install id; this is the local stand-in.
+     * Canvas 56: this phone already made the most accounts it can (the server said
+     * DEVICE_LIMIT). The form stays visible but does nothing; the one button goes back to Log in.
      */
-    private void bindDeviceLimit(MaterialButton submitButton, View.OnClickListener backToLogin) {
-        Session session = new Session(this);
-        if (!session.deviceAccountLimitReached()) {
-            return;
-        }
-        int max = Session.MAX_ACCOUNTS_PER_DEVICE;
+    private void showDeviceLimit() {
+        int max = MAX_ACCOUNTS_PER_DEVICE;
         findViewById(R.id.register_limit).setVisibility(View.VISIBLE);
         ((TextView) findViewById(R.id.register_limit_title)).setText(
                 getResources().getQuantityString(R.plurals.register_limit_title, max, max));
@@ -67,6 +68,7 @@ public class RegisterActivity extends AppCompatActivity {
             findViewById(id).setEnabled(false);
         }
         findViewById(R.id.register_login_row).setVisibility(View.GONE);
+        submitButton.setEnabled(true);
         submitButton.setText(R.string.register_limit_action);
         submitButton.setOnClickListener(backToLogin);
     }
@@ -82,6 +84,7 @@ public class RegisterActivity extends AppCompatActivity {
         String password = Forms.text(passwordInput);
         String confirm = Forms.text(confirmInput);
 
+        // Checked here first, so a typo doesn't need a round trip to the server
         boolean valid = Forms.check(findViewById(R.id.register_name_layout),
                 !Validation.isBlank(name), getString(R.string.register_name_error));
         valid &= Forms.check(findViewById(R.id.register_phone_layout),
@@ -91,14 +94,44 @@ public class RegisterActivity extends AppCompatActivity {
                 getString(R.string.register_password_error, Validation.MIN_PASSWORD_LENGTH));
         valid &= Forms.check(findViewById(R.id.register_confirm_layout),
                 confirm.equals(password), getString(R.string.register_confirm_error));
-
         if (!valid) {
             return;
         }
 
+        setBusy(true);
         Session session = new Session(this);
-        session.register(name, phone);
-        // homeIntent clears Login and Register off the stack; Back won't return to either.
-        startActivity(session.homeIntent(this));
+        ApiClient.api(this).register(new QuappApi.RegisterBody(name, phone, password,
+                        session.installId()))
+                .enqueue(new ApiCallback<QuappApi.AuthResponse>(this) {
+                    @Override
+                    protected void onSuccess(@Nullable QuappApi.AuthResponse auth) {
+                        Session session = new Session(RegisterActivity.this);
+                        session.signIn(auth.token, auth.user);
+                        // homeIntent clears Login and Register off the stack
+                        startActivity(session.homeIntent(RegisterActivity.this));
+                    }
+
+                    @Override
+                    protected void onError(@NonNull ApiError error) {
+                        setBusy(false);
+                        if (error.is("DEVICE_LIMIT")) {
+                            showDeviceLimit();
+                        } else if (error.is("PHONE_TAKEN")) {
+                            ((TextInputLayout) findViewById(R.id.register_phone_layout))
+                                    .setError(getString(R.string.register_phone_taken));
+                        } else if (error.is("INVALID_INPUT") && error.fieldMessage("phone") != null) {
+                            ((TextInputLayout) findViewById(R.id.register_phone_layout))
+                                    .setError(error.fieldMessage("phone"));
+                        } else {
+                            super.onError(error);
+                        }
+                    }
+                });
+    }
+
+    /** While waiting for the server: the button says so and can't be tapped twice. */
+    private void setBusy(boolean busy) {
+        submitButton.setEnabled(!busy);
+        submitButton.setText(busy ? R.string.register_busy : R.string.register_action);
     }
 }

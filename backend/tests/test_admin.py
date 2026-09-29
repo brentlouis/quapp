@@ -3,7 +3,7 @@
 from sqlalchemy import select
 
 from app.enums import OrganizationType, RemovalReason, TicketStatus, UserStatus, VerificationStatus
-from app.models import Report, TicketRemoval, Token, VerificationRequest
+from app.models import Report, Ticket, TicketRemoval, Token, VerificationRequest
 from app.routers.admin import COOKIE
 from app.security import hash_password
 from tests.factories import make_queue, make_ticket, make_user, sign_in
@@ -163,6 +163,24 @@ def test_suspending_signs_them_out_everywhere(client, db):
     assert db.scalar(select(Token).where(Token.user_id == jun.id)) is None
     # The app's next call is refused (NOT_SIGNED_IN: the token is gone)
     assert client.get("/me", headers=app_headers).status_code == 401
+
+
+def test_suspending_closes_their_queues_and_releases_their_tickets(client, db):
+    admin_client(client, db)
+    jun = make_user(db)
+    his_queue = make_queue(db, jun)
+    someone = make_ticket(db, his_queue, make_user(db))
+    his_ticket = make_ticket(db, make_queue(db, make_user(db)), jun)
+    his_ticket_id = his_ticket.id
+
+    client.post(f"/admin/users/{jun.id}/suspend", data={"reason": "Posting a fake queue"})
+
+    db.refresh(his_queue)
+    db.refresh(someone)
+    assert his_queue.status.value == "CLOSED"
+    assert someone.status == TicketStatus.QUEUE_CLOSED  # not a no-show for them
+    db.expire_all()
+    assert db.get(Ticket, his_ticket_id) is None  # released, like leaving
 
 
 def test_unsuspending(client, db):

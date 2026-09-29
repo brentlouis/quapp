@@ -9,6 +9,8 @@
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
     <!-- The offline state on the ticket (canvas 25) -->
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+    <!-- Talking to the Quapp server -->
+    <uses-permission android:name="android.permission.INTERNET" />
 
     <application
         android:name=".QuappApplication"
@@ -19,7 +21,8 @@
         android:label="@string/app_name"
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
-        android:theme="@style/Theme.Quapp">
+        android:theme="@style/Theme.Quapp"
+        android:networkSecurityConfig="@xml/network_security_config">
         <activity
             android:name=".SplashActivity"
             android:theme="@style/Theme.Quapp.Splash"

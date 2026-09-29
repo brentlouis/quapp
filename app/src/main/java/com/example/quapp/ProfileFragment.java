@@ -21,6 +21,10 @@ import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Locale;
 
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
+
 /**
  * Profile. The last tab on both homes; the rows adapt to the current role. Organizers also see
  * where their verification stands: Get verified, pending (canvas 51), or the badge.
@@ -265,6 +269,18 @@ public class ProfileFragment extends Fragment {
     private void logOut() {
         ActiveTicketStore.clear();
         FakeData.clearHistory();
+        // Ends the token on the server too. Nothing waits for the answer: signing out on this
+        // phone happens either way, even offline.
+        ApiClient.api(requireContext()).logout("Bearer " + session.getToken())
+                .enqueue(new Callback<Void>() {
+                    @Override
+                    public void onResponse(@NonNull Call<Void> call, @NonNull Response<Void> response) {
+                    }
+
+                    @Override
+                    public void onFailure(@NonNull Call<Void> call, @NonNull Throwable failure) {
+                    }
+                });
         session.logOut();
         // homeIntent clears the back stack, so Back from Login can't return to this account.
         startActivity(session.homeIntent(requireContext()));

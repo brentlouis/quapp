@@ -33,9 +33,6 @@ public final class FakeData {
     /** The logged-in owner's organization. Whether it's verified is myVerification(). */
     public static final String MY_ORGANIZER_NAME = "Brgy. Poblacion Council";
 
-    /** A suspended account for the demo: log in with this number (canvas 55). */
-    public static final String SUSPENDED_PHONE = "09180000000";
-
     // Default coordinates (Tagbilaran City) for new queues until there's a map picker.
     private static final double DEFAULT_LATITUDE = 9.6496;
     private static final double DEFAULT_LONGITUDE = 123.8547;
@@ -538,20 +535,6 @@ public final class FakeData {
 
     public static List<Report> reports() {
         return new ArrayList<>(reports);
-    }
-
-    /**
-     * Login's check (canvas 55): the account for this phone if the admin suspended it, else
-     * null. With the backend, /auth/login answers 403 with the reason instead.
-     */
-    @Nullable
-    public static User suspendedAccount(String phone) {
-        if (!SUSPENDED_PHONE.equals(phone)) {
-            return null;
-        }
-        Instant since = LocalDate.of(2026, 9, 28).atTime(9, 0).atZone(Format.MANILA).toInstant();
-        return new User("u-suspended", "Jun Dela Cruz", phone, User.Status.SUSPENDED,
-                "Posting a fake queue", since, VerificationStatus.REVOKED, null);
     }
 
     // ---- Queuer history -----------------------------------------------------

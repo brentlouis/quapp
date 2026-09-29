@@ -21,10 +21,11 @@ from sqlalchemy.orm import Session, selectinload
 
 from app import timeutil
 from app.database import get_db
-from app.enums import RemovalReason, UserStatus, VerificationStatus
+from app.enums import QueueStatus, RemovalReason, TicketStatus, UserStatus, VerificationStatus
 from app.models import Queue, Report, Ticket, TicketRemoval, Token, User, VerificationRequest
 from app.schemas import normalize_phone
 from app.security import check_password, new_token
+from app.services import schedule
 
 router = APIRouter(prefix="/admin", include_in_schema=False)  # not part of the app's API
 templates = Jinja2Templates(directory=Path(__file__).parent.parent / "templates")
@@ -211,14 +212,24 @@ def target(db: Session, user_id: str, admin: User) -> User | None:
 def suspend(user_id: str, reason: str = Form(...), admin: User = Depends(admin_user),
             db: Session = Depends(get_db)):
     """Suspended accounts can't log in, and every session they have ends now: their tokens
-    are deleted, so the app's next call gets SUSPENDED (deps.current_user)."""
+    are deleted, so the app's next call gets NOT_SIGNED_IN and goes back to Login.
+
+    What the app's Account suspended screen promises happens here too: their live queues are
+    closed (everyone in them is released as QUEUE_CLOSED, never a no-show), and the tickets
+    they held are released, the same as leaving."""
     user = target(db, user_id, admin)
     if user is None or not reason.strip():
         return back_to("/admin/users", "not-allowed")
+    now = timeutil.now()
     user.status = UserStatus.SUSPENDED
     user.suspended_reason = reason.strip()
-    user.suspended_at = timeutil.now()
+    user.suspended_at = now
     db.execute(delete(Token).where(Token.user_id == user.id))
+    for queue in db.scalars(select(Queue).where(Queue.organizer_id == user.id,
+                                                Queue.status != QueueStatus.CLOSED)):
+        schedule.close_now(db, queue, now)
+    db.execute(delete(Ticket).where(Ticket.user_id == user.id,
+                                    Ticket.status.in_((TicketStatus.WAITING, TicketStatus.CALLED))))
     db.commit()
     return back_to("/admin/users", "suspended")
 
