@@ -609,7 +609,7 @@ public class ActiveTicketActivity extends AppCompatActivity {
                 + getResources().getDimension(R.dimen.hairline);
         ShapeAppearanceModel shape = TicketShapes.stub(this,
                 R.dimen.radius_md, R.dimen.punch_radius, tearCentre, width);
-        v.setBackground(TicketShapes.background(shape,
+        v.setBackground(TicketShapes.background(this, shape,
                 ContextCompat.getColor(this, R.color.spotlight)));
     }
 }

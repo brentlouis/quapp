@@ -98,6 +98,7 @@ public final class MoreTimeSheet {
         });
 
         dialog = new BottomSheetDialog(context);
+        Grain.attach(dialog);
         dialog.setContentView(content);
         dialog.show();
     }

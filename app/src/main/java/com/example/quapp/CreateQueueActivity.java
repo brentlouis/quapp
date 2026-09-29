@@ -319,6 +319,7 @@ public class CreateQueueActivity extends AppCompatActivity {
     /** The category sheet (canvas 17): tap one to choose it and close the sheet. */
     private void pickCategory() {
         final BottomSheetDialog sheet = new BottomSheetDialog(this);
+        Grain.attach(sheet);
         View content = getLayoutInflater().inflate(R.layout.sheet_category, null);
         RecyclerView list = content.findViewById(R.id.category_list);
         list.setLayoutManager(new LinearLayoutManager(this));

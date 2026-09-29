@@ -97,6 +97,7 @@ final class TrustSheets {
         Notice(Activity activity) {
             this.activity = activity;
             dialog = new BottomSheetDialog(activity);
+            Grain.attach(dialog);
             root = activity.getLayoutInflater().inflate(R.layout.sheet_notice, null);
             title = root.findViewById(R.id.notice_title);
             body = root.findViewById(R.id.notice_body);

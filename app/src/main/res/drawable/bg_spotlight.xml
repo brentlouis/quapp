@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- The Called screen's ground: espresso, with the ticket texture tiled on top (like bg_paper) -->
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:drawable="@color/spotlight" />
+    <item>
+        <bitmap
+            android:src="@drawable/grain_ticket"
+            android:tileMode="repeat" />
+    </item>
+</layer-list>

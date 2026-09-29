@@ -94,7 +94,7 @@ public class BrowseFragment extends Fragment implements QueueAdapter.OnQueueClic
         openNowAdapter = new OpenNowAdapter(this);
 
         // The banner is a slim spotlight with small punches in its sides.
-        banner.setBackground(TicketShapes.background(
+        banner.setBackground(TicketShapes.background(requireContext(),
                 TicketShapes.sidePunched(requireContext(), R.dimen.radius_md,
                         R.dimen.punch_radius_banner, 0.5f),
                 ContextCompat.getColor(requireContext(), R.color.spotlight)));

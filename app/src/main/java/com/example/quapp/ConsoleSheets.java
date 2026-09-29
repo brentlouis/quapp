@@ -321,6 +321,7 @@ final class ConsoleSheets {
         Sheet(Context context) {
             this.context = context;
             dialog = new BottomSheetDialog(context);
+            Grain.attach(dialog);
             root = LayoutInflater.from(context).inflate(R.layout.sheet_choices, null);
             title = root.findViewById(R.id.choices_title);
             lead = root.findViewById(R.id.choices_lead);

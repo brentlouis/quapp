@@ -3,6 +3,8 @@
     <!-- Civic Paper, light only (DESIGN.md section 2). Layouts use these roles, never the colours. -->
     <style name="Theme.Quapp" parent="Theme.Material3.Light.NoActionBar">
         <!-- Ink on paper is the default action: the primary is not a brand hue -->
+        <!-- Textures every Material component as it's inflated (QuappViewInflater, Grain) -->
+        <item name="viewInflaterClass">com.example.quapp.QuappViewInflater</item>
         <item name="colorPrimary">@color/ink</item>
         <item name="colorOnPrimary">@color/paper_raised</item>
         <item name="colorPrimaryContainer">@color/paper_sunk</item>
@@ -120,7 +122,7 @@
         <!-- Plain TextViews with no colour of their own read these, not colorOnSurface -->
         <item name="android:textColorPrimary">@color/on_spotlight</item>
         <item name="android:textColorSecondary">@color/on_spotlight_muted</item>
-        <item name="android:windowBackground">@color/spotlight</item>
+        <item name="android:windowBackground">@drawable/bg_spotlight</item>
         <item name="android:colorBackground">@color/spotlight</item>
         <item name="colorPrimary">@color/on_spotlight</item>
         <item name="colorOnPrimary">@color/spotlight</item>

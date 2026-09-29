@@ -1242,6 +1242,18 @@ The organizer line on Queue detail opens the badge sheet (52) for both verified 
 
 ---
 
+## Components get their own paper texture
+
+**Decision:** Every component that has a fill carries a texture, not just the screen ground. There are three tiles, and which one a component gets follows its fill colour: `grain_stock` (dark fibres, card stock) on light fills like cards, fields, chips, tonal buttons, the nav bar and sheets; `grain_ink` (pale specks where the ink didn't take) on dark fills like filled buttons, the selected chip and the FAB; `grain_ticket` (pale fibres and a mottle) on the espresso spotlight and the Called screen. Text and outlined buttons have no fill, so the grained paper shows through them. `Grain` paints the tile inside the component's own Material shape, so corners, pills and punched holes stay clean. `QuappViewInflater`, named in the theme's `viewInflaterClass`, attaches it to every Material component and every view on a paper `<shape>` background as layouts inflate, so no screen code changes.
+
+**Why:** Smooth, flat components on a grained ground looked pasted on, as if they weren't made of the same paper. Choosing the tile from the fill, and reading the fill every frame, means a chip switches from stock to ink by itself when it's selected, and new screens get it for free.
+
+**Also considered:** A `layer-list` background per drawable (the bitmap can't be clipped to rounded corners or punches, and MaterialButton and MaterialCardView don't take a custom background). `android:foreground` in the styles (MaterialCardView already uses its foreground for the ripple and stroke). Calling `Grain.attach` in every Activity and adapter (dozens of call sites, easy to forget one). Keeping the old rule of grain on the ground only (it's what made the components look off).
+
+**Status:** Built, awaiting Brent's device test. The earlier colour-pass audit was dropped: Brent kept the original colours. It's in `git stash` in case it's wanted later.
+
+---
+
 ## Known compromises
 
 Deliberate shortcuts, not oversights. Each has a planned fix.

@@ -231,6 +231,7 @@ public class QueueDetailActivity extends AppCompatActivity {
     /** Explains the check before Android's permission dialog. "Not now" just closes it. */
     private void showLocationSheet(Queue queue) {
         final BottomSheetDialog sheet = new BottomSheetDialog(this);
+        Grain.attach(sheet);
         View content = getLayoutInflater().inflate(R.layout.sheet_location, null);
         ((TextView) content.findViewById(R.id.location_sheet_body)).setText(getString(
                 R.string.location_sheet_body,

@@ -173,7 +173,7 @@ public class MyTicketsFragment extends Fragment implements MyTicketsAdapter.OnTi
                 + getResources().getDimension(R.dimen.hairline);
         ShapeAppearanceModel shape = TicketShapes.stub(requireContext(),
                 R.dimen.radius_md, R.dimen.punch_radius, tearCentre, width);
-        v.setBackground(TicketShapes.background(shape,
+        v.setBackground(TicketShapes.background(requireContext(), shape,
                 ContextCompat.getColor(requireContext(), R.color.spotlight)));
     }
 

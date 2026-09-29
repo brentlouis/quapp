@@ -72,16 +72,17 @@ public final class TicketShapes {
         return sidePunched(context, cornerRes, R.dimen.punch_radius_small, 0.5f);
     }
 
-    /** A filled drawable of any ticket shape, for {@code view.setBackground(...)}. */
-    public static Drawable background(@NonNull ShapeAppearanceModel shape, @ColorInt int fill) {
+    /** A filled, textured drawable of any ticket shape, for {@code view.setBackground(...)}. */
+    public static Drawable background(@NonNull Context context, @NonNull ShapeAppearanceModel shape,
+                                      @ColorInt int fill) {
         MaterialShapeDrawable drawable = new MaterialShapeDrawable(shape);
         drawable.setFillColor(ColorStateList.valueOf(fill));
-        return drawable;
+        return Grain.over(context, drawable);
     }
 
     /** Shortcut: the spotlight shape filled espresso. */
     public static Drawable spotlightBackground(@NonNull Context context) {
-        return background(spotlight(context), ContextCompat.getColor(context, R.color.spotlight));
+        return background(context, spotlight(context), ContextCompat.getColor(context, R.color.spotlight));
     }
 
     /**
@@ -96,7 +97,7 @@ public final class TicketShapes {
                 .setTopLeftCornerSize(notch)
                 .setTopRightCornerSize(notch)
                 .build();
-        return background(shape, ContextCompat.getColor(context, R.color.paper_raised));
+        return background(context, shape, ContextCompat.getColor(context, R.color.paper_raised));
     }
 
     /**
@@ -110,7 +111,7 @@ public final class TicketShapes {
                 ContextCompat.getColor(context, R.color.paper_raised)));
         drawable.setStroke(px(context, R.dimen.hairline),
                 ContextCompat.getColor(context, R.color.line));
-        return drawable;
+        return Grain.over(context, drawable);
     }
 
     /**

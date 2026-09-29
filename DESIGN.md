@@ -8,7 +8,7 @@ The one visual reference for building Quapp's screens. It describes **what thing
 
 Content, flows, states and copy on the canvas are final. Where this file and the canvas disagree, the canvas wins; fix this file.
 
-Last updated: 2026-09-28.
+Last updated: 2026-09-29.
 
 ---
 
@@ -191,7 +191,7 @@ At most one per screen:
 | Screen | Spotlight |
 |---|---|
 | **My ticket (08, 25, 26, 28)** | Ticket with a **stub** ("YOUR NUMBER", #43 in `TicketNumber`, barcode), a vertical tear line (punches at its top and bottom), and a **body** ("IN LINE", 41 mono 34 "ahead of you", progress ticks, "Now serving #1"). Queue info rows sit below on paper. |
-| **Called (09)** | The whole screen ground turns `spotlight` (no grain, light status-bar icons). The number is `TicketNumber.Called` in `signal`. The countdown ring is `signal` on a `spotlight_line` track. "I'm here" is 64dp `signal`; "Move me back" is outlined in `on_spotlight_muted`, with the helper line below it. |
+| **Called (09)** | The whole screen ground turns `spotlight` (with the ticket texture, light status-bar icons). The number is `TicketNumber.Called` in `signal`. The countdown ring is `signal` on a `spotlight_line` track. "I'm here" is 64dp `signal`; "Move me back" is outlined in `on_spotlight_muted`, with the helper line below it. |
 | **Live console (15, 29, 30, 57)** | The Now serving panel: #23 in `signal` while being served (dimmed when timed out), then a tear line, then the name in `Title`. The wait line is light ok / err. |
 | **Owner home (13, 58)** | The live queue card: number in `signal`, tear line, then a `Title`-style name, then the Console tonal button. |
 | **Home, in line (05, 39–42)** | Slim "You're in line" banner, about 72dp, 6dp punches. |
@@ -205,13 +205,21 @@ At most one per screen:
 
 ## 7. Texture
 
-**Paper grain, on the screen ground only.**
+**Everything is paper, so everything has texture.** The ground has its grain, and each component with a fill has the texture of what it's made of.
 
-- One seamless 256×256 PNG in `res/drawable-nodpi/paper_grain.png`: fractal noise, tinted `#4F4A40`, averaging about 5% opacity, mostly transparent.
-- `res/drawable/bg_paper.xml` is a `layer-list`: a `paper` colour item, then a `<bitmap android:tileMode="repeat">` of the grain.
-- Set it as `android:windowBackground` in the theme, so every Activity gets it for free. Content views stay transparent over it.
-- Cards, fields, sheets and the spotlight are opaque and flat. **Never grain on them.**
-- Check the grain on the Xiaomi: low-end screens can make it look darker.
+| Tile (`res/drawable-nodpi/`) | Looks like | On |
+|---|---|---|
+| `paper_grain.png` | Fine fractal noise, `#4F4A40`, about 5% | The screen ground (`bg_paper`, the window background) |
+| `grain_stock.png` | Short dark fibres and fine tooth, about 1.5% | Light fills: cards, the receipt slip, fields, notes, chips, tonal buttons, tiles, the nav bar, sheets, the stub dock |
+| `grain_ink.png` | Pale specks and an uneven lay-down, about 2% | Dark fills: filled buttons, the selected chip, the FAB, Danger |
+| `grain_ticket.png` | Pale fibres, soft mottle, a few specks, about 2.5% | The espresso spotlight, and the Called screen's ground (`bg_spotlight`) |
+
+- All four are seamless 256×256 PNGs, mostly transparent, drawn at one texture pixel per screen pixel. `tools/make_grain.py` draws the three component tiles.
+- The tile follows the fill (`Grain.tileFor`): no fill gets none (the ground shows through text and outlined buttons), `spotlight` gets ticket, a dark fill gets ink, and a light fill gets stock. It's read every frame, so a chip that becomes selected changes texture by itself.
+- The texture is painted inside the component's own shape, so rounded corners, pills and punches stay clean.
+- `QuappViewInflater` (the theme's `viewInflaterClass`) attaches it as layouts inflate: to buttons, cards, chips, fields, the FAB and the nav bar, and to any layout, TextView or ImageView whose background is a paper shape (`bg_card`, `bg_note`, `bg_tile` and the rest listed there). Backgrounds built in code go through `TicketShapes.background`, which adds it. Bottom sheets call `Grain.attach(sheet)`.
+- Not textured: status pills (too small to show it), the QR plate (it has to scan), and the snackbar.
+- Check the textures on the Xiaomi: low-end screens can make them look darker.
 
 ---
 
@@ -319,7 +327,7 @@ Faded cards (Paused, Closed) get a transparent fill, a 1dp dashed `outline` edge
 - Keep each screen's content, states and copy exactly as the canvas shows.
 - Use at most one spotlight per screen, and make it the thing the person acts on.
 - Set ticket numbers in serif and anything that ticks in mono.
-- Keep the grain on the ground only.
+- Give every filled component its texture (section 7), and keep it faint.
 - Make punches real holes.
 - Pair every status colour with a word.
 
@@ -327,7 +335,7 @@ Faded cards (Paused, Closed) get a transparent fill, a 1dp dashed `outline` edge
 - Put marigold on paper, or use it for anything but called / now serving.
 - Use crema for text on paper.
 - Set DM Serif below 20sp or bold.
-- Put grain, gradients or shadows on cards.
+- Put gradients or shadows on cards, or make a texture strong enough to notice before the content.
 - Add stains, torn edges or sepia. It's clean new ticket stock.
 - Give Upcoming and Paused the same colour.
 - Add a ticket detail where section 5 doesn't list one.

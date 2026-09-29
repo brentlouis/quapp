@@ -58,6 +58,7 @@ public class HelpActivity extends AppCompatActivity {
             @Override
             public void onClick(View view) {
                 BottomSheetDialog sheet = new BottomSheetDialog(HelpActivity.this);
+                Grain.attach(sheet);
                 View content = getLayoutInflater().inflate(R.layout.sheet_help, null);
                 ((TextView) content.findViewById(R.id.help_sheet_title)).setText(title);
                 ((TextView) content.findViewById(R.id.help_sheet_body)).setText(body);

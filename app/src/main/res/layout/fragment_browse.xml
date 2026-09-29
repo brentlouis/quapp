@@ -176,6 +176,7 @@
 
             <!-- Search -->
             <LinearLayout
+                android:id="@+id/browse_search_bar"
                 android:layout_width="match_parent"
                 android:layout_height="@dimen/search_height"
                 android:layout_marginStart="@dimen/space_md"
