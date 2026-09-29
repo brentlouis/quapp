@@ -6,14 +6,30 @@
 --reload restarts on every saved change; leave it off for the demo.
 """
 
-from fastapi import FastAPI
+from collections.abc import AsyncIterator
+from contextlib import asynccontextmanager
 
-from app.config import settings  # noqa: F401  imported so a bad .env fails at startup
+from fastapi import Depends, FastAPI
+from sqlalchemy import text
+from sqlalchemy.orm import Session
 
-app = FastAPI(title="Quapp API")
+from app import models  # noqa: F401  imported so every table is registered on Base
+from app.database import Base, engine, get_db
+
+
+@asynccontextmanager
+async def lifespan(app: FastAPI) -> AsyncIterator[None]:
+    # Creates any missing tables at startup. It never changes a table that already exists:
+    # after a schema change, drop the table (or switch to Alembic) — BACKEND.md step 1.3.
+    Base.metadata.create_all(engine)
+    yield
+
+
+app = FastAPI(title="Quapp API", lifespan=lifespan)
 
 
 @app.get("/health")
-def health() -> dict:
-    """Is the server up? The first thing to open from the phone."""
+def health(db: Session = Depends(get_db)) -> dict:
+    """Is the server up, and can it reach the database? The first thing to open from the phone."""
+    db.execute(text("SELECT 1"))
     return {"status": "ok"}
