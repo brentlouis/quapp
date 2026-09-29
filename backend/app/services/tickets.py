@@ -215,7 +215,8 @@ def move_back(db: Session, ticket: Ticket, minutes_needed: int, now: datetime) -
     if not behind:
         raise ApiError(409, "LAST_IN_LINE", "There's nobody behind you to let ahead.")
 
-    places = places_to_move_back(minutes_needed, estimator.minutes_per_person(queue), len(behind))
+    per_person = estimator.estimate(db, queue.id, ticket.service_date).minutes_per_person
+    places = places_to_move_back(minutes_needed, per_person, len(behind))
     # Land between the ticket `places` back and the one after it (45.5 between #45 and #46),
     # or just after the last one
     target = behind[places - 1]
@@ -250,10 +251,3 @@ def positions(db: Session, tickets: list[Ticket]) -> dict[str, int]:
             Ticket.line_order < ticket.line_order))
         result[ticket.id] = ahead + 1
     return result
-
-
-def wait_for(ticket: Ticket, position: int) -> int:
-    """The people ahead are position − 1; the wait is them × minutes per person."""
-    if position <= 0:
-        return 0
-    return estimator.wait_minutes(ticket.queue, position - 1)

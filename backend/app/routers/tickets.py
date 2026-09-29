@@ -16,7 +16,7 @@ from app.enums import TicketStatus
 from app.errors import ApiError, documented
 from app.models import Ticket, User
 from app.schemas import JoinIn, MoveBackIn, TicketOut
-from app.services import schedule
+from app.services import estimator, schedule
 from app.services import tickets as rules
 
 router = APIRouter()
@@ -35,9 +35,13 @@ def tickets_out(db: Session, tickets: list[Ticket], positions: dict[str, int] | 
     """Ticket rows → TicketOut. Positions are counted unless the caller already knows them
     (the console's line is in order already). `masked` hides phones, for organizers."""
     places = positions if positions is not None else rules.positions(db, tickets)
+    per_person = estimator.estimates(db, list({t.queue_id for t in tickets}), timeutil.today())
     out = []
     for ticket in tickets:
         position = places[ticket.id]
+        # The people ahead are position − 1; nobody is ahead once called or finished
+        wait = (estimator.wait_minutes(per_person[ticket.queue_id].minutes_per_person, position - 1)
+                if position > 0 else 0)
         columns = {column.key: getattr(ticket, column.key) for column in Ticket.__table__.columns}
         if masked:
             columns["holder_phone"] = mask_phone(ticket.holder_phone)
@@ -47,7 +51,7 @@ def tickets_out(db: Session, tickets: list[Ticket], positions: dict[str, int] | 
             queue_name=ticket.queue.name,
             venue=ticket.queue.venue,
             position=position,
-            estimated_wait_minutes=rules.wait_for(ticket, position),
+            estimated_wait_minutes=wait,
         ))
     return out
 

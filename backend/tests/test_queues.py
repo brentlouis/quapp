@@ -72,7 +72,8 @@ def test_the_live_numbers(client, db, clock):
     body = client.get(f"/queues/{queue.id}").json()
     assert body["people_waiting"] == 2
     assert body["now_serving"] == 2  # the latest call
-    assert body["estimated_wait_minutes"] == 10  # the default 5 min per person, for now
+    # The calls were 8 minutes apart, so 8 min per person × 2 waiting
+    assert body["estimated_wait_minutes"] == 16
     assert body["organizer_name"] == "City Health Office"
     assert body["organizer_verified"] is True
 

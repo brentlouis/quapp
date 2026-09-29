@@ -8,16 +8,16 @@ a queue whose opening time has passed is OPEN before anyone sees it.
 from datetime import datetime
 
 from fastapi import APIRouter, Depends
-from sqlalchemy import case, or_, select
+from sqlalchemy import case, func, or_, select
 from sqlalchemy.orm import Session, selectinload
 
 from app import timeutil
 from app.database import get_db
 from app.deps import current_user, owned_queue, queue_or_404
-from app.enums import Category, QueueStatus, VerificationStatus
+from app.enums import Category, QueueStatus, RemovalReason, TicketStatus, VerificationStatus
 from app.errors import ApiError, documented
-from app.models import Queue, User
-from app.schemas import ExtendIn, QueueIn, QueueOut, QueuePatch
+from app.models import Queue, Ticket, User
+from app.schemas import ExtendIn, QueueIn, QueueOut, QueuePatch, QueueStatsOut
 from app.services import estimator, schedule
 from app.services.line import live_numbers
 
@@ -35,8 +35,11 @@ STATUS_ORDER = case({QueueStatus.OPEN: 0, QueueStatus.PAUSED: 1,
 
 def to_out(db: Session, queues: list[Queue]) -> list[QueueOut]:
     """Queue rows → QueueOut, with the organizer and the live numbers filled in. The numbers
-    for all of them come from two queries (services/line.py)."""
-    numbers = live_numbers(db, [q.id for q in queues], timeutil.today())
+    for all of them come from three queries: two in services/line.py, one for the service
+    times in services/estimator.py."""
+    ids = [q.id for q in queues]
+    numbers = live_numbers(db, ids, timeutil.today())
+    per_person = estimator.estimates(db, ids, timeutil.today())
     out = []
     for queue in queues:
         organizer = queue.organizer
@@ -50,7 +53,9 @@ def to_out(db: Session, queues: list[Queue]) -> list[QueueOut]:
             organizer_verified=verified,
             people_waiting=live.people_waiting,
             now_serving=live.now_serving,
-            estimated_wait_minutes=estimator.wait_minutes(queue, live.people_waiting),
+            # For someone joining now: everyone waiting is ahead of them
+            estimated_wait_minutes=estimator.wait_minutes(
+                per_person[queue.id].minutes_per_person, live.people_waiting),
         ))
     return out
 
@@ -147,6 +152,34 @@ def my_queues(user: User = Depends(current_user), db: Session = Depends(get_db))
              .options(selectinload(Queue.organizer))
              .order_by(STATUS_ORDER, Queue.start_date.desc(), Queue.name))
     return to_out(db, list(db.scalars(query)))
+
+
+@router.get("/queues/{queue_id}/stats", response_model=QueueStatsOut,
+            responses=documented(401, 403, 404))
+def stats(queue: Queue = Depends(owned_queue), db: Session = Depends(get_db)) -> QueueStatsOut:
+    """The organizer's numbers for today (MODELS.md "QueueStats"), counted in one query.
+    A PRANK removal counts as a no-show (MODELS.md "Rules the server enforces")."""
+    now = timeutil.now()
+    schedule.refresh(db, queue, now)
+    db.commit()
+    today = timeutil.today()
+    served, no_shows, waiting = db.execute(
+        select(func.count().filter(Ticket.status == TicketStatus.SERVED),
+               func.count().filter(or_(Ticket.status == TicketStatus.NO_SHOW,
+                                       Ticket.removal_reason == RemovalReason.PRANK)),
+               func.count().filter(Ticket.status == TicketStatus.WAITING))
+        .where(Ticket.queue_id == queue.id, Ticket.service_date == today)).one()
+    per_person = estimator.estimate(db, queue.id, today)
+    return QueueStatsOut(
+        served_today=served,
+        no_shows_today=no_shows,
+        waiting_now=waiting,
+        average_service_minutes=round(per_person.minutes_per_person, 1),
+        service_sample_count=per_person.samples,
+        projected_wait_minutes=estimator.wait_minutes(per_person.minutes_per_person, waiting),
+        estimate_source=per_person.source,
+        model_samples=0,  # phase 9: how many served people the learning model has seen
+    )
 
 
 # ---- Creating and editing -----------------------------------------------------------

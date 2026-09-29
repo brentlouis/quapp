@@ -12,6 +12,7 @@ from pydantic import BaseModel, ConfigDict, Field, PlainSerializer, field_valida
 
 from app.enums import (
     Category,
+    EstimateSource,
     QueueStatus,
     RemovalReason,
     TicketStatus,
@@ -230,6 +231,19 @@ class QueuePatch(BaseModel):
     @classmethod
     def optional_text(cls, value: str | None) -> str | None:
         return _stripped(value)
+
+
+class QueueStatsOut(BaseModel):
+    """MODELS.md "QueueStats": the organizer's numbers for one queue today."""
+
+    served_today: int
+    no_shows_today: int
+    waiting_now: int
+    average_service_minutes: float
+    service_sample_count: int
+    projected_wait_minutes: int
+    estimate_source: EstimateSource
+    model_samples: int
 
 
 class ExtendIn(BaseModel):
