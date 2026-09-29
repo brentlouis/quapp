@@ -52,9 +52,10 @@ def locked_queue(db: Session, queue_id: str) -> Queue:
 # ---- Joining --------------------------------------------------------------------
 
 def join(db: Session, queue_id: str, user: User, latitude: float | None,
-         longitude: float | None, now: datetime) -> Ticket:
-    """Puts `user` at the back of the line, or raises the ApiError saying why not.
-    Commits on success."""
+         longitude: float | None, now: datetime, holder_name: str | None = None,
+         holder_phone: str | None = None) -> Ticket:
+    """Puts `user` at the back of the line, or raises the ApiError saying why not. The ticket
+    is the account's; the name and phone on it default to the account's too. Commits on success."""
     queue = locked_queue(db, queue_id)
     schedule.refresh(db, queue, now)
 
@@ -62,6 +63,13 @@ def join(db: Session, queue_id: str, user: User, latitude: float | None,
     already = db.scalar(select(Ticket).where(Ticket.queue_id == queue.id,
                                              Ticket.user_id == user.id,
                                              Ticket.status.in_(LIVE)))
+    if already is not None and missed_call(queue, already, now):
+        # Called, 3 minutes passed and the app told them the slot went: joining again settles
+        # that ticket as the no-show it was, before the organizer gets to it
+        already.status = TicketStatus.NO_SHOW
+        already.finished_at = now
+        db.flush()
+        already = None
     if already is not None:
         raise ApiError(409, "ALREADY_IN_LINE", "You're already in this line.",
                        ticket_id=already.id)
@@ -73,8 +81,8 @@ def join(db: Session, queue_id: str, user: User, latitude: float | None,
 
     number = queue.next_ticket_number
     queue.next_ticket_number += 1
-    ticket = Ticket(queue_id=queue.id, user_id=user.id, holder_name=user.name,
-                    holder_phone=user.phone, walk_in=False, ticket_number=number,
+    ticket = Ticket(queue_id=queue.id, user_id=user.id, holder_name=holder_name or user.name,
+                    holder_phone=holder_phone or user.phone, walk_in=False, ticket_number=number,
                     line_order=float(number), service_date=day, status=TicketStatus.WAITING,
                     joined_at=now)
     db.add(ticket)
@@ -85,6 +93,12 @@ def join(db: Session, queue_id: str, user: User, latitude: float | None,
         db.rollback()
         raise ApiError(409, "ALREADY_IN_LINE", "You're already in this line.")
     return ticket
+
+
+def missed_call(queue: Queue, ticket: Ticket, now: datetime) -> bool:
+    """Called on a queue with the grace period, 3 minutes gone and no "I'm here"."""
+    return (ticket.status == TicketStatus.CALLED and queue.grace_period_enabled
+            and ticket.here_at is None and now >= ticket.called_at + GRACE)
 
 
 def joining_day(queue: Queue, now: datetime) -> date:
@@ -104,8 +118,18 @@ def joining_day(queue: Queue, now: datetime) -> date:
 
 
 def check_cooldown(db: Session, user: User, now: datetime) -> None:
+    """Blocked while the latest cooldown hasn't run out (cooldown_state)."""
+    blocked_until, _ = cooldown_state(db, user, now)
+    if blocked_until is not None:
+        raise ApiError(409, "COOLDOWN",
+                       "You missed two calls, so penalty queues are paused for you for 30 minutes.",
+                       until=blocked_until.astimezone(MANILA).isoformat(timespec="seconds"))
+
+
+def cooldown_state(db: Session, user: User, now: datetime) -> tuple[datetime | None, int]:
     """Strikes, oldest first: every second one starts a 30-minute cooldown, and the count
-    starts again. Blocked while the latest cooldown hasn't run out."""
+    starts again. Returns when the current cooldown ends (None if there isn't one running now)
+    and how many strikes count toward the next one."""
     strikes = db.scalars(
         select(Ticket.finished_at)
         .join(Queue, Queue.id == Ticket.queue_id)
@@ -121,10 +145,8 @@ def check_cooldown(db: Session, user: User, now: datetime) -> None:
         if count == STRIKES_FOR_COOLDOWN:
             blocked_until = struck_at + COOLDOWN
             count = 0
-    if blocked_until is not None and now < blocked_until:
-        raise ApiError(409, "COOLDOWN",
-                       "You missed two calls, so penalty queues are paused for you for 30 minutes.",
-                       until=blocked_until.astimezone(MANILA).isoformat(timespec="seconds"))
+    running = blocked_until is not None and now < blocked_until
+    return (blocked_until if running else None), count
 
 
 def check_overlap(db: Session, user: User, queue: Queue, day: date) -> None:

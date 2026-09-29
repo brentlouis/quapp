@@ -62,6 +62,21 @@ public class BrowseFragment extends Fragment implements QueueAdapter.OnQueueClic
     // null means "no filter"
     private Category selectedCategory;
 
+    /** The queues from the server's last answer; null until the first one arrives. */
+    @Nullable
+    private List<Queue> loaded;
+    /** Why the last load failed, while there's nothing to show instead; null otherwise. */
+    @Nullable
+    private ApiError loadError;
+
+    /** The "You're in line" banner follows the tickets as they sync. */
+    private final Runnable ticketsChanged = new Runnable() {
+        @Override
+        public void run() {
+            refresh();
+        }
+    };
+
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container,
                              @Nullable Bundle savedInstanceState) {
@@ -112,11 +127,19 @@ public class BrowseFragment extends Fragment implements QueueAdapter.OnQueueClic
         setUpFirstVisit(view);
     }
 
-    /** Coming back from Queue detail, Join or the ticket screen. */
+    /** Coming back from Queue detail, Join or the ticket screen: the lines have moved since. */
     @Override
     public void onResume() {
         super.onResume();
+        ActiveTicketStore.addListener(ticketsChanged);
         refresh();
+        load();
+    }
+
+    @Override
+    public void onPause() {
+        super.onPause();
+        ActiveTicketStore.removeListener(ticketsChanged);
     }
 
     /** Coming back from another tab. */
@@ -125,7 +148,36 @@ public class BrowseFragment extends Fragment implements QueueAdapter.OnQueueClic
         super.onHiddenChanged(hidden);
         if (!hidden) {
             refresh();
+            load();
         }
+    }
+
+    /**
+     * Asks the server for every upcoming, open and paused queue. Search, town and category are
+     * applied here in the app (QueueFilter), so typing doesn't wait for the network.
+     */
+    private void load() {
+        ApiClient.api(requireContext()).queues().enqueue(new ApiCallback<List<Queue>>(requireActivity()) {
+            @Override
+            protected void onSuccess(@Nullable List<Queue> queues) {
+                Queues.putAll(queues);
+                loaded = queues;
+                loadError = null;
+                refresh();
+            }
+
+            @Override
+            protected void onError(@NonNull ApiError error) {
+                if (loaded == null) {
+                    // Nothing to show instead: the error state, with Try again
+                    loadError = error;
+                    refresh();
+                } else {
+                    // The last list stays up; say it couldn't be updated
+                    super.onError(error);
+                }
+            }
+        });
     }
 
     @Override
@@ -289,15 +341,52 @@ public class BrowseFragment extends Fragment implements QueueAdapter.OnQueueClic
         if (getView() == null) {
             return;
         }
-        List<Queue> all = FakeData.queues();
         String town = session.getTown();
         bindGreeting(town == null);
+        if (loaded == null) {
+            renderNotLoaded();
+            return;
+        }
+        List<Queue> all = loaded;
 
         if (town == null) {
             renderFirstVisit(all);
         } else {
             renderTown(all, town);
         }
+    }
+
+    /**
+     * Before the first answer: "Loading queues…" in the count line; if it failed, the empty
+     * state says so, with Try again (CLAUDE.md: loading, empty, error and populated states).
+     */
+    private void renderNotLoaded() {
+        firstVisit.setVisibility(View.GONE);
+        banner.setVisibility(View.GONE);
+        highlight.setVisibility(View.GONE);
+        list.setVisibility(View.GONE);
+        getView().findViewById(R.id.browse_nearby_label).setVisibility(View.GONE);
+        getView().findViewById(R.id.browse_nearby_row).setVisibility(View.GONE);
+        if (loadError == null) {
+            count.setText(R.string.browse_loading);
+            emptyState.setVisibility(View.GONE);
+            return;
+        }
+        count.setText(null);
+        emptyState.setVisibility(View.VISIBLE);
+        ((TextView) getView().findViewById(R.id.browse_empty_title)).setText(R.string.browse_error_title);
+        ((TextView) getView().findViewById(R.id.browse_empty_body)).setText(
+                loadError.is(ApiError.OFFLINE) ? getString(R.string.api_offline) : loadError.message);
+        MaterialButton retry = getView().findViewById(R.id.browse_empty_button);
+        retry.setText(R.string.browse_error_retry);
+        retry.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                loadError = null;
+                refresh();
+                load();
+            }
+        });
     }
 
     /** "Good morning, Maria" by the hour, or "Welcome, Maria" on a first visit. */

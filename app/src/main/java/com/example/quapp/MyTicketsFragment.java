@@ -48,6 +48,16 @@ public class MyTicketsFragment extends Fragment implements MyTicketsAdapter.OnTi
     /** The ticket shown as the spotlight, so its click and I'm here know which one. */
     private Ticket spotlight;
 
+    /** Redraw whenever a sync changes the tickets (called, served, moved). */
+    private final Runnable ticketsChanged = new Runnable() {
+        @Override
+        public void run() {
+            if (isResumed() && !isHidden()) {
+                bind();
+            }
+        }
+    };
+
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container,
                              @Nullable Bundle savedInstanceState) {
@@ -97,8 +107,27 @@ public class MyTicketsFragment extends Fragment implements MyTicketsAdapter.OnTi
                 if (spotlight == null) {
                     return;
                 }
-                ActiveTicketStore.markServed(spotlight.getId());
-                startActivity(ActiveTicketActivity.intent(requireContext(), spotlight.getId()));
+                final String ticketId = spotlight.getId();
+                ActiveTicketStore.here(requireContext(), ticketId, new ActiveTicketStore.Done<Ticket>() {
+                    @Override
+                    public void onDone(@Nullable Ticket ticket) {
+                        if (isAdded()) {
+                            startActivity(ActiveTicketActivity.intent(requireContext(), ticketId));
+                        }
+                    }
+
+                    @Override
+                    public void onFailed(@NonNull ApiError error) {
+                        if (!isAdded()) {
+                            return;
+                        }
+                        // Too late (GRACE_OVER), or the counter moved on: say so, show where it stands
+                        Snackbar.make(requireView(), error.is(ApiError.OFFLINE)
+                                ? getString(R.string.api_offline) : error.message,
+                                Snackbar.LENGTH_LONG).show();
+                        ActiveTicketStore.sync(requireContext());
+                    }
+                });
             }
         });
 
@@ -142,12 +171,14 @@ public class MyTicketsFragment extends Fragment implements MyTicketsAdapter.OnTi
     @Override
     public void onResume() {
         super.onResume();
+        ActiveTicketStore.addListener(ticketsChanged);
         bind();
     }
 
     @Override
     public void onPause() {
         super.onPause();
+        ActiveTicketStore.removeListener(ticketsChanged);
         cancelGraceTimer();
     }
 
@@ -243,7 +274,7 @@ public class MyTicketsFragment extends Fragment implements MyTicketsAdapter.OnTi
 
             @Override
             public void onFinish() {
-                // The store releases an overdue ticket as soon as it's read.
+                // The window closed: the store now shows the slot as released
                 bind();
             }
         };

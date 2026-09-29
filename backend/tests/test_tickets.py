@@ -37,6 +37,14 @@ def test_joining_puts_you_at_the_back_of_the_line(client, db):
     assert second["queue_name"] == "Barangay Relief Distribution"
 
 
+def test_joining_for_someone_else_puts_their_name_on_the_ticket(client, db):
+    queue = make_queue(db, make_user(db))
+    body = join(client, queue, sign_in(db, make_user(db, name="Maria Santos")),
+                holder_name="Lola Nena", holder_phone="0917 555 0101").json()
+    assert body["holder_name"] == "Lola Nena"
+    assert body["holder_phone"] == "09175550101"
+
+
 def test_joining_early_is_for_the_first_day(client, db, clock):
     tomorrow = clock.today() + timedelta(days=1)
     queue = make_queue(db, make_user(db), status=QueueStatus.UPCOMING,
@@ -74,6 +82,23 @@ def test_one_live_ticket_per_queue(client, db):
     assert again.status_code == 409
     assert again.json()["error"] == "ALREADY_IN_LINE"
     assert again.json()["ticket_id"] == first["id"]
+
+
+def test_joining_again_after_a_missed_call_settles_it_as_a_no_show(client, db, clock):
+    queue = make_queue(db, make_user(db), grace_period_enabled=True)
+    maria = make_user(db)
+    headers = sign_in(db, maria)
+    called = make_ticket(db, queue, maria, status=TicketStatus.CALLED,
+                         called_at=clock.now() - timedelta(minutes=2))
+
+    # Still inside the 3 minutes: that ticket is the one in line
+    assert join(client, queue, headers).json()["error"] == "ALREADY_IN_LINE"
+
+    clock.set(clock.now() + timedelta(minutes=1))  # 3 minutes since the call
+    assert join(client, queue, headers).status_code == 201
+    db.refresh(called)
+    assert called.status == TicketStatus.NO_SHOW
+    assert called.finished_at == clock.now()
 
 
 # ---- Cooldown -----------------------------------------------------------------
@@ -117,6 +142,19 @@ def test_the_count_starts_again_after_a_cooldown(client, db, clock):
     strike(db, maria, clock, 5)   # one new strike alone isn't a cooldown
     queue = make_queue(db, make_user(db), no_show_cooldown_enabled=True)
     assert join(client, queue, sign_in(db, maria)).status_code == 201
+
+
+def test_the_app_can_read_where_the_cooldown_stands(client, db, clock):
+    maria = make_user(db)
+    headers = sign_in(db, maria)
+    assert client.get("/me/cooldown", headers=headers).json() == {
+        "until": None, "strikes": 0, "strike_limit": 2, "duration_minutes": 30}
+    strike(db, maria, clock, 10)
+    assert client.get("/me/cooldown", headers=headers).json()["strikes"] == 1
+    strike(db, maria, clock, 5)
+    body = client.get("/me/cooldown", headers=headers).json()
+    assert body["until"] == "2026-09-29T10:25:00+08:00"
+    assert body["strikes"] == 0  # the count starts again after a cooldown
 
 
 def test_a_prank_removal_is_a_strike_and_a_closed_queue_is_not(client, db, clock):

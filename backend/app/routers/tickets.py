@@ -15,7 +15,7 @@ from app.deps import current_user
 from app.enums import TicketStatus
 from app.errors import ApiError, documented
 from app.models import Ticket, User
-from app.schemas import JoinIn, MoveBackIn, TicketOut
+from app.schemas import CooldownOut, JoinIn, MoveBackIn, TicketOut
 from app.services import estimator, schedule
 from app.services import tickets as rules
 
@@ -74,7 +74,8 @@ def my_ticket(db: Session, ticket_id: str, user: User) -> Ticket:
 def join(queue_id: str, body: JoinIn | None = None, user: User = Depends(current_user),
          db: Session = Depends(get_db)) -> TicketOut:
     body = body or JoinIn()
-    ticket = rules.join(db, queue_id, user, body.latitude, body.longitude, timeutil.now())
+    ticket = rules.join(db, queue_id, user, body.latitude, body.longitude, timeutil.now(),
+                        body.holder_name, body.holder_phone)
     return one_out(db, ticket)
 
 
@@ -98,6 +99,14 @@ def my_tickets(live: bool = True, user: User = Depends(current_user),
         query = mine.where(Ticket.status.not_in(rules.LIVE)).order_by(
             Ticket.finished_at.desc().nulls_last(), Ticket.joined_at.desc())
     return tickets_out(db, list(db.scalars(query)))
+
+
+@router.get("/me/cooldown", response_model=CooldownOut, responses=documented(401, 403))
+def my_cooldown(user: User = Depends(current_user), db: Session = Depends(get_db)) -> CooldownOut:
+    """Where the no-show penalty stands, so the app can say so before a join is refused."""
+    until, strikes = rules.cooldown_state(db, user, timeutil.now())
+    return CooldownOut(until=until, strikes=strikes, strike_limit=rules.STRIKES_FOR_COOLDOWN,
+                       duration_minutes=int(rules.COOLDOWN.total_seconds() // 60))
 
 
 @router.get("/tickets/{ticket_id}", response_model=TicketOut, responses=documented(401, 403, 404))

@@ -15,8 +15,8 @@ import java.util.Map;
 
 /**
  * In-memory stand-in for the backend. Holds queues, each queue's waiting list,
- * served/no-show counts and the queuer's ticket history for as long as the app
- * process lives. Every method here maps onto a future API endpoint, so swapping
+ * and served/no-show counts for as long as the app process lives. The queuer's side
+ * now talks to the server; the organizer's side still reads from here. Every method here maps onto a future API endpoint, so swapping
  * this for Retrofit calls shouldn't touch the layouts.
  */
 public final class FakeData {
@@ -65,52 +65,22 @@ public final class FakeData {
     private static final List<Queue> queues = new ArrayList<>();
     private static final List<String> ownedIds = new ArrayList<>();
     private static final Map<String, LiveQueue> live = new HashMap<>();
-    private static final List<Ticket> history = new ArrayList<>();
     /** How each ticket that left a line ended, by ticket id. The queuer's app reads it back. */
     private static final Map<String, Ticket> finished = new HashMap<>();
     private static int nextQueueNumber = 1;
     private static boolean seeded;
-
-    /**
-     * What a push message from the server would tell the queuer's phone. QuappApplication
-     * listens, and posts or clears the "You're being called" notification.
-     */
-    public interface CounterListener {
-        /** A ticket was just called to the counter. */
-        void onCalled(Ticket ticket);
-
-        /** A ticket stopped waiting at the counter: confirmed, served, released or moved. */
-        void onLeftCounter(String ticketId);
-    }
-
-    @Nullable
-    private static CounterListener counterListener;
 
     // Trust and safety: the logged-in organizer's badge, reports sent, suspended accounts.
     // Verified to start with, so the seeded queues have their badges; see setMyVerification.
     private static VerificationStatus myVerification = VerificationStatus.VERIFIED;
     @Nullable
     private static VerificationRequest myRequest;
-    private static final List<Report> reports = new ArrayList<>();
 
     private FakeData() {
         // Utility class.
     }
 
-    public static void setCounterListener(@Nullable CounterListener listener) {
-        counterListener = listener;
-    }
-
     // ---- Queues -------------------------------------------------------------
-
-    public static List<Queue> queues() {
-        ensureSeeded();
-        List<Queue> result = new ArrayList<>();
-        for (Queue queue : queues) {
-            result.add(withLiveNumbers(queue));
-        }
-        return result;
-    }
 
     public static Queue queueById(String queueId) {
         ensureSeeded();
@@ -338,131 +308,6 @@ public final class FakeData {
 
     // ---- The queuer's side of a line -------------------------------------------
 
-    /** The number the next person to join will be handed. */
-    public static int nextTicketNumber(String queueId) {
-        return liveState(queueId).nextTicketNumber;
-    }
-
-    /** Joining puts a new ticket at the back of the line. */
-    public static Ticket join(String queueId, String holderName, String holderPhone) {
-        Queue queue = queueById(queueId);
-        LiveQueue state = liveState(queueId);
-        int number = state.nextTicketNumber++;
-        Ticket ticket = new Ticket.Builder()
-                .setId(queueId + "-t" + number)
-                .setQueue(queueId, queue == null ? "" : queue.getName(),
-                        queue == null ? "" : queue.getVenue())
-                .setHolder(holderName, holderPhone)
-                .setTicketNumber(number)
-                .build();
-        state.waiting.add(ticket);
-        return placed(state, state.waiting.size() - 1);
-    }
-
-    /**
-     * Where a ticket stands now: in line (with its position and wait), at the counter (CALLED),
-     * or how it ended. Null if this queue never had it.
-     */
-    public static Ticket ticket(String queueId, String ticketId) {
-        LiveQueue state = liveState(queueId);
-        if (state.nowServing != null && state.nowServing.getId().equals(ticketId)) {
-            return state.nowServingTimedOut ? finished.get(ticketId) : state.nowServing;
-        }
-        int index = indexOf(state.waiting, ticketId);
-        if (index >= 0) {
-            return placed(state, index);
-        }
-        return finished.get(ticketId);
-    }
-
-    /**
-     * Demo hook until the console and the queuer are on different phones: the counter calls
-     * this ticket now. Whoever was at the counter is finished first, as with Call next.
-     */
-    public static void callTicket(String queueId, String ticketId) {
-        LiveQueue state = liveState(queueId);
-        int index = indexOf(state.waiting, ticketId);
-        if (index < 0) {
-            return;
-        }
-        if (state.nowServing != null && !state.nowServingTimedOut) {
-            recordServed(state);
-            finish(state.nowServing, Ticket.Status.SERVED);
-        }
-        state.waiting.add(0, state.waiting.remove(index));
-        callFront(state);
-    }
-
-    /** "I'm here": the console shows the person as confirmed. */
-    public static void confirmArrival(String queueId, String ticketId) {
-        LiveQueue state = liveState(queueId);
-        if (isAtCounter(state, ticketId)) {
-            state.nowServingConfirmedAt = Instant.now();
-            leftCounter(ticketId);
-        }
-    }
-
-    /** The queuer's grace period ran out (or the demo skipped it): a no-show, counted once. */
-    public static void releaseCalled(String queueId, String ticketId) {
-        LiveQueue state = liveState(queueId);
-        if (isAtCounter(state, ticketId)) {
-            timeOut(state);
-        }
-    }
-
-    /** Leave queue: the ticket is simply gone. Not a no-show, and it doesn't go to history. */
-    public static void leave(String queueId, String ticketId) {
-        LiveQueue state = liveState(queueId);
-        if (isAtCounter(state, ticketId)) {
-            state.nowServing = null;
-            state.nowServingConfirmedAt = null;
-            leftCounter(ticketId);
-        } else {
-            removeById(state.waiting, ticketId);
-        }
-    }
-
-    /**
-     * "I need more time": the ticket moves back {@code places} places and keeps its number.
-     * Called to the counter already, it hands the slot back and rejoins with {@code places}
-     * people ahead. Never a no-show. Once per ticket; the caller checks.
-     */
-    public static Ticket moveBack(String queueId, String ticketId, int places) {
-        LiveQueue state = liveState(queueId);
-        Ticket ticket;
-        int index;
-        if (isAtCounter(state, ticketId)) {
-            ticket = state.nowServing;
-            state.nowServing = null;
-            state.nowServingConfirmedAt = null;
-            index = Math.min(places, state.waiting.size());
-            leftCounter(ticketId);
-        } else {
-            int from = indexOf(state.waiting, ticketId);
-            if (from < 0) {
-                return null;
-            }
-            ticket = state.waiting.remove(from);
-            index = Math.min(from + places, state.waiting.size());
-        }
-        state.waiting.add(index, ticket.toBuilder()
-                .setStatus(Ticket.Status.WAITING)
-                .setCalledAt(null)
-                .setMovedBack(Instant.now())
-                .build());
-        return placed(state, index);
-    }
-
-    /** The estimator's minutes per person right now (in FakeData, the rolling average). */
-    public static double minutesPerPerson(String queueId) {
-        return averageServiceMs(liveState(queueId)) / 60_000d;
-    }
-
-    /** The forecast wait with this many people ahead. */
-    public static int waitMinutes(String queueId, int peopleAhead) {
-        return forecastMinutes(liveState(queueId), peopleAhead);
-    }
-
     public static QueueStats stats(String queueId) {
         LiveQueue state = liveState(queueId);
         double averageMs = averageServiceMs(state);
@@ -526,33 +371,6 @@ public final class FakeData {
             }
         }
         return null;
-    }
-
-    /** Report a queue (canvas 54). On the server it goes to the admin page. */
-    public static void report(String queueId, Report.Reason reason, @Nullable String details) {
-        reports.add(new Report("r" + (reports.size() + 1), queueId, reason, details, Instant.now()));
-    }
-
-    public static List<Report> reports() {
-        return new ArrayList<>(reports);
-    }
-
-    // ---- Queuer history -----------------------------------------------------
-
-    public static List<Ticket> history() {
-        ensureSeeded();
-        return new ArrayList<>(history);
-    }
-
-    /** Newest first. */
-    public static void addToHistory(Ticket ticket) {
-        ensureSeeded();
-        history.add(0, ticket);
-    }
-
-    public static void clearHistory() {
-        ensureSeeded();
-        history.clear();
     }
 
     // ---- Internals ----------------------------------------------------------
@@ -636,13 +454,6 @@ public final class FakeData {
     /** Records how a ticket that left the line ended, for the queuer's app to read back. */
     private static void finish(Ticket ticket, Ticket.Status status) {
         finished.put(ticket.getId(), ticket.withStatus(status));
-        leftCounter(ticket.getId());
-    }
-
-    private static void leftCounter(String ticketId) {
-        if (counterListener != null) {
-            counterListener.onLeftCounter(ticketId);
-        }
     }
 
     private static void timeOut(LiveQueue state) {
@@ -657,9 +468,6 @@ public final class FakeData {
         state.nowServingConfirmedAt = null;
         state.nowServing = state.waiting.isEmpty() ? null
                 : state.waiting.remove(0).withStatus(Ticket.Status.CALLED);
-        if (state.nowServing != null && counterListener != null) {
-            counterListener.onCalled(state.nowServing);
-        }
     }
 
     /**
@@ -923,12 +731,6 @@ public final class FakeData {
                 6, 10, 0, 0, false);
 
         nextQueueNumber = queues.size() + 1;
-
-        // A few past visits so Queue History isn't empty on first open.
-        history.add(pastTicket("q2", 12, Ticket.Status.SERVED, 2));
-        history.add(pastTicket("q5", 17, Ticket.Status.QUEUE_CLOSED, 9));
-        history.add(pastTicket("q6", 5, Ticket.Status.NO_SHOW, 14));
-        history.add(pastTicket("q3", 4, Ticket.Status.SERVED, 30));
     }
 
     private static LocalTime earlier(LocalTime a, LocalTime b) {
@@ -1005,22 +807,4 @@ public final class FakeData {
         live.put(queue.getId(), state);
     }
 
-    private static Ticket pastTicket(String queueId, int number, Ticket.Status status, int daysAgo) {
-        Queue queue = null;
-        for (Queue candidate : queues) {
-            if (candidate.getId().equals(queueId)) {
-                queue = candidate;
-            }
-        }
-        Instant finished = Instant.now().minus(Duration.ofDays(daysAgo));
-        return new Ticket.Builder()
-                .setId(queueId + "-past" + number)
-                .setQueue(queueId, queue == null ? "" : queue.getName(),
-                        queue == null ? "" : queue.getVenue())
-                .setTicketNumber(number)
-                .setStatus(status)
-                .setJoinedAt(finished.minus(Duration.ofMinutes(40)))
-                .setFinishedAt(finished)
-                .build();
-    }
 }

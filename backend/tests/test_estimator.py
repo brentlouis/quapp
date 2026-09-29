@@ -103,7 +103,11 @@ def test_the_average_drives_every_wait(client, db):
         make_ticket(db, queue, make_user(db))  # behind her
     headers = sign_in(db, maria)
 
-    assert client.get(f"/queues/{queue.id}").json()["estimated_wait_minutes"] == 12 * 2
+    detail = client.get(f"/queues/{queue.id}").json()
+    assert detail["estimated_wait_minutes"] == 12 * 2
+    assert detail["minutes_per_person"] == 2
+    assert detail["service_sample_count"] == 2
+    assert detail["next_ticket_number"] == 16  # 3 called + 12 waiting so far
     assert client.get(f"/tickets/{mine.id}", headers=headers).json()[
         "estimated_wait_minutes"] == 3 * 2
     # 10 minutes at 2 per person = 5 places back

@@ -11,6 +11,8 @@ import android.view.View;
 import android.widget.TextView;
 
 import androidx.annotation.ColorRes;
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.ContextCompat;
 import androidx.core.view.ViewCompat;
@@ -52,6 +54,14 @@ public class ActiveTicketActivity extends AppCompatActivity {
     /** The ticket as last seen online, and when; offline shows this instead of guessing. */
     private Ticket lastSeen;
     private Instant lastSeenAt;
+
+    /** Redraw when a sync brings news: moved up the line, called, served, released. */
+    private final Runnable ticketsChanged = new Runnable() {
+        @Override
+        public void run() {
+            render();
+        }
+    };
 
     public static Intent intent(Context context, String ticketId) {
         Intent intent = new Intent(context, ActiveTicketActivity.class);
@@ -188,16 +198,6 @@ public class ActiveTicketActivity extends AppCompatActivity {
             }
         });
 
-        // Demo hook until the server pushes it: long-press the ticket to simulate being called.
-        ticketCard.setOnLongClickListener(new View.OnLongClickListener() {
-            @Override
-            public boolean onLongClick(View view) {
-                ActiveTicketStore.markCalled(ticketId);
-                openCalled();
-                return true;
-            }
-        });
-
         // The stub's bottom punch is placed from the right edge, so the shape needs the width.
         ticketCard.addOnLayoutChangeListener(new View.OnLayoutChangeListener() {
             @Override
@@ -217,6 +217,7 @@ public class ActiveTicketActivity extends AppCompatActivity {
     @Override
     protected void onResume() {
         super.onResume();
+        ActiveTicketStore.addListener(ticketsChanged);
         render();
         connectivity.start(new Connectivity.Listener() {
             @Override
@@ -229,6 +230,7 @@ public class ActiveTicketActivity extends AppCompatActivity {
     @Override
     protected void onPause() {
         super.onPause();
+        ActiveTicketStore.removeListener(ticketsChanged);
         connectivity.stop();
     }
 
@@ -305,13 +307,13 @@ public class ActiveTicketActivity extends AppCompatActivity {
 
         // Ticks: how far the line has come towards you. Counted in people, not ticket numbers,
         // because a moved-back ticket keeps its number but not its place.
-        Ticket serving = FakeData.nowServing(ticket.getQueueId());
+        Queue queue = Queues.get(ticket.getQueueId());
+        Integer serving = queue == null ? null : queue.getNowServing();
         ProgressTicksView ticks = findViewById(R.id.ticket_ticks);
-        ticks.setProgress(serving == null ? 0f
-                : serving.getTicketNumber() / (float) (serving.getTicketNumber() + ahead + 1));
+        ticks.setProgress(serving == null ? 0f : serving / (float) (serving + ahead + 1));
         ((TextView) findViewById(R.id.ticket_now_serving)).setText(serving == null
                 ? getString(R.string.ticket_now_serving_none)
-                : getString(R.string.ticket_now_serving_format, serving.getTicketNumber()));
+                : getString(R.string.ticket_now_serving_format, serving));
 
         ticketCard.setContentDescription(getString(R.string.ticket_description,
                 ticket.getTicketNumber(), aheadText.getVisibility() == View.VISIBLE
@@ -368,7 +370,7 @@ public class ActiveTicketActivity extends AppCompatActivity {
 
     /** "Bring · Barangay ID · claim stub", only when the organizer filled it in. */
     private void bindBring(Ticket ticket) {
-        Queue queue = FakeData.queueById(ticket.getQueueId());
+        Queue queue = Queues.get(ticket.getQueueId());
         String bring = queue == null ? null : queue.getBring();
         View row = findViewById(R.id.ticket_bring_row);
         int visibility = bring == null ? View.GONE : View.VISIBLE;
@@ -382,12 +384,13 @@ public class ActiveTicketActivity extends AppCompatActivity {
 
     /** "About 55 min", and what that estimate is based on. */
     private void bindEtaRow(Ticket ticket) {
-        QueueStats stats = FakeData.stats(ticket.getQueueId());
+        // The server's minutes per person for this queue today, and what it's from
+        Queue queue = Queues.get(ticket.getQueueId());
         // Locale.US keeps the decimal point a point, matching the rest of the numbers.
-        String basis = stats.getServiceSampleCount() == 0
+        String basis = queue == null || queue.getServiceSampleCount() == 0
                 ? getString(R.string.ticket_eta_basis_none)
                 : String.format(Locale.US, getString(R.string.ticket_eta_basis_format),
-                        stats.getAverageServiceMinutes(), stats.getServiceSampleCount());
+                        queue.getMinutesPerPerson(), queue.getServiceSampleCount());
         ListRow.bind(findViewById(R.id.ticket_eta_row), R.drawable.ic_clock,
                 getString(R.string.ticket_eta_format, ticket.getEstimatedWaitMinutes()), basis);
         findViewById(R.id.ticket_eta_row).findViewById(R.id.row_chevron).setVisibility(View.GONE);
@@ -404,7 +407,7 @@ public class ActiveTicketActivity extends AppCompatActivity {
 
     private void openDirections() {
         Ticket ticket = ActiveTicketStore.ticket(ticketId);
-        Directions.open(this, ticket == null ? null : FakeData.queueById(ticket.getQueueId()));
+        Directions.open(this, ticket == null ? null : Queues.get(ticket.getQueueId()));
     }
 
     /** Leaving gives up the number for good, so it asks first (canvas 26). */
@@ -422,11 +425,29 @@ public class ActiveTicketActivity extends AppCompatActivity {
                         new DialogInterface.OnClickListener() {
                             @Override
                             public void onClick(DialogInterface dialog, int which) {
-                                ActiveTicketStore.leave(ticketId);
-                                finish();
+                                leave();
                             }
                         })
                 .show();
+    }
+
+    /** The server gives the place up; only then does the screen close. */
+    private void leave() {
+        leaveButton.setEnabled(false);
+        ActiveTicketStore.leave(this, ticketId, new ActiveTicketStore.Done<Void>() {
+            @Override
+            public void onDone(@Nullable Void nothing) {
+                finish();
+            }
+
+            @Override
+            public void onFailed(@NonNull ApiError error) {
+                leaveButton.setEnabled(true);
+                Snackbar.make(ticketCard, error.is(ApiError.OFFLINE)
+                                ? getString(R.string.api_offline) : error.message,
+                        Snackbar.LENGTH_LONG).setAnchorView(R.id.ticket_tear).show();
+            }
+        });
     }
 
     // ---- Served / slot released ---------------------------------------------
@@ -462,7 +483,7 @@ public class ActiveTicketActivity extends AppCompatActivity {
 
         keptNumber(ticket, true).setTextColor(ContextCompat.getColor(this, R.color.ink_faint));
 
-        Queue queue = FakeData.queueById(ticket.getQueueId());
+        Queue queue = Queues.get(ticket.getQueueId());
         boolean counts = queue != null && queue.isNoShowCooldownEnabled();
         TextView noShows = findViewById(R.id.ticket_kept_no_shows);
         if (counts) {

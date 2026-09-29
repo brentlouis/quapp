@@ -181,7 +181,26 @@ public class ProfileFragment extends Fragment {
             return;
         }
 
-        List<Ticket> history = FakeData.history();
+        // The row works before the count arrives; the counts come from the server's history
+        ListRow.bind(view.findViewById(R.id.profile_history_row), R.drawable.ic_history,
+                getString(R.string.profile_history_action), null);
+        ApiClient.api(requireContext()).myTickets(false).enqueue(
+                new ApiCallback<List<Ticket>>(requireContext()) {
+                    @Override
+                    protected void onSuccess(@Nullable List<Ticket> history) {
+                        if (isAdded() && history != null) {
+                            bindHistory(view, history);
+                        }
+                    }
+
+                    @Override
+                    protected void onError(@NonNull ApiError error) {
+                        // Quietly keep what's shown: the profile works without the counts
+                    }
+                });
+    }
+
+    private void bindHistory(View view, List<Ticket> history) {
         int served = 0;
         int noShows = 0;
         for (Ticket ticket : history) {
@@ -268,7 +287,6 @@ public class ProfileFragment extends Fragment {
 
     private void logOut() {
         ActiveTicketStore.clear();
-        FakeData.clearHistory();
         // Ends the token on the server too. Nothing waits for the answer: signing out on this
         // phone happens either way, even offline.
         ApiClient.api(requireContext()).logout("Bearer " + session.getToken())

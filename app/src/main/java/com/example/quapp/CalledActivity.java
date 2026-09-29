@@ -7,9 +7,12 @@ import android.os.CountDownTimer;
 import android.view.View;
 import android.widget.TextView;
 
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.google.android.material.progressindicator.CircularProgressIndicator;
+import com.google.android.material.snackbar.Snackbar;
 
 import java.util.Locale;
 
@@ -59,8 +62,7 @@ public class CalledActivity extends AppCompatActivity {
         findViewById(R.id.called_here_button).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                ActiveTicketStore.markServed(ticketId);
-                showOutcome();
+                confirmHere(view);
             }
         });
 
@@ -73,16 +75,6 @@ public class CalledActivity extends AppCompatActivity {
                         showOutcome();
                     }
                 });
-            }
-        });
-
-        // Demo hook: long-press the countdown to skip to the end of the grace period, so the
-        // slot-released flow can be shown without waiting 3 minutes.
-        countdown.setOnLongClickListener(new View.OnLongClickListener() {
-            @Override
-            public boolean onLongClick(View view) {
-                expire();
-                return true;
             }
         });
     }
@@ -114,7 +106,13 @@ public class CalledActivity extends AppCompatActivity {
         ((TextView) findViewById(R.id.called_move_back_hint)).setText(canMove
                 ? R.string.called_move_back_hint : R.string.called_moved_back_hint);
 
-        startGraceTimer(ActiveTicketStore.graceRemainingMs(ticket));
+        // A queue without a grace period has no deadline: nothing to count down.
+        Queue queue = Queues.get(ticket.getQueueId());
+        boolean grace = queue == null || queue.isGracePeriodEnabled();
+        findViewById(R.id.called_timer).setVisibility(grace ? View.VISIBLE : View.GONE);
+        if (grace) {
+            startGraceTimer(ActiveTicketStore.graceRemainingMs(ticket));
+        }
     }
 
     @Override
@@ -152,10 +150,31 @@ public class CalledActivity extends AppCompatActivity {
         }
     }
 
+    /** The server releases the slot at the deadline; the store already shows it as a no-show. */
     private void expire() {
         cancelGraceTimer();
-        ActiveTicketStore.markNoShow(ticketId);
         showOutcome();
+    }
+
+    /** Tell the server; the ticket screen then shows Served. */
+    private void confirmHere(final View button) {
+        button.setEnabled(false);
+        ActiveTicketStore.here(this, ticketId, new ActiveTicketStore.Done<Ticket>() {
+            @Override
+            public void onDone(@Nullable Ticket ticket) {
+                showOutcome();
+            }
+
+            @Override
+            public void onFailed(@NonNull ApiError error) {
+                button.setEnabled(true);
+                Snackbar.make(button, error.is(ApiError.OFFLINE)
+                        ? getString(R.string.api_offline) : error.message,
+                        Snackbar.LENGTH_LONG).show();
+                // Maybe the deadline passed or the organizer already served it: find out.
+                ActiveTicketStore.sync(CalledActivity.this);
+            }
+        });
     }
 
     /** Back to the ticket screen, which shows Served, Slot released or the moved-back ticket. */

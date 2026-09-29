@@ -151,6 +151,9 @@ class QueueOut(Out):
     people_waiting: int
     now_serving: int | None
     estimated_wait_minutes: int
+    next_ticket_number: int
+    minutes_per_person: float
+    service_sample_count: int
 
 
 def _stripped(value: str | None) -> str | None:
@@ -262,6 +265,24 @@ class JoinIn(BaseModel):
 
     latitude: float | None = Field(default=None, ge=-90, le=90)
     longitude: float | None = Field(default=None, ge=-180, le=180)
+    # Who the ticket is for, when it isn't the account holder (Join's Edit). Default: the account.
+    holder_name: str | None = Field(default=None, max_length=80)
+    holder_phone: str | None = None
+
+    @field_validator("holder_name")
+    @classmethod
+    def optional_name(cls, name: str | None) -> str | None:
+        return _stripped(name)
+
+    @field_validator("holder_phone")
+    @classmethod
+    def optional_phone(cls, phone: str | None) -> str | None:
+        if phone is None or not phone.strip():
+            return None
+        phone = normalize_phone(phone)
+        if not PH_MOBILE.match(phone):
+            raise ValueError("Enter a mobile number like 0917 123 4567.")
+        return phone
 
 
 class TicketOut(BaseModel):
@@ -281,10 +302,20 @@ class TicketOut(BaseModel):
     status: TicketStatus
     joined_at: Moment
     called_at: Moment | None
+    here_at: Moment | None
     finished_at: Moment | None
     moved_back: bool
     moved_back_at: Moment | None
     removal_reason: RemovalReason | None
+
+
+class CooldownOut(BaseModel):
+    """MODELS.md "Cooldown": where the no-show penalty stands for the caller."""
+
+    until: Moment | None
+    strikes: int
+    strike_limit: int
+    duration_minutes: int
 
 
 class MoveBackIn(BaseModel):

@@ -9,6 +9,7 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 
@@ -46,7 +47,7 @@ public class ReportQueueActivity extends AppCompatActivity {
         SystemBars.applyPaddingWithKeyboard(findViewById(R.id.report_root));
 
         queueId = getIntent().getStringExtra(EXTRA_QUEUE_ID);
-        Queue queue = FakeData.queueById(queueId);
+        Queue queue = Queues.get(queueId);  // Opened from Queue detail or Join, which loaded it
         if (queue == null) {
             finish();
             return;
@@ -130,8 +131,23 @@ public class ReportQueueActivity extends AppCompatActivity {
             return;
         }
 
-        FakeData.report(queueId, reason, details.isEmpty() ? null : details);
-        Toast.makeText(this, R.string.report_sent, Toast.LENGTH_LONG).show();
-        finish();
+        final View button = findViewById(R.id.report_send);
+        button.setEnabled(false);
+        ApiClient.api(this).report(queueId,
+                new QuappApi.ReportBody(reason, details.isEmpty() ? null : details))
+                .enqueue(new ApiCallback<Void>(this) {
+                    @Override
+                    protected void onSuccess(@Nullable Void nothing) {
+                        Toast.makeText(ReportQueueActivity.this, R.string.report_sent,
+                                Toast.LENGTH_LONG).show();
+                        finish();
+                    }
+
+                    @Override
+                    protected void onError(@NonNull ApiError error) {
+                        button.setEnabled(true);
+                        super.onError(error);  // the Snackbar
+                    }
+                });
     }
 }

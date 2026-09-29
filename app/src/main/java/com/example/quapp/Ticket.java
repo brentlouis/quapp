@@ -45,6 +45,9 @@ public class Ticket {
     private final Instant joinedAt;
     @Nullable
     private final Instant calledAt;
+    /** When the holder tapped "I'm here"; the ticket stays CALLED until the counter serves it. */
+    @Nullable
+    private final Instant hereAt;
     @Nullable
     private final Instant finishedAt;
     private final boolean movedBack;
@@ -67,6 +70,7 @@ public class Ticket {
         status = b.status;
         joinedAt = b.joinedAt;
         calledAt = b.calledAt;
+        hereAt = b.hereAt;
         finishedAt = b.finishedAt;
         movedBack = b.movedBack;
         movedBackAt = b.movedBackAt;
@@ -88,6 +92,7 @@ public class Ticket {
         b.status = status;
         b.joinedAt = joinedAt;
         b.calledAt = calledAt;
+        b.hereAt = hereAt;
         b.finishedAt = finishedAt;
         b.movedBack = movedBack;
         b.movedBackAt = movedBackAt;
@@ -108,6 +113,7 @@ public class Ticket {
     public Status getStatus() { return status; }
     public Instant getJoinedAt() { return joinedAt; }
     @Nullable public Instant getCalledAt() { return calledAt; }
+    @Nullable public Instant getHereAt() { return hereAt; }
     @Nullable public Instant getFinishedAt() { return finishedAt; }
     public boolean isMovedBack() { return movedBack; }
     @Nullable public Instant getMovedBackAt() { return movedBackAt; }
@@ -147,6 +153,7 @@ public class Ticket {
         private Status status = Status.WAITING;
         private Instant joinedAt = Instant.now();
         private Instant calledAt;
+        private Instant hereAt;
         private Instant finishedAt;
         private boolean movedBack;
         private Instant movedBackAt;

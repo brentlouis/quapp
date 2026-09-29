@@ -64,6 +64,11 @@ public class Queue {
     @Nullable
     private final Integer nowServing;
     private final int estimatedWaitMinutes;
+    /** The number the next person to join gets ("You'll be #64"). */
+    private final int nextTicketNumber;
+    /** The estimator's minutes per person today, and how many service times it's from (0 = the default). */
+    private final double minutesPerPerson;
+    private final int serviceSampleCount;
 
     private Queue(Builder b) {
         id = b.id;
@@ -93,6 +98,9 @@ public class Queue {
         peopleWaiting = b.peopleWaiting;
         nowServing = b.nowServing;
         estimatedWaitMinutes = b.estimatedWaitMinutes;
+        nextTicketNumber = b.nextTicketNumber;
+        minutesPerPerson = b.minutesPerPerson;
+        serviceSampleCount = b.serviceSampleCount;
     }
 
     /** A builder pre-filled with this queue's values, for making a changed copy. */
@@ -125,6 +133,9 @@ public class Queue {
         b.peopleWaiting = peopleWaiting;
         b.nowServing = nowServing;
         b.estimatedWaitMinutes = estimatedWaitMinutes;
+        b.nextTicketNumber = nextTicketNumber;
+        b.minutesPerPerson = minutesPerPerson;
+        b.serviceSampleCount = serviceSampleCount;
         return b;
     }
 
@@ -155,6 +166,9 @@ public class Queue {
     public int getPeopleWaiting() { return peopleWaiting; }
     @Nullable public Integer getNowServing() { return nowServing; }
     public int getEstimatedWaitMinutes() { return estimatedWaitMinutes; }
+    public int getNextTicketNumber() { return nextTicketNumber; }
+    public double getMinutesPerPerson() { return minutesPerPerson; }
+    public int getServiceSampleCount() { return serviceSampleCount; }
 
     /** Open and Upcoming queues take joins (Upcoming lets people hold a number early). */
     public boolean acceptsJoins() {
@@ -191,6 +205,9 @@ public class Queue {
         private int peopleWaiting;
         private Integer nowServing;
         private int estimatedWaitMinutes;
+        private int nextTicketNumber = 1;
+        private double minutesPerPerson = 5;
+        private int serviceSampleCount;
 
         public Builder setId(String id) { this.id = id; return this; }
 
@@ -242,6 +259,13 @@ public class Queue {
         public Builder setPeopleWaiting(int count) { this.peopleWaiting = count; return this; }
         public Builder setNowServing(@Nullable Integer number) { this.nowServing = number; return this; }
         public Builder setEstimatedWaitMinutes(int minutes) { this.estimatedWaitMinutes = minutes; return this; }
+        public Builder setNextTicketNumber(int number) { this.nextTicketNumber = number; return this; }
+
+        public Builder setMinutesPerPerson(double minutes, int samples) {
+            this.minutesPerPerson = minutes;
+            this.serviceSampleCount = samples;
+            return this;
+        }
 
         public Queue build() {
             if (id == null || name == null || startDate == null || endDate == null) {

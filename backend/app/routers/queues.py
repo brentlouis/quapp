@@ -56,6 +56,8 @@ def to_out(db: Session, queues: list[Queue]) -> list[QueueOut]:
             # For someone joining now: everyone waiting is ahead of them
             estimated_wait_minutes=estimator.wait_minutes(
                 per_person[queue.id].minutes_per_person, live.people_waiting),
+            minutes_per_person=round(per_person[queue.id].minutes_per_person, 2),
+            service_sample_count=per_person[queue.id].samples,
         ))
     return out
 

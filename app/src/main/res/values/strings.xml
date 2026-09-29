@@ -136,6 +136,7 @@
     <string name="join_back_description">Back</string>
     <string name="join_name_error">Enter your name</string>
     <string name="join_phone_error">Enter an 11-digit number starting with 09</string>
+    <string name="join_busy">Joining…</string>
 
     <!-- Active ticket -->
     <string name="ticket_number_label">Your number</string>
@@ -330,6 +331,9 @@
     <string name="history_empty_title">No past queues yet</string>
     <string name="history_empty_body">Queues you finish, served or missed, show up here.</string>
     <string name="history_empty_action">Browse queues</string>
+    <string name="history_loading">Loading your past queues</string>
+    <string name="history_error_title">Couldn\'t load your history</string>
+    <string name="history_error_retry">Try again</string>
 
     <plurals name="analytics_average_basis">
         <item quantity="one">(the last person served)</item>
@@ -467,6 +471,9 @@
     <string name="browse_more_towns_format">%d more</string>
     <string name="browse_town_dialog_title">Your town</string>
     <string name="browse_search_hint">Search queues or venues</string>
+    <string name="browse_loading">Loading queues…</string>
+    <string name="browse_error_title">Couldn\'t load queues</string>
+    <string name="browse_error_retry">Try again</string>
     <string name="browse_search_any_hint">Or search any queue or venue</string>
     <string name="browse_open_now_format">Open now across Bohol · %d</string>
     <string name="browse_open_now_detail_format">%1$s · %2$d min wait</string>

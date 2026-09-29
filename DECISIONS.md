@@ -1306,6 +1306,18 @@ The organizer line on Queue detail opens the badge sheet (52) for both verified 
 
 ---
 
+## A missed call settles itself when the queuer joins again
+
+**Decision:** When the 3 minutes pass without "I'm here", the ticket stays CALLED on the server and the organizer decides (no-show, or serve anyway), as before. The one exception: if the holder joins the same queue again, the server marks that ticket NO_SHOW first and then lets them join. The app shows the no-show from the deadline on, and hides a ticket the queuer closed with Done even while the server still has it live (a confirmed ticket stays CALLED until the counter calls the next person).
+
+**Why:** Found testing batch 2 on the emulator. The app said "Slot released · Join again", and joining was refused with ALREADY_IN_LINE because the organizer hadn't pressed anything yet. The queuer has given the slot up either way, so settling it is what the organizer would do, and it still counts as a strike on penalty queues.
+
+**Also considered:** The server marking every missed call NO_SHOW at the deadline. That takes "serve anyway" away from the organizer, for someone who walks up at 3:05. Hiding "Join again" until the organizer acts: the queuer would be stuck waiting on someone else's tap.
+
+**Status:** Current (MODELS.md "Line", `nowServingTimedOut`).
+
+---
+
 ## Known compromises
 
 Deliberate shortcuts, not oversights. Each has a planned fix.

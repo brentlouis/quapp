@@ -13,6 +13,7 @@ import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.activity.result.ActivityResultCallback;
 import androidx.activity.result.ActivityResultLauncher;
@@ -48,6 +49,20 @@ public class QueueDetailActivity extends AppCompatActivity {
     private LocationState locationState = LocationState.UNCHECKED;
     /** How far away the last check found the queuer, for "You're 4.2 km away". */
     private float distanceMeters;
+    /** Where the check found the queuer inside the radius; Join sends it for the server's check. */
+    @Nullable
+    private Location checkedLocation;
+
+    /** A ticket for this queue may appear or end while the screen is open. */
+    private final Runnable ticketsChanged = new Runnable() {
+        @Override
+        public void run() {
+            Queue queue = Queues.get(queueId);
+            if (queue != null) {
+                bindJoinButton(queue);
+            }
+        }
+    };
 
     /**
      * Android's own permission dialog. Registered as a field because an Activity must register
@@ -74,11 +89,6 @@ public class QueueDetailActivity extends AppCompatActivity {
 
         queueId = getIntent().getStringExtra(EXTRA_QUEUE_ID);
 
-        if (FakeData.queueById(queueId) == null) {
-            finish();
-            return;
-        }
-
         ImageButton backButton = findViewById(R.id.detail_back);
         backButton.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -97,7 +107,7 @@ public class QueueDetailActivity extends AppCompatActivity {
         findViewById(R.id.detail_directions).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                Directions.open(QueueDetailActivity.this, FakeData.queueById(queueId));
+                Directions.open(QueueDetailActivity.this, Queues.get(queueId));
             }
         });
 
@@ -114,16 +124,14 @@ public class QueueDetailActivity extends AppCompatActivity {
         findViewById(R.id.detail_dock).setBackground(TicketShapes.stubDockBackground(this));
     }
 
-    /** Re-bound on every return: the ticket or cooldown may have changed while away. */
+    /**
+     * Re-bound on every return: the ticket or cooldown may have changed while away. The copy the
+     * app already has shows at once (usually from Browse); the server's latest replaces it.
+     */
     @Override
     protected void onResume() {
         super.onResume();
-
-        Queue queue = FakeData.queueById(queueId);
-        if (queue == null) {
-            finish();
-            return;
-        }
+        ActiveTicketStore.addListener(ticketsChanged);
 
         // Back from Settings with location allowed and on: Join works again.
         if (locationState == LocationState.OFF && ProximityCheck.hasPermission(this)
@@ -131,8 +139,37 @@ public class QueueDetailActivity extends AppCompatActivity {
             locationState = LocationState.UNCHECKED;
         }
 
-        bindQueue(queue);
-        bindJoinButton(queue);
+        Queue cached = Queues.get(queueId);
+        if (cached != null) {
+            bindQueue(cached);
+            bindJoinButton(cached);
+        }
+        Queues.fetch(this, queueId, new Queues.Loaded() {
+            @Override
+            public void onLoaded(Queue queue) {
+                if (!isFinishing()) {
+                    bindQueue(queue);
+                    bindJoinButton(queue);
+                }
+            }
+
+            @Override
+            public void onFailed(ApiError error) {
+                if (Queues.get(queueId) != null) {
+                    return;  // the copy on screen stays; the next visit tries again
+                }
+                // Nothing to show: say why and go back (opened from a share link while offline)
+                Toast.makeText(QueueDetailActivity.this, error.is(ApiError.OFFLINE)
+                        ? getString(R.string.api_offline) : error.message, Toast.LENGTH_LONG).show();
+                finish();
+            }
+        });
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        ActiveTicketStore.removeListener(ticketsChanged);
     }
 
     /**
@@ -201,7 +238,7 @@ public class QueueDetailActivity extends AppCompatActivity {
         // Free to join: the stub shows the number you'd be handed.
         youWillBe.setVisibility(View.VISIBLE);
         ((TextView) findViewById(R.id.detail_next_number)).setText(
-                getString(R.string.ticket_number_format, FakeData.nextTicketNumber(queue.getId())));
+                getString(R.string.ticket_number_format, queue.getNextTicketNumber()));
         joinButton.setEnabled(true);
         // Upcoming queues take joins too: you hold a number before it opens.
         joinButton.setText(queue.getStatus() == Queue.Status.UPCOMING
@@ -223,6 +260,11 @@ public class QueueDetailActivity extends AppCompatActivity {
     private void openJoin() {
         Intent intent = new Intent(this, JoinQueueActivity.class);
         intent.putExtra(JoinQueueActivity.EXTRA_QUEUE_ID, queueId);
+        if (checkedLocation != null) {
+            // The server checks the radius again with the same reading (MODELS.md "Radius")
+            intent.putExtra(JoinQueueActivity.EXTRA_LATITUDE, checkedLocation.getLatitude());
+            intent.putExtra(JoinQueueActivity.EXTRA_LONGITUDE, checkedLocation.getLongitude());
+        }
         startActivity(intent);
     }
 
@@ -263,7 +305,7 @@ public class QueueDetailActivity extends AppCompatActivity {
         ProximityCheck.locate(this, new ProximityCheck.Callback() {
             @Override
             public void onLocated(@Nullable Location location) {
-                Queue queue = FakeData.queueById(queueId);
+                Queue queue = Queues.get(queueId);
                 if (isFinishing() || queue == null) {
                     return;
                 }
@@ -275,6 +317,7 @@ public class QueueDetailActivity extends AppCompatActivity {
                 }
                 distanceMeters = ProximityCheck.distanceMeters(location, queue);
                 if (distanceMeters <= queue.getJoinRadiusMeters()) {
+                    checkedLocation = location;
                     setLocationState(LocationState.UNCHECKED);
                     openJoin();
                 } else {
@@ -286,7 +329,7 @@ public class QueueDetailActivity extends AppCompatActivity {
 
     private void setLocationState(LocationState state) {
         locationState = state;
-        Queue queue = FakeData.queueById(queueId);
+        Queue queue = Queues.get(queueId);
         if (queue != null) {
             bindJoinButton(queue);
         }

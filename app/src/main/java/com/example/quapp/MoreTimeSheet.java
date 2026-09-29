@@ -6,11 +6,13 @@ import android.view.View;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.appcompat.view.ContextThemeWrapper;
 
 import com.google.android.material.bottomsheet.BottomSheetDialog;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.button.MaterialButtonToggleGroup;
+import com.google.android.material.snackbar.Snackbar;
 
 import java.time.Duration;
 import java.time.Instant;
@@ -61,12 +63,16 @@ public final class MoreTimeSheet {
         }
         queueId = ticket.getQueueId();
         boolean called = ticket.getStatus() == Ticket.Status.CALLED;
-        int inLine = FakeData.waitingTickets(queueId).size();
+        Queue queue = Queues.get(queueId);
+        if (queue == null) {
+            return;
+        }
+        int inLine = queue.getPeopleWaiting();
         // At the counter nobody is ahead, and the whole line is behind.
         ahead = called ? 0 : ticket.getPosition() - 1;
         behind = called ? inLine : inLine - ticket.getPosition();
         waitNow = called ? 0 : ticket.getEstimatedWaitMinutes();
-        minutesPerPerson = FakeData.minutesPerPerson(queueId);
+        minutesPerPerson = queue.getMinutesPerPerson();
 
         View content = LayoutInflater.from(context).inflate(R.layout.sheet_more_time, null);
         ((TextView) content.findViewById(R.id.more_time_lead)).setText(context.getString(
@@ -117,10 +123,10 @@ public final class MoreTimeSheet {
     }
 
     /** Fills the card, the explanation and the button for this many minutes. */
-    private void preview(View content, int minutes) {
+    private void preview(final View content, int minutes) {
         final int places = TicketRules.placesToMoveBack(minutes, minutesPerPerson, behind);
         int newAhead = ahead + places;
-        int waitAfter = FakeData.waitMinutes(queueId, newAhead);
+        int waitAfter = (int) Math.round(minutesPerPerson * newAhead);
 
         valueRow(content, R.id.more_time_row_ahead,
                 context.getString(R.string.more_time_change_format, ahead, newAhead));
@@ -152,14 +158,28 @@ public final class MoreTimeSheet {
         confirm.setEnabled(true);
         confirm.setText(context.getResources().getQuantityString(
                 R.plurals.more_time_confirm, places, places));
+        final int minutesNeeded = minutes;
         confirm.setOnClickListener(new View.OnClickListener() {
             @Override
-            public void onClick(View v) {
-                Ticket moved = ActiveTicketStore.moveBack(ticketId, places);
-                dialog.dismiss();
-                if (moved != null) {
-                    listener.onMoved(moved, places);
-                }
+            public void onClick(final View button) {
+                // The server works out the places again from the same minutes and moves the ticket
+                button.setEnabled(false);
+                ActiveTicketStore.moveBack(context, ticketId, minutesNeeded, false,
+                        new ActiveTicketStore.Done<Ticket>() {
+                            @Override
+                            public void onDone(@Nullable Ticket moved) {
+                                dialog.dismiss();
+                                listener.onMoved(moved, places);
+                            }
+
+                            @Override
+                            public void onFailed(@NonNull ApiError error) {
+                                button.setEnabled(true);
+                                Snackbar.make(content, error.is(ApiError.OFFLINE)
+                                        ? context.getString(R.string.api_offline) : error.message,
+                                        Snackbar.LENGTH_LONG).show();
+                            }
+                        });
             }
         });
     }

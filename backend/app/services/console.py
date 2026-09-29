@@ -15,7 +15,7 @@ from app.enums import QueueStatus, RemovalReason, TicketStatus
 from app.errors import ApiError
 from app.models import Queue, Ticket, TicketRemoval, User
 from app.services import schedule
-from app.services.tickets import GRACE, locked_queue
+from app.services.tickets import locked_queue, missed_call
 from app.timeutil import MANILA
 
 
@@ -41,9 +41,9 @@ def at_counter(db: Session, queue: Queue) -> Ticket | None:
 
 def timed_out(queue: Queue, ticket: Ticket | None, now: datetime) -> bool:
     """3 minutes since the call and no "I'm here", on a queue with the grace period. The
-    organizer sees it and decides; the server never marks the no-show by itself."""
-    return (ticket is not None and queue.grace_period_enabled and ticket.here_at is None
-            and now >= ticket.called_at + GRACE)
+    organizer sees it and decides; the server only marks the no-show by itself when the
+    queuer joins the same line again (services/tickets.join)."""
+    return ticket is not None and missed_call(queue, ticket, now)
 
 
 def line(db: Session, queue: Queue, now: datetime) -> Line:

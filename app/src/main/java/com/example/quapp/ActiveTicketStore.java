@@ -1,29 +1,50 @@
 package com.example.quapp;
 
+import android.content.Context;
+
+import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 /**
  * The queuer's tickets: several at once, as long as their queues' hours don't overlap
- * (MODELS.md). Each is kept by id until the queuer taps Done on its outcome.
+ * (MODELS.md). Each is kept until the queuer taps Done on its outcome.
  *
- * The line itself lives in FakeData (later, the server). Every read here asks FakeData where
- * each ticket stands now, so a Call next or a queue closing on the owner's console shows up on
- * the queuer's ticket without either screen telling the other.
+ * The tickets live on the server; this is the app's copy of them, so every screen can read
+ * them straight away (the reading methods return at once). {@link #sync} brings the copy up to
+ * date: QuappApplication calls it every 10 seconds while the app is open (DECISIONS.md "'You've
+ * been called' reaches the phone by polling"), and every change the queuer makes (join, I'm here,
+ * move back, leave) goes to the server first and then updates the copy. Screens that show tickets
+ * {@link #addListener listen}, and redraw when the copy changes.
+ *
+ * Two things are shown differently from the server's word, on purpose:
+ * - "I'm here" leaves the ticket CALLED on the server until the counter serves it; the queuer
+ *   has done their part, so the app shows it as SERVED straight away.
+ * - When the 3-minute grace window runs out without "I'm here", the server leaves the no-show
+ *   to the organizer (MODELS.md "Line"); the app shows the slot as released, as it always has.
+ *   If the counter serves the person anyway, the next sync shows SERVED.
  */
 public final class ActiveTicketStore {
 
-    /** Kept in the order they were joined; {@link #tickets()} sorts them for display. */
+    /** The server's copies, in the order they were first seen; {@link #tickets()} sorts them. */
     private static final List<Ticket> held = new ArrayList<>();
-    /** Tickets whose no-show has already gone toward the cooldown, so it counts once. */
-    private static final Set<String> countedNoShows = new HashSet<>();
+    private static final List<Runnable> listeners = new ArrayList<>();
+    /** A sync is on its way; another request for one waits for the next round. */
+    private static boolean syncing;
+    /**
+     * Tickets the queuer closed with Done. A ticket confirmed with I'm here stays live on the
+     * server until the counter calls the next person, so syncs would bring it back without this.
+     */
+    private static final Set<String> dismissed = new HashSet<>();
 
     private ActiveTicketStore() {
         // Utility class.
@@ -32,12 +53,14 @@ public final class ActiveTicketStore {
     // ---- Reading ------------------------------------------------------------
 
     /**
-     * Every ticket held, freshest state first: being called on top, then the rest by when their
-     * queue opens, finished ones last.
+     * Every ticket held, as the queuer should see it: being called on top, then the rest by when
+     * their queue opens, finished ones last.
      */
     public static List<Ticket> tickets() {
-        refresh();
-        List<Ticket> result = new ArrayList<>(held);
+        List<Ticket> result = new ArrayList<>();
+        for (Ticket ticket : held) {
+            result.add(shown(ticket));
+        }
         Collections.sort(result, new Comparator<Ticket>() {
             @Override
             public int compare(Ticket a, Ticket b) {
@@ -68,9 +91,8 @@ public final class ActiveTicketStore {
 
     @Nullable
     public static Ticket ticket(String ticketId) {
-        refresh();
         int index = indexOf(ticketId);
-        return index < 0 ? null : held.get(index);
+        return index < 0 ? null : shown(held.get(index));
     }
 
     /** Any ticket (live or not yet dismissed) for this queue. */
@@ -88,7 +110,7 @@ public final class ActiveTicketStore {
     @Nullable
     public static Ticket overlapping(Queue queue) {
         for (Ticket ticket : liveTickets()) {
-            Queue other = FakeData.queueById(ticket.getQueueId());
+            Queue other = Queues.get(ticket.getQueueId());
             if (other != null && !other.getId().equals(queue.getId())
                     && TicketRules.hoursOverlap(other, queue, Format.today())) {
                 return ticket;
@@ -97,10 +119,6 @@ public final class ActiveTicketStore {
         return null;
     }
 
-    /**
-     * Whether this ticket is one of the queuer's. Doesn't refresh from the line, so FakeData can
-     * ask it in the middle of calling someone.
-     */
     public static boolean holds(String ticketId) {
         return indexOf(ticketId) >= 0;
     }
@@ -118,130 +136,311 @@ public final class ActiveTicketStore {
         return Math.max(0, deadline - System.currentTimeMillis());
     }
 
-    // ---- Changing -----------------------------------------------------------
+    // ---- Listening ----------------------------------------------------------
 
-    public static void add(Ticket ticket) {
-        held.add(ticket);
+    /** Told (on the main thread) whenever the copy changes. Remove it when the screen goes. */
+    public static void addListener(Runnable listener) {
+        listeners.add(listener);
     }
 
-    /** Demo hook: the counter calls this ticket (see FakeData.callTicket). */
-    public static void markCalled(String ticketId) {
-        Ticket ticket = ticket(ticketId);
-        if (ticket != null && ticket.getStatus() == Ticket.Status.WAITING) {
-            FakeData.callTicket(ticket.getQueueId(), ticketId);
+    public static void removeListener(Runnable listener) {
+        listeners.remove(listener);
+    }
+
+    private static void changed() {
+        // A copy of the list, so a listener that removes itself doesn't break the loop
+        for (Runnable listener : new ArrayList<>(listeners)) {
+            listener.run();
         }
     }
 
-    /** "I'm here": served, as far as the queuer is concerned; the console sees it confirmed. */
-    public static void markServed(String ticketId) {
-        Ticket ticket = ticket(ticketId);
-        if (ticket != null && ticket.getStatus() == Ticket.Status.CALLED) {
-            FakeData.confirmArrival(ticket.getQueueId(), ticketId);
-            replace(ticket.withStatus(Ticket.Status.SERVED));
-        }
-    }
+    // ---- Keeping up with the server ------------------------------------------
 
-    /** The grace window ran out. Counts toward the cooldown if the queue has the penalty on. */
-    public static void markNoShow(String ticketId) {
-        Ticket ticket = ticket(ticketId);
-        if (ticket != null && ticket.getStatus() == Ticket.Status.CALLED) {
-            FakeData.releaseCalled(ticket.getQueueId(), ticketId);
-            refresh();
+    /**
+     * Brings the copy up to date: the live tickets, the final state of any that stopped being
+     * live since (served, released, closed), each ticket's queue (for its hours and now
+     * serving), and the cooldown. Listeners hear once it's all in.
+     */
+    public static void sync(final Context context) {
+        if (syncing || !new Session(context).isLoggedIn()) {
+            return;
         }
+        syncing = true;
+        ApiClient.api(context).myTickets(true).enqueue(new ApiCallback<List<Ticket>>(context) {
+            @Override
+            protected void onSuccess(@Nullable List<Ticket> live) {
+                mergeLive(context, live);
+            }
+
+            @Override
+            protected void onError(@NonNull ApiError error) {
+                // Offline or the server is down: keep the copy as it is and try next round
+                syncing = false;
+            }
+        });
     }
 
     /**
-     * "I need more time": moves the ticket back by as many places as the estimator says the
-     * minutes are worth. Returns the moved ticket, or null if it couldn't move.
+     * The live list replaces the live tickets. Any that were live and aren't any more are asked
+     * for one by one, so their outcome can be shown; one that's gone entirely (left from another
+     * phone) is dropped.
      */
-    @Nullable
-    public static Ticket moveBack(String ticketId, int places) {
-        Ticket ticket = ticket(ticketId);
-        if (ticket == null || !ticket.isLive() || ticket.isMovedBack() || places <= 0) {
-            return null;
+    private static void mergeLive(final Context context, List<Ticket> live) {
+        Map<String, Ticket> fresh = new HashMap<>();
+        for (Ticket ticket : live) {
+            if (!dismissed.contains(ticket.getId())) {
+                fresh.put(ticket.getId(), ticket);
+            }
         }
-        Ticket moved = FakeData.moveBack(ticket.getQueueId(), ticketId, places);
-        if (moved != null) {
-            replace(moved);
+
+        final List<String> finishedSince = new ArrayList<>();
+        List<Ticket> merged = new ArrayList<>();
+        for (Ticket old : held) {
+            Ticket now = fresh.remove(old.getId());
+            if (now != null) {
+                notifyIfCalled(context, old, now);
+                merged.add(now);
+            } else {
+                merged.add(old);
+                if (old.isLive()) {
+                    finishedSince.add(old.getId());
+                }
+            }
         }
-        return moved;
+        // Joined from another phone, or the first sync after starting the app
+        for (Ticket ticket : fresh.values()) {
+            notifyIfCalled(context, null, ticket);
+            merged.add(ticket);
+        }
+        held.clear();
+        held.addAll(merged);
+
+        // Everything else this sync needs, counted down to one "changed"
+        Set<String> queueIds = new HashSet<>();
+        for (Ticket ticket : held) {
+            if (ticket.isLive() || Queues.get(ticket.getQueueId()) == null) {
+                queueIds.add(ticket.getQueueId());
+            }
+        }
+        final int[] pending = {finishedSince.size() + queueIds.size() + 1};
+        final Runnable oneDone = new Runnable() {
+            @Override
+            public void run() {
+                if (--pending[0] == 0) {
+                    syncing = false;
+                    changed();
+                }
+            }
+        };
+
+        for (final String ticketId : finishedSince) {
+            ApiClient.api(context).ticket(ticketId).enqueue(new ApiCallback<Ticket>(context) {
+                @Override
+                protected void onSuccess(@Nullable Ticket ticket) {
+                    CalledNotifier.cancel(context, ticketId);
+                    replace(ticket);
+                    oneDone.run();
+                }
+
+                @Override
+                protected void onError(@NonNull ApiError error) {
+                    if (error.is("TICKET_NOT_FOUND")) {
+                        CalledNotifier.cancel(context, ticketId);
+                        remove(ticketId);
+                    }
+                    oneDone.run();
+                }
+            });
+        }
+        for (String queueId : queueIds) {
+            Queues.fetch(context, queueId, new Queues.Loaded() {
+                @Override
+                public void onLoaded(Queue queue) {
+                    oneDone.run();
+                }
+
+                @Override
+                public void onFailed(ApiError error) {
+                    oneDone.run();
+                }
+            });
+        }
+        ApiClient.api(context).cooldown().enqueue(new ApiCallback<QuappApi.CooldownState>(context) {
+            @Override
+            protected void onSuccess(@Nullable QuappApi.CooldownState state) {
+                Cooldown.update(state);
+                oneDone.run();
+            }
+
+            @Override
+            protected void onError(@NonNull ApiError error) {
+                oneDone.run();
+            }
+        });
+    }
+
+    /**
+     * Shows the "You're being called" notification the moment a ticket turns CALLED, and clears
+     * it once the queuer has answered or the call is over.
+     */
+    private static void notifyIfCalled(Context context, @Nullable Ticket before, Ticket now) {
+        boolean calledNow = now.getStatus() == Ticket.Status.CALLED && now.getHereAt() == null;
+        boolean calledBefore = before != null && before.getStatus() == Ticket.Status.CALLED
+                && before.getHereAt() == null;
+        if (calledNow && !calledBefore && graceRemainingMs(now) > 0) {
+            CalledNotifier.show(context, now);
+        } else if (!calledNow && calledBefore) {
+            CalledNotifier.cancel(context, now.getId());
+        }
+    }
+
+    // ---- Changing (server first, then the copy) --------------------------------
+
+    /** What a change hands back: the result, or the server's reason it didn't happen. */
+    public interface Done<T> {
+        void onDone(@Nullable T result);
+
+        void onFailed(@NonNull ApiError error);
+    }
+
+    public static void join(Context context, String queueId, @Nullable Double latitude,
+                            @Nullable Double longitude, String holderName, String holderPhone,
+                            final Done<Ticket> done) {
+        ApiClient.api(context).join(queueId,
+                        new QuappApi.JoinBody(latitude, longitude, holderName, holderPhone))
+                .enqueue(relay(context, new Done<Ticket>() {
+                    @Override
+                    public void onDone(@Nullable Ticket ticket) {
+                        held.add(ticket);
+                        changed();
+                        done.onDone(ticket);
+                    }
+
+                    @Override
+                    public void onFailed(@NonNull ApiError error) {
+                        done.onFailed(error);
+                    }
+                }));
+    }
+
+    /** "I'm here": the console shows the person confirmed; the app shows the ticket as done. */
+    public static void here(final Context context, final String ticketId, final Done<Ticket> done) {
+        CalledNotifier.cancel(context, ticketId);
+        ApiClient.api(context).here(ticketId).enqueue(relay(context, updating(done)));
+    }
+
+    /**
+     * "I need more time". With dryRun, the server answers where the ticket would land and
+     * nothing moves (the sheet's preview); the copy isn't touched.
+     */
+    public static void moveBack(Context context, String ticketId, int minutesNeeded,
+                                boolean dryRun, Done<Ticket> done) {
+        if (!dryRun) {
+            CalledNotifier.cancel(context, ticketId);
+        }
+        ApiClient.api(context).moveBack(ticketId, dryRun, new QuappApi.MoveBackBody(minutesNeeded))
+                .enqueue(relay(context, dryRun ? done : updating(done)));
     }
 
     /** Leave queue: gives the place up for good. Not filed in history. */
-    public static void leave(String ticketId) {
-        Ticket ticket = ticket(ticketId);
-        if (ticket != null) {
-            FakeData.leave(ticket.getQueueId(), ticketId);
-            held.remove(indexOf(ticketId));
-        }
-    }
-
-    /** "Done" on a finished ticket: file it in history and stop holding it. */
-    public static void finishTicket(String ticketId) {
-        Ticket ticket = ticket(ticketId);
-        if (ticket == null) {
-            return;
-        }
-        if (!ticket.isLive()) {
-            FakeData.addToHistory(ticket);
-        }
-        held.remove(indexOf(ticketId));
-    }
-
-    /** Logging out gives up every ticket. */
-    public static void clear() {
-        for (Ticket ticket : new ArrayList<>(held)) {
-            if (ticket.isLive()) {
-                FakeData.leave(ticket.getQueueId(), ticket.getId());
+    public static void leave(Context context, final String ticketId, final Done<Void> done) {
+        ApiClient.api(context).leave(ticketId).enqueue(relay(context, new Done<Void>() {
+            @Override
+            public void onDone(@Nullable Void nothing) {
+                remove(ticketId);
+                changed();
+                done.onDone(null);
             }
-        }
+
+            @Override
+            public void onFailed(@NonNull ApiError error) {
+                done.onFailed(error);
+            }
+        }));
+    }
+
+    /** "Done" on a finished ticket: stop showing it. History has it on the server. */
+    public static void finishTicket(String ticketId) {
+        dismissed.add(ticketId);
+        remove(ticketId);
+        changed();
+    }
+
+    /** Signing out forgets this account's tickets on this phone (they stay on the server). */
+    public static void clear() {
         held.clear();
-        countedNoShows.clear();
+        dismissed.clear();
+        Cooldown.clear();
+        Queues.clear();
+        changed();
     }
 
     // ---- Internals ----------------------------------------------------------
 
-    /**
-     * Brings every live ticket up to date with its line. A finished ticket keeps what it
-     * became (the queuer's "I'm here" is final even before the counter taps Served).
-     */
-    private static void refresh() {
-        for (int i = 0; i < held.size(); i++) {
-            Ticket mine = held.get(i);
-            if (!mine.isLive()) {
-                continue;
-            }
-            Ticket now = FakeData.ticket(mine.getQueueId(), mine.getId());
-            if (now == null) {
-                continue;
-            }
-            // Called and the window closed while no screen was watching: release it now.
-            if (now.getStatus() == Ticket.Status.CALLED && graceRemainingMs(now) == 0) {
-                FakeData.releaseCalled(now.getQueueId(), now.getId());
-                now = FakeData.ticket(mine.getQueueId(), mine.getId());
-            }
-            held.set(i, now);
-            countNoShowOnce(now);
+    /** The ticket as the queuer should see it (see the class comment). */
+    private static Ticket shown(Ticket ticket) {
+        if (ticket.getStatus() != Ticket.Status.CALLED) {
+            return ticket;
         }
+        if (ticket.getHereAt() != null) {
+            return ticket.toBuilder().setStatus(Ticket.Status.SERVED).build();
+        }
+        Queue queue = Queues.get(ticket.getQueueId());
+        boolean grace = queue == null || queue.isGracePeriodEnabled();
+        if (grace && graceRemainingMs(ticket) == 0) {
+            return ticket.toBuilder().setStatus(Ticket.Status.NO_SHOW).build();
+        }
+        return ticket;
     }
 
-    /** A no-show, or a removal for pranking (which counts as one), goes toward the cooldown once. */
-    private static void countNoShowOnce(Ticket ticket) {
-        boolean counts = ticket.getStatus() == Ticket.Status.NO_SHOW
-                || ticket.getRemovalReason() == Ticket.RemovalReason.PRANK;
-        if (!counts || !countedNoShows.add(ticket.getId())) {
-            return;
-        }
-        Queue queue = FakeData.queueById(ticket.getQueueId());
-        if (queue != null && queue.isNoShowCooldownEnabled()) {
-            Cooldown.recordNoShow();
-        }
+    /** A change that answers with the ticket: keep the server's new copy, then pass it on. */
+    private static Done<Ticket> updating(final Done<Ticket> done) {
+        return new Done<Ticket>() {
+            @Override
+            public void onDone(@Nullable Ticket ticket) {
+                replace(ticket);
+                changed();
+                done.onDone(shown(ticket));
+            }
+
+            @Override
+            public void onFailed(@NonNull ApiError error) {
+                done.onFailed(error);
+            }
+        };
+    }
+
+    /** An ApiCallback that hands the answer to a Done. */
+    private static <T> ApiCallback<T> relay(Context context, final Done<T> done) {
+        return new ApiCallback<T>(context) {
+            @Override
+            protected void onSuccess(@Nullable T body) {
+                done.onDone(body);
+            }
+
+            @Override
+            protected void onError(@NonNull ApiError error) {
+                done.onFailed(error);
+            }
+        };
     }
 
     private static void replace(Ticket ticket) {
+        if (dismissed.contains(ticket.getId())) {
+            return;  // an answer that arrived after Done
+        }
         int index = indexOf(ticket.getId());
         if (index >= 0) {
             held.set(index, ticket);
+        } else {
+            held.add(ticket);
+        }
+    }
+
+    private static void remove(String ticketId) {
+        int index = indexOf(ticketId);
+        if (index >= 0) {
+            held.remove(index);
         }
     }
 
@@ -268,7 +467,7 @@ public final class ActiveTicketStore {
 
     /** When the ticket's queue next opens; ties go to the earlier join. */
     private static Instant opensAt(Ticket ticket) {
-        Queue queue = FakeData.queueById(ticket.getQueueId());
+        Queue queue = Queues.get(ticket.getQueueId());
         if (queue == null) {
             return ticket.getJoinedAt();
         }

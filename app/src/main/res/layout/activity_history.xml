@@ -85,7 +85,20 @@
         tools:itemCount="3"
         tools:listitem="@layout/item_history" />
 
-    <!-- ===== Nothing yet ===== -->
+    <!-- ===== Loading ===== -->
+
+    <com.google.android.material.progressindicator.CircularProgressIndicator
+        android:id="@+id/history_loading"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/space_xl"
+        android:contentDescription="@string/history_loading"
+        android:indeterminate="true"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/history_back" />
+
+    <!-- ===== Nothing yet, or couldn't load ===== -->
 
     <LinearLayout
         android:id="@+id/history_empty"
@@ -101,12 +114,14 @@
         app:layout_constraintTop_toBottomOf="@id/history_back">
 
         <TextView
+            android:id="@+id/history_empty_title"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="@string/history_empty_title"
             android:textAppearance="?attr/textAppearanceTitleLarge" />
 
         <TextView
+            android:id="@+id/history_empty_body"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="@dimen/space_sm"
