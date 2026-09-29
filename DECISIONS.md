@@ -1268,6 +1268,18 @@ The organizer line on Queue detail opens the badge sheet (52) for both verified 
 
 ---
 
+## Backend: PostgreSQL and SQLAlchemy, in backend/
+
+**Decision:** The FastAPI server uses PostgreSQL (already installed on Brent's desktop, where the server runs) through SQLAlchemy models. The code lives in `backend/` in this repo. The schema is in MODELS.md, "Database (PostgreSQL)". Brent writes the backend; Claude reviews.
+
+**Why:** Postgres is already on the machine, so there's no setup cost, and the server has to be reachable from the instructor's phone anyway. SQLAlchemy is the usual FastAPI pairing and the easiest to explain. One repo keeps MODELS.md, the app and the server changing in the same commit. Numbers the server can count (positions, waits, stats, the cooldown) aren't stored, so they can't go stale.
+
+**Also considered:** SQLite (simpler, but Postgres was already there). SQLModel (less code, thinner docs). Plain SQL with a driver (most transparent, most typing). A separate backend repo (the contract would live in two places). Native Postgres enum types (harder to add a value to than VARCHAR with a CHECK).
+
+**Status:** Current. Hosting is still open: the desktop, reachable over mobile data (see "Backend doesn't need shared Wi-Fi"), is the working assumption.
+
+---
+
 ## Known compromises
 
 Deliberate shortcuts, not oversights. Each has a planned fix.

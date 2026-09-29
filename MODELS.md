@@ -224,3 +224,107 @@ Auth is a bearer token from `/auth/login`. "Owner" means the queue's organizer.
 | POST | `/me/verification` | user | VerificationRequest |
 | POST | `/queues/{id}/reports` | user | Report |
 | GET/POST | `/admin/...` | admin | web page: verification requests, reports, suspend and revoke |
+
+---
+
+## Database (PostgreSQL)
+
+The server's tables, written with SQLAlchemy models in `backend/`. Settled Sep 29, 2026 (DECISIONS.md "Backend: PostgreSQL and SQLAlchemy, in backend/").
+
+**What isn't stored:** anything the server can count from other rows. `people_waiting`, `now_serving`, `position`, every `estimated_wait_minutes`, all of `QueueStats`, the no-show cooldown, and a queue's `organizer_name` / `organizer_verified` (joined from `users`) are computed per request, so they can't drift out of step.
+
+Types:
+- IDs are `TEXT`, a uuid4 made by the server (the API says IDs are strings).
+- Moments are `TIMESTAMPTZ` (Postgres keeps UTC; the API sends them with `+08:00`). Dates are `DATE`, times of day `TIME`.
+- Enums are `VARCHAR` plus a `CHECK` on the allowed values: SQLAlchemy `Enum(..., native_enum=False, create_constraint=True)`. Easier to add a value later than a native Postgres enum type.
+- Booleans `BOOLEAN NOT NULL DEFAULT false` unless noted.
+
+### users
+
+| Column | Type | Notes |
+|---|---|---|
+| id | TEXT PK | |
+| name | TEXT NOT NULL | |
+| phone | TEXT NOT NULL UNIQUE | |
+| password_hash | TEXT NOT NULL | bcrypt; never leaves the server |
+| status | User.Status NOT NULL | default `ACTIVE` |
+| suspended_reason | TEXT | |
+| suspended_at | TIMESTAMPTZ | |
+| verification_status | VerificationStatus NOT NULL | default `NONE` |
+| organization_name | TEXT | set when verified |
+| device_install_id | TEXT NOT NULL | the install that registered it; at most 2 users per value (checked in code) |
+| phone_verified | BOOLEAN | false until an SMS gateway exists |
+| is_admin | BOOLEAN | who can open `/admin` |
+| created_at | TIMESTAMPTZ NOT NULL | |
+
+### tokens
+
+| Column | Type | Notes |
+|---|---|---|
+| token | TEXT PK | random, from `secrets.token_urlsafe` |
+| user_id | TEXT NOT NULL → users ON DELETE CASCADE | |
+| created_at | TIMESTAMPTZ NOT NULL | |
+
+Login adds a row, logout deletes it. Suspending a user deletes all of theirs, which signs them out everywhere.
+
+### queues
+
+Every `Queue` field that isn't computed, plus:
+
+| Column | Type | Notes |
+|---|---|---|
+| organizer_id | TEXT NOT NULL → users | |
+| category | Category NOT NULL | |
+| short_description | TEXT NOT NULL | `CHECK (length(short_description) <= 50)` |
+| latitude, longitude | DOUBLE PRECISION NOT NULL | |
+| start_date, end_date | DATE NOT NULL | `CHECK (end_date >= start_date)` |
+| opens_at, closes_at | TIME NOT NULL | `CHECK (closes_at > opens_at)` |
+| status | Queue.Status NOT NULL | |
+| paused_at, closed_at | TIMESTAMPTZ | |
+| join_radius_meters | INTEGER NOT NULL | `CHECK (join_radius_meters IN (0, 500, 1000, 2000, 5000))` |
+| next_ticket_number | INTEGER NOT NULL DEFAULT 1 | hands out #1, #2, … and never reuses one |
+| created_at | TIMESTAMPTZ NOT NULL | |
+
+Index: `(municipality, status)` for Browse.
+
+### tickets
+
+| Column | Type | Notes |
+|---|---|---|
+| id | TEXT PK | |
+| queue_id | TEXT NOT NULL → queues | |
+| user_id | TEXT → users | null for walk-ins |
+| holder_name | TEXT NOT NULL | |
+| holder_phone | TEXT | null for walk-ins |
+| walk_in | BOOLEAN | |
+| ticket_number | INTEGER NOT NULL | `UNIQUE (queue_id, ticket_number)` |
+| line_order | DOUBLE PRECISION NOT NULL | the call order; starts equal to `ticket_number` |
+| service_date | DATE NOT NULL | a ticket is for one day (the overlap rule) |
+| status | Ticket.Status NOT NULL | |
+| joined_at | TIMESTAMPTZ NOT NULL | |
+| called_at, here_at, finished_at | TIMESTAMPTZ | `here_at` is when they tapped "I'm here" |
+| moved_back | BOOLEAN | once per ticket |
+| moved_back_at | TIMESTAMPTZ | |
+| removal_reason | RemovalReason | only when status is `REMOVED` |
+
+- **Position** is the number of `WAITING` tickets in the queue with a smaller `line_order`, plus 1.
+- **Moving back** changes only `line_order`: to a value between the two tickets it lands between (moving behind #45 when #46 is next gives 45.5). The ticket number never changes.
+- **Service time** is the time between one call and the next, from `called_at`. The rolling average and the model learn from it; no separate table.
+- **One live ticket per queue per person:** a partial unique index, `UNIQUE (queue_id, user_id) WHERE status IN ('WAITING', 'CALLED')`.
+- Indexes: `(queue_id, status, line_order)` for the line and positions, `(user_id, status)` for My tickets.
+
+### ticket_removals
+
+`id` TEXT PK, `ticket_id` TEXT NOT NULL UNIQUE → tickets, `queue_id` → queues, `reason` RemovalReason NOT NULL, `removed_by` → users, `created_at` TIMESTAMPTZ NOT NULL.
+
+### verification_requests
+
+The `VerificationRequest` fields, with `user_id` → users and `decided_by` TEXT → users. `organization_name`, `organization_type`, `position` and `office_phone` are nullable: they're wiped after the decision, and only the status and `admin_note` stay.
+
+### reports
+
+The `Report` fields, plus `reporter_id` TEXT NOT NULL → users (never sent to the organizer) and `handled_at` TIMESTAMPTZ for the admin page. `UNIQUE (queue_id, reporter_id)`: one report per person per queue.
+
+### Not in the database
+
+The wait-time model's weights and scaler are saved as a file next to the server (PROGRESS.md, milestone 3).
