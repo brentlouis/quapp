@@ -1192,11 +1192,21 @@ To make "I need more time" demonstrable, seeded open queues simulate one new arr
 
 **Decision:** FakeData keeps the logged-in organizer's `VerificationStatus`; every queue they own reads its badge from it, so a revoke shows everywhere at once (the canvas note "Queue: no badge field"). Get verified (50) makes it PENDING; Profile shows the pending card (51). Until the admin page exists, long-pressing the Profile row or card plays the admin: verified → back to unverified, pending → approved. Unverified organizers get the note on Queue detail (53), no listing in "Open now across Bohol", and one live (open or paused) queue: creating a queue that opens now, or reopening a closed one, while another is live shows the limit sheet (58). An upcoming one is allowed.
 
-The organizer line on Queue detail opens the badge sheet (52) for both verified and unverified organizers, with Report this queue. Report (54) comes from there, or from Help with a queue picker.
+The organizer line on Queue detail opens the badge sheet (52) for both verified and unverified organizers, with Report this queue. Report (54) comes from there and from the flag on the join flow screens (see "Report a queue from the join flow").
 
 **Why:** It follows "Unverified organizers can post, with limits" without building the admin page first. Starting verified keeps the seeded queues looking like the canvas.
 
 **Status:** Current. Built Sep 29. Demo hooks are listed under Known compromises.
+
+---
+
+## Report a queue from the join flow, not Help
+
+**Decision:** A flag button in the app bar of Queue detail, Join and My ticket opens Report a queue for that queue (the organizer badge sheet keeps its "Report this queue" too). Help and support no longer has a Report row, and the Report screen no longer has a queue picker: it's always opened with a queue.
+
+**Why:** Brent (Sep 29): reporting belongs where you're looking at the queue, not in Profile, and picking the queue from a list of every queue was awkward. The canvas (49) had the row in Help; this replaces it.
+
+**Status:** Current. Sep 29.
 
 ---
 

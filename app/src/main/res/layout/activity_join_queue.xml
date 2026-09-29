@@ -23,6 +23,20 @@
         app:layout_constraintTop_toTopOf="parent"
         app:tint="?attr/colorOnSurface" />
 
+    <!-- Report this queue (canvas 54): on every screen of the join flow -->
+    <ImageButton
+        android:id="@+id/join_report"
+        android:layout_width="@dimen/touch_target_min"
+        android:layout_height="@dimen/touch_target_min"
+        android:layout_marginTop="@dimen/space_xs"
+        android:layout_marginEnd="@dimen/space_xs"
+        android:background="?attr/selectableItemBackgroundBorderless"
+        android:contentDescription="@string/badge_report"
+        android:src="@drawable/ic_flag"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:tint="?attr/colorOnSurfaceVariant" />
+
     <TextView
         android:layout_width="0dp"
         android:layout_height="wrap_content"
@@ -31,7 +45,7 @@
         android:text="@string/join_title"
         android:textAppearance="?attr/textAppearanceTitleMedium"
         app:layout_constraintBottom_toBottomOf="@id/join_back"
-        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintEnd_toStartOf="@id/join_report"
         app:layout_constraintStart_toEndOf="@id/join_back"
         app:layout_constraintTop_toTopOf="@id/join_back" />
 

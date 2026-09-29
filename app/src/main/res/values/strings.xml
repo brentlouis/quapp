@@ -668,8 +668,6 @@
     <string name="help_email_subtitle">We reply within a day</string>
     <string name="help_email_subject">Quapp help</string>
     <string name="help_email_body">Name:\nRegistered phone number:\nWhat happened:\n</string>
-    <string name="help_report_title">Report a queue</string>
-    <string name="help_report_subtitle">Fake queue or wrong details. Organizers are checked by hand.</string>
     <string name="help_note">In line and something\'s wrong? Your spot is kept. Show your number to staff at the counter.</string>
     <string name="profile_help_hint">How queues work, contact support</string>
 
@@ -735,9 +733,6 @@
     <string name="report_title">Report a queue</string>
     <string name="report_back_description">Back</string>
     <string name="report_queue_format">%1$s · %2$s</string>
-    <string name="report_pick_label">Which queue?</string>
-    <string name="report_pick_hint">Pick the queue</string>
-    <string name="report_pick_error">Pick the queue you\'re reporting.</string>
     <string name="report_reason_label">What\'s wrong?</string>
     <string name="report_reason_error">Pick what\'s wrong.</string>
     <string name="report_reason_fake">Fake or scam queue</string>

@@ -22,6 +22,20 @@
         app:layout_constraintTop_toTopOf="parent"
         app:tint="?attr/colorOnSurface" />
 
+    <!-- Report this queue (canvas 54): on every screen of the join flow -->
+    <ImageButton
+        android:id="@+id/detail_report"
+        android:layout_width="@dimen/touch_target_min"
+        android:layout_height="@dimen/touch_target_min"
+        android:layout_marginTop="@dimen/space_xs"
+        android:layout_marginEnd="@dimen/space_xs"
+        android:background="?attr/selectableItemBackgroundBorderless"
+        android:contentDescription="@string/badge_report"
+        android:src="@drawable/ic_flag"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:tint="?attr/colorOnSurfaceVariant" />
+
     <androidx.core.widget.NestedScrollView
         android:id="@+id/detail_scroll"
         android:layout_width="0dp"

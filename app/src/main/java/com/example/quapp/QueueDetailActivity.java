@@ -87,6 +87,13 @@ public class QueueDetailActivity extends AppCompatActivity {
             }
         });
 
+        findViewById(R.id.detail_report).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                startActivity(ReportQueueActivity.intent(QueueDetailActivity.this, queueId));
+            }
+        });
+
         findViewById(R.id.detail_directions).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {

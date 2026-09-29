@@ -61,17 +61,31 @@
         android:id="@+id/ticket_status"
         android:layout_width="wrap_content"
         android:layout_height="@dimen/pill_height"
-        android:layout_marginEnd="@dimen/space_md"
+        android:layout_marginEnd="@dimen/space_xs"
         android:background="@drawable/bg_pill"
         android:gravity="center"
         android:paddingStart="@dimen/space_sm"
         android:paddingEnd="@dimen/space_sm"
         android:textAppearance="?attr/textAppearanceLabelSmall"
         app:layout_constraintBottom_toBottomOf="@id/ticket_back"
-        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintEnd_toStartOf="@id/ticket_report"
         app:layout_constraintTop_toTopOf="@id/ticket_back"
         tools:backgroundTint="@color/paper_sunk"
         tools:text="Waiting" />
+
+    <!-- Report this queue (canvas 54): on every screen of the join flow -->
+    <ImageButton
+        android:id="@+id/ticket_report"
+        android:layout_width="@dimen/touch_target_min"
+        android:layout_height="@dimen/touch_target_min"
+        android:layout_marginTop="@dimen/space_xs"
+        android:layout_marginEnd="@dimen/space_xs"
+        android:background="?attr/selectableItemBackgroundBorderless"
+        android:contentDescription="@string/badge_report"
+        android:src="@drawable/ic_flag"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:tint="?attr/colorOnSurfaceVariant" />
 
     <androidx.core.widget.NestedScrollView
         android:layout_width="0dp"

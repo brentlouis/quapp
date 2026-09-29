@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!-- Report a queue (canvas 54). A form, so plain paper: the queue it's about, four reasons as
-     radio rows, optional details, and a note that the reporter stays anonymous. From Queue
-     detail's organizer sheet it knows the queue; from Help it asks which one. -->
+     radio rows, optional details, and a note that the reporter stays anonymous. Opened from
+     the join flow (Queue detail, Join, the ticket), so it always knows the queue. -->
 <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
@@ -52,7 +52,7 @@
             android:paddingEnd="@dimen/space_md"
             android:paddingBottom="@dimen/space_lg">
 
-            <!-- The queue: a line when it's known, a picker when it isn't -->
+            <!-- Which queue this is about -->
             <TextView
                 android:id="@+id/report_queue"
                 android:layout_width="match_parent"
@@ -61,39 +61,6 @@
                 android:textColor="?attr/colorOnSurfaceVariant"
                 tools:text="Purok 3 Rice Sharing · Purok 3 Youth Volunteers" />
 
-            <LinearLayout
-                android:id="@+id/report_pick_group"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="vertical"
-                android:visibility="gone">
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:labelFor="@id/report_pick"
-                    android:text="@string/report_pick_label"
-                    android:textAppearance="?attr/textAppearanceFieldLabel" />
-
-                <TextView
-                    android:id="@+id/report_pick"
-                    style="@style/Widget.Quapp.SelectField"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="@dimen/space_sm"
-                    android:hint="@string/report_pick_hint"
-                    app:drawableEndCompat="@drawable/ic_chevron_down" />
-
-                <TextView
-                    android:id="@+id/report_pick_error"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="@dimen/space_xs"
-                    android:text="@string/report_pick_error"
-                    android:textAppearance="?attr/textAppearanceBodySmall"
-                    android:textColor="?attr/colorError"
-                    android:visibility="gone" />
-            </LinearLayout>
 
             <TextView
                 android:layout_width="match_parent"

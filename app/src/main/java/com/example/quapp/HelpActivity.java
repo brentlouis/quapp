@@ -1,6 +1,5 @@
 package com.example.quapp;
 
-import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.TextView;
@@ -13,7 +12,8 @@ import com.google.android.material.bottomsheet.BottomSheetDialog;
 
 /**
  * Help and support (canvas 49), from the Profile tab on both sides. Three topics explained in a
- * sheet each, an email to support, and Report a queue (DECISIONS.md "Help and support").
+ * sheet each, and an email to support. Report a queue is in the join flow instead
+ * (DECISIONS.md "Report a queue from the join flow").
  */
 public class HelpActivity extends AppCompatActivity {
 
@@ -45,17 +45,6 @@ public class HelpActivity extends AppCompatActivity {
             public void onClick(View view) {
                 Support.email(HelpActivity.this, getString(R.string.help_email_subject),
                         getString(R.string.help_email_body));
-            }
-        });
-
-        View report = findViewById(R.id.help_report_row);
-        ListRow.bind(report, R.drawable.ic_flag, getString(R.string.help_report_title),
-                getString(R.string.help_report_subtitle));
-        report.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                // No queue given: the report screen asks which one.
-                startActivity(new Intent(HelpActivity.this, ReportQueueActivity.class));
             }
         });
     }

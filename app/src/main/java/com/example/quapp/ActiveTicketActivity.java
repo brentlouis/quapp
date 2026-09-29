@@ -170,6 +170,17 @@ public class ActiveTicketActivity extends AppCompatActivity {
             }
         });
 
+        findViewById(R.id.ticket_report).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Ticket ticket = ActiveTicketStore.ticket(ticketId);
+                if (ticket != null) {
+                    startActivity(ReportQueueActivity.intent(ActiveTicketActivity.this,
+                            ticket.getQueueId()));
+                }
+            }
+        });
+
         findViewById(R.id.ticket_directions).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {

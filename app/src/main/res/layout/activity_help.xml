@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!-- Help and support (canvas 49), from Profile. Plain paper: two groups of rows and a note.
-     The "how it works" rows open a sheet each; the others leave the app (email) or report. -->
+     The "how it works" rows open a sheet each; the email row opens the mail app. Reporting
+     a queue lives in the join flow, where the queue is known. -->
 <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:id="@+id/help_root"
@@ -96,13 +97,6 @@
                 android:id="@+id/help_email_row"
                 layout="@layout/view_list_row" />
 
-            <com.google.android.material.divider.MaterialDivider
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content" />
-
-            <include
-                android:id="@+id/help_report_row"
-                layout="@layout/view_list_row" />
 
             <!-- Something wrong while in line: the number still works -->
             <TextView

@@ -51,6 +51,13 @@ public class JoinQueueActivity extends AppCompatActivity {
             }
         });
 
+        findViewById(R.id.join_report).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                startActivity(ReportQueueActivity.intent(JoinQueueActivity.this, queue.getId()));
+            }
+        });
+
         findViewById(R.id.join_edit_button).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
