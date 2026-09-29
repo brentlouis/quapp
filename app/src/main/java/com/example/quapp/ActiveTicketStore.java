@@ -97,6 +97,14 @@ public final class ActiveTicketStore {
         return null;
     }
 
+    /**
+     * Whether this ticket is one of the queuer's. Doesn't refresh from the line, so FakeData can
+     * ask it in the middle of calling someone.
+     */
+    public static boolean holds(String ticketId) {
+        return indexOf(ticketId) >= 0;
+    }
+
     public static boolean hasLiveTicket() {
         return !liveTickets().isEmpty();
     }

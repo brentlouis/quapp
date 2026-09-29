@@ -20,6 +20,7 @@ import com.google.android.material.button.MaterialButton;
 import com.google.android.material.shape.ShapeAppearanceModel;
 import com.google.android.material.snackbar.Snackbar;
 
+import java.time.Instant;
 import java.util.Date;
 import java.util.Locale;
 
@@ -27,6 +28,9 @@ import java.util.Locale;
  * My ticket (canvas 08) while you wait, and the outcome once you're served or your slot is
  * released. Being called is its own screen, CalledActivity: the whole screen turns espresso,
  * which is a different Activity theme (Theme.Quapp.Called).
+ *
+ * Offline (canvas 25): the ticket keeps the last numbers it had, says when they were true, and
+ * reminds the queuer the place is still theirs. It catches up as soon as the phone is back.
  */
 public class ActiveTicketActivity extends AppCompatActivity {
 
@@ -43,6 +47,11 @@ public class ActiveTicketActivity extends AppCompatActivity {
     private View doneOutlinedButton;
     private View joinAgainButton;
     private View browseButton;
+
+    private Connectivity connectivity;
+    /** The ticket as last seen online, and when; offline shows this instead of guessing. */
+    private Ticket lastSeen;
+    private Instant lastSeenAt;
 
     public static Intent intent(Context context, String ticketId) {
         Intent intent = new Intent(context, ActiveTicketActivity.class);
@@ -135,6 +144,20 @@ public class ActiveTicketActivity extends AppCompatActivity {
             }
         });
 
+        connectivity = new Connectivity(this);
+        findViewById(R.id.ticket_offline_retry).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                if (connectivity.isOnline()) {
+                    render();
+                } else {
+                    Snackbar.make(ticketCard, R.string.ticket_offline_still, Snackbar.LENGTH_SHORT)
+                            .setAnchorView(R.id.ticket_tear)
+                            .show();
+                }
+            }
+        });
+
         // The kept ticket's punches sit halfway across, so its shape also needs the width.
         findViewById(R.id.ticket_kept).addOnLayoutChangeListener(new View.OnLayoutChangeListener() {
             @Override
@@ -184,13 +207,33 @@ public class ActiveTicketActivity extends AppCompatActivity {
     protected void onResume() {
         super.onResume();
         render();
+        connectivity.start(new Connectivity.Listener() {
+            @Override
+            public void onConnectivityChanged(boolean online) {
+                render();
+            }
+        });
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        connectivity.stop();
     }
 
     private void render() {
+        boolean online = connectivity.isOnline();
         Ticket ticket = ActiveTicketStore.ticket(ticketId);
         if (ticket == null) {
             finish();
             return;
+        }
+        if (online || lastSeen == null) {
+            lastSeen = ticket;
+            lastSeenAt = Instant.now();
+        } else if (ticket.getStatus() == Ticket.Status.WAITING) {
+            // Offline, the phone can't know where the line has got to: keep the last numbers.
+            ticket = lastSeen;
         }
 
         ((TextView) findViewById(R.id.ticket_queue_name)).setText(ticket.getQueueName());
@@ -199,6 +242,7 @@ public class ActiveTicketActivity extends AppCompatActivity {
         switch (ticket.getStatus()) {
             case WAITING:
                 renderWaiting(ticket);
+                bindOffline(ticket, online);
                 break;
             case CALLED:
                 openCalled();
@@ -267,6 +311,39 @@ public class ActiveTicketActivity extends AppCompatActivity {
         bindArrival(ticket);
         bindBring(ticket);
         bindMoreTime(ticket);
+    }
+
+    /**
+     * Canvas 25: the banner, "as of" on the ticket, no ticks or now serving (they'd be stale),
+     * the wait row says it can't update, and a note that the number still works at the counter.
+     * Moving back and leaving need the server, so they wait until the phone is back online.
+     */
+    private void bindOffline(Ticket ticket, boolean online) {
+        int offline = online ? View.GONE : View.VISIBLE;
+        findViewById(R.id.ticket_offline).setVisibility(offline);
+        findViewById(R.id.ticket_as_of).setVisibility(offline);
+        findViewById(R.id.ticket_offline_note).setVisibility(offline);
+        findViewById(R.id.ticket_ticks).setVisibility(online ? View.VISIBLE : View.GONE);
+        leaveButton.setEnabled(online);
+        if (online) {
+            return;
+        }
+        moreTimeButton.setEnabled(false);
+
+        long minutes = (System.currentTimeMillis() - lastSeenAt.toEpochMilli()) / 60_000L;
+        ((TextView) findViewById(R.id.ticket_offline_updated)).setText(minutes < 1
+                ? getString(R.string.ticket_offline_updated_now)
+                : getResources().getQuantityString(R.plurals.ticket_offline_updated,
+                        (int) minutes, (int) minutes));
+        ((TextView) findViewById(R.id.ticket_as_of)).setText(getString(
+                R.string.ticket_offline_as_of, Format.time(this, lastSeenAt)));
+        ((TextView) findViewById(R.id.ticket_now_serving)).setText(
+                R.string.ticket_offline_now_serving);
+        ((TextView) findViewById(R.id.ticket_offline_note)).setText(getString(
+                R.string.ticket_offline_note, ticket.getTicketNumber()));
+
+        View etaRow = findViewById(R.id.ticket_eta_row);
+        ListRow.bind(etaRow, R.drawable.ic_clock, getString(R.string.ticket_offline_eta), null);
     }
 
     /** Once per ticket: after moving back, the button says when instead. */

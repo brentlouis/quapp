@@ -86,14 +86,14 @@
     <string name="detail_rule_on">On</string>
     <string name="detail_organized_by">Organized by %s</string>
     <string name="detail_verified">Verified</string>
-    <string name="detail_unverified_note">Unverified organizer. Check that this queue matches the organizer\'s own announcement before you go.</string>
+    <string name="detail_unverified_note">&lt;b&gt;Quapp hasn\'t confirmed who runs this queue&lt;/b&gt;&lt;br&gt;Check it against the organizer\'s own announcement before you go. Nobody running a free distribution should ask you for money.</string>
     <string name="detail_bring_format">Bring: %s</string>
     <string name="detail_status_upcoming">Upcoming</string>
     <string name="detail_join_early_action">Join early</string>
     <string name="detail_paused_since_notice">No new joins since %s. People already in line keep their place.</string>
     <string name="detail_proximity_title_format">Proximity check · within %s</string>
     <string name="detail_verification_proximity_body">Your location is checked once, when you tap Join. It isn\'t tracked after that.</string>
-    <string name="detail_radius_km">%d km</string>
+    <string name="detail_radius_km">%s km</string>
     <string name="detail_radius_m">%d m</string>
     <string name="detail_rule_planned">Planned</string>
     <string name="detail_verification_otp_planned">Not available yet.</string>
@@ -617,4 +617,212 @@
     <string name="detail_cooldown_others">Queues without a cooldown rule are still open to you.</string>
     <string name="detail_cooldown_join_format">Join opens in %d min</string>
     <string name="detail_browse_others">Browse other queues</string>
+
+    <!-- Proximity check at Join (canvas 44, 45, 48) -->
+    <string name="location_sheet_title">Check that you\'re nearby</string>
+    <string name="location_sheet_body">This queue only takes people within %1$s of %2$s, so spots go to people who can actually show up.</string>
+    <string name="location_sheet_once">Checked once, when you join</string>
+    <string name="location_sheet_not_tracked">Not tracked while you wait</string>
+    <string name="location_sheet_allow">Allow location</string>
+    <string name="location_sheet_not_now">Not now</string>
+    <string name="detail_checking_location">Checking your location…</string>
+    <string name="detail_too_far_title">You\'re %s away</string>
+    <string name="detail_too_far_body">This queue takes people within %s of the venue. Head there, then tap Check again.</string>
+    <string name="detail_check_again">Check again</string>
+    <string name="detail_location_off_title">Location is off for Quapp</string>
+    <string name="detail_location_off_body">This queue takes people within %s, so Quapp needs your location once to let you join. It isn\'t tracked after that.</string>
+    <string name="detail_location_on_action">Turn on location</string>
+    <string name="detail_location_failed">Couldn\'t find your location. Try again near a window or outside.</string>
+    <string name="detail_unverified">· Unverified</string>
+
+    <!-- My ticket, offline (canvas 25) -->
+    <string name="ticket_offline_title">No connection · reconnecting</string>
+    <string name="ticket_offline_body">You\'re still in line. This updates when you\'re back online.</string>
+    <string name="ticket_offline_retry">Retry</string>
+    <string name="ticket_offline_still">Still offline. Your place is kept.</string>
+    <string name="ticket_offline_updated_now">Last updated just now</string>
+    <plurals name="ticket_offline_updated">
+        <item quantity="one">Last updated %d min ago</item>
+        <item quantity="other">Last updated %d min ago</item>
+    </plurals>
+    <string name="ticket_offline_as_of">as of %s</string>
+    <string name="ticket_offline_now_serving">Now serving –</string>
+    <string name="ticket_offline_eta">Wait time can\'t update while offline</string>
+    <string name="ticket_offline_note">Your spot is kept. Show #%d to staff at the counter.</string>
+
+    <!-- Help and support (canvas 49) -->
+    <string name="help_title">Help and support</string>
+    <string name="help_back_description">Back to profile</string>
+    <string name="help_section_how">How Quapp works</string>
+    <string name="help_section_get_help">Get help</string>
+    <string name="help_queues_title">How queues work</string>
+    <string name="help_queues_subtitle">Joining, getting called and the 3-minute window</string>
+    <string name="help_queues_body">Find a queue on Browse and tap Join. You get a number and your place in line, and the wait updates as the counter serves people.\n\nWhen it\'s your turn, Quapp calls you. If the queue uses presence confirmation, tap \"I\'m here\" within 3 minutes, or the slot goes to the next person.\n\nYou can hold tickets for more than one queue, as long as their hours don\'t overlap on the same day.</string>
+    <string name="help_checks_title">Checks some queues use</string>
+    <string name="help_checks_subtitle">Proximity check, presence confirmation, no-show cooldown</string>
+    <string name="help_checks_body">Proximity check: some queues only take people within a set distance of the venue. Your location is read once, when you tap Join, and isn\'t tracked after that.\n\nPresence confirmation: when you\'re called, tap \"I\'m here\" within 3 minutes.\n\nNo-show cooldown: missing 2 slots blocks you from queues with this rule for 30 minutes. Queues without it stay open to you.\n\nEach queue lists the checks it uses under \"How this queue works\".</string>
+    <string name="help_moving_title">Moving back and leaving</string>
+    <string name="help_moving_subtitle">What counts as a no-show, and what doesn\'t</string>
+    <string name="help_moving_body">Running late? Tap \"I need more time\" on your ticket, or \"Move me back\" when you\'re called. Say how many minutes you need and Quapp moves you back that far. You keep your number. It works once per ticket and never counts as a no-show.\n\nLeaving a queue gives your place up for good. It isn\'t a no-show either.\n\nA no-show is when you\'re called and don\'t confirm in time, or an organizer removes a fake join.\n\nIf an organizer closes a queue, nobody in it gets a no-show.</string>
+    <string name="help_email_title">Email Quapp support</string>
+    <string name="help_email_subtitle">We reply within a day</string>
+    <string name="help_email_subject">Quapp help</string>
+    <string name="help_email_body">Name:\nRegistered phone number:\nWhat happened:\n</string>
+    <string name="help_report_title">Report a queue</string>
+    <string name="help_report_subtitle">Fake queue or wrong details. Organizers are checked by hand.</string>
+    <string name="help_note">In line and something\'s wrong? Your spot is kept. Show your number to staff at the counter.</string>
+    <string name="profile_help_hint">How queues work, contact support</string>
+
+    <!-- Share queue (canvas 31) -->
+    <string name="share_title">Share queue</string>
+    <string name="share_back_description">Back to the console</string>
+    <string name="share_lead">Post it on your barangay page or print it for the venue.</string>
+    <string name="share_qr_description">QR code for the queue\'s link</string>
+    <string name="share_scan">Scan to see the line and join from your phone</string>
+    <string name="share_link_label">Queue link</string>
+    <string name="share_copy">Copy</string>
+    <string name="share_copied">Link copied</string>
+    <string name="share_send">Share link</string>
+    <string name="share_counter">Show on a counter screen</string>
+    <string name="share_chooser_title">Share queue link</string>
+    <string name="share_message">%1$s at %2$s. See the line and join from your phone: %3$s</string>
+    <string name="options_share_title">Share queue</string>
+    <string name="options_share_body">Link and QR code for your page or the venue</string>
+
+    <!-- Counter display (canvas 32) -->
+    <string name="counter_now_serving">Now serving</string>
+    <string name="counter_come_up">Please come to the counter</string>
+    <string name="counter_waiting">Waiting for the first call</string>
+    <string name="counter_up_next">Up next</string>
+    <string name="counter_none">–</string>
+    <string name="counter_scan">Scan to join from your phone, or search \"%s\" in Quapp.</string>
+    <plurals name="counter_queue_waiting">
+        <item quantity="one">%1$s · %2$d waiting</item>
+        <item quantity="other">%1$s · %2$d waiting</item>
+    </plurals>
+
+    <!-- Called notification (canvas 21) -->
+    <string name="notification_channel_called">You\'re being called</string>
+    <string name="notification_channel_called_description">When a queue calls your number, with a button to confirm you\'re there</string>
+    <string name="notification_called_title">You\'re being called · %s</string>
+    <string name="notification_called_text">%s · confirm within 3 minutes</string>
+    <string name="notification_called_open">Open ticket</string>
+    <string name="notification_called_open_short">Open</string>
+    <string name="notification_here_done">Confirmed. Show #%d at the counter.</string>
+    <string name="notification_here_too_late">This call has ended. Open Quapp to see your ticket.</string>
+
+    <!-- Notification permission (canvas 20) -->
+    <string name="notify_preview_description">Preview: a notification saying you\'re being called, with an I\'m here button</string>
+    <string name="notify_preview_app">Quapp · now</string>
+    <string name="notify_preview_text">Confirm within 3:00 or your slot is released.</string>
+    <string name="notify_title">Know the moment it\'s your turn</string>
+    <string name="notify_body">When you\'re called, you have &lt;b&gt;3 minutes&lt;/b&gt; to confirm. Notifications let you tap \"I\'m here\" without opening the app.</string>
+    <string name="notify_warning">Without them, you could miss your call and lose your slot.</string>
+    <string name="notify_allow">Turn on notifications</string>
+    <string name="notify_not_now">Not now</string>
+
+    <!-- Organizer badge sheet (canvas 52) and the unverified note (53) -->
+    <string name="badge_verified_title">Verified organizer</string>
+    <string name="badge_verified_body">Quapp confirmed that %s runs this account, by calling their office.</string>
+    <string name="badge_verified_note">It doesn\'t check each queue\'s details. If something about this queue looks wrong, report it.</string>
+    <string name="badge_unverified_title">Unverified organizer</string>
+    <string name="badge_unverified_body">Quapp hasn\'t confirmed that %s runs this account.</string>
+    <string name="badge_unverified_note">Check this queue against the organizer\'s own announcement before you go. Nobody running a free distribution should ask you for money.</string>
+    <string name="badge_got_it">Got it</string>
+    <string name="badge_report">Report this queue</string>
+
+    <!-- Report a queue (canvas 54) -->
+    <string name="report_title">Report a queue</string>
+    <string name="report_back_description">Back</string>
+    <string name="report_queue_format">%1$s · %2$s</string>
+    <string name="report_pick_label">Which queue?</string>
+    <string name="report_pick_hint">Pick the queue</string>
+    <string name="report_pick_error">Pick the queue you\'re reporting.</string>
+    <string name="report_reason_label">What\'s wrong?</string>
+    <string name="report_reason_error">Pick what\'s wrong.</string>
+    <string name="report_reason_fake">Fake or scam queue</string>
+    <string name="report_reason_fake_body">There\'s no such event, or it isn\'t run by who it says</string>
+    <string name="report_reason_money">Asked for money or personal details</string>
+    <string name="report_reason_money_body">For a free service, or more than the service needs</string>
+    <string name="report_reason_place">Wrong place or time</string>
+    <string name="report_reason_place_body">The venue or hours don\'t match</string>
+    <string name="report_reason_other">Something else</string>
+    <string name="report_reason_other_body">Tell us below</string>
+    <string name="report_details_label">Details (optional)</string>
+    <string name="report_details_error">Say what\'s wrong so the admin can check it.</string>
+    <string name="report_note">Reports go to the Quapp admin. The organizer never sees who reported.</string>
+    <string name="report_send">Send report</string>
+    <string name="report_sent">Report sent. The Quapp admin will look at it.</string>
+
+    <!-- One live queue while unverified (canvas 58) -->
+    <string name="limit_title">One live queue for now</string>
+    <string name="limit_body">%s is already open. Until your account is verified you can run one queue at a time. You can still set up an upcoming one.</string>
+    <string name="limit_body_paused">%s is paused but still running. Until your account is verified you can run one queue at a time. You can still set up an upcoming one.</string>
+    <string name="limit_get_verified">Get verified</string>
+    <string name="limit_pending">Verification pending</string>
+    <string name="limit_not_now">Not now</string>
+
+    <!-- Get verified (canvas 50) -->
+    <string name="verify_title">Get verified</string>
+    <string name="verify_back_description">Back to profile</string>
+    <string name="verify_lead">Verified organizers get a badge on every queue they post, and no limit on live queues.</string>
+    <string name="verify_org_label">Organization name</string>
+    <string name="verify_org_hint">City Health Office</string>
+    <string name="verify_org_error">Enter the organization\'s name.</string>
+    <string name="verify_type_label">Type</string>
+    <string name="verify_type_hint">Pick one</string>
+    <string name="verify_type_error">Pick the kind of organization.</string>
+    <string name="verify_position_label">Your position</string>
+    <string name="verify_position_hint">Nurse, clerk, barangay secretary…</string>
+    <string name="verify_position_error">Enter your position.</string>
+    <string name="verify_phone_label">Office contact number</string>
+    <string name="verify_phone_hint">(038) 411 2345</string>
+    <string name="verify_phone_helper">Use the office\'s public number, not your own. We call it to confirm you work there.</string>
+    <string name="verify_phone_error">Enter the office\'s number, 7 to 11 digits.</string>
+    <string name="verify_note">No ID photos needed. We keep only the result of the check; your answers are deleted after review.</string>
+    <string name="verify_submit">Submit for review</string>
+    <string name="verify_turnaround">Usually reviewed within 2 working days.</string>
+    <string name="verify_sent">Sent. We\'ll call the office to confirm.</string>
+    <string name="org_type_lgu">LGU office</string>
+    <string name="org_type_barangay">Barangay</string>
+    <string name="org_type_health">Health center or clinic</string>
+    <string name="org_type_school">School</string>
+    <string name="org_type_community">Community group</string>
+    <string name="org_type_other">Other</string>
+
+    <!-- Profile, organizer verification (canvas 51) -->
+    <string name="profile_phone_org_format">%1$s · %2$s</string>
+    <string name="profile_verification_pending">Verification pending</string>
+    <string name="profile_verification_pending_body">Submitted %1$s. We\'ll call %2$s to confirm.</string>
+    <string name="profile_verification_limits">Until you\'re verified: no badge, one live queue at a time, and your queues aren\'t listed in \"Open now across Bohol\".</string>
+    <string name="profile_verified">Verified organizer</string>
+    <string name="profile_get_verified">Get verified</string>
+    <string name="profile_get_verified_hint">A badge on your queues, and no limit on live queues</string>
+    <string name="profile_get_verified_rejected">The office call didn\'t confirm it. You can apply again.</string>
+    <string name="profile_get_verified_revoked">Your badge was removed. You can apply again.</string>
+    <string name="profile_demo_approved">Demo: the admin approved it</string>
+    <string name="profile_demo_reset">Demo: back to unverified</string>
+
+    <!-- Account suspended (canvas 55) -->
+    <string name="suspended_title">Account suspended</string>
+    <string name="suspended_lead">You can\'t log in to this account right now.</string>
+    <string name="suspended_reason_label">Reason</string>
+    <string name="suspended_since_label">Since</string>
+    <string name="suspended_what_happened">Your live queues were closed and everyone in them was told. Their tickets don\'t count as no-shows. Any tickets you held were released.</string>
+    <string name="suspended_appeal">Think this is a mistake? Email support with your phone number and we\'ll review it.</string>
+    <string name="suspended_email_action">Email support</string>
+    <string name="suspended_back_action">Back to log in</string>
+    <string name="suspended_email_subject">Suspended account review</string>
+    <string name="suspended_email_body">Registered phone number: %s\nWhy I think this is a mistake:\n</string>
+
+    <!-- Create account, device limit (canvas 56) -->
+    <plurals name="register_limit_title">
+        <item quantity="one">This phone already has %d Quapp account</item>
+        <item quantity="other">This phone already has %d Quapp accounts</item>
+    </plurals>
+    <plurals name="register_limit_body">
+        <item quantity="one">Log in to it instead. One phone can hold up to %d account.</item>
+        <item quantity="other">Log in to one of them instead. One phone can hold up to %d accounts, so a shared family phone still works.</item>
+    </plurals>
+    <string name="register_limit_action">Log in instead</string>
 </resources>

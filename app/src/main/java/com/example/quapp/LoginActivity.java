@@ -60,7 +60,13 @@ public class LoginActivity extends AppCompatActivity {
             return;
         }
 
-        // No backend yet, so any well-formed login is accepted. The password is never stored.
+        // A suspended account doesn't get in; it sees why (canvas 55).
+        if (FakeData.suspendedAccount(phone) != null) {
+            startActivity(AccountSuspendedActivity.intent(this, phone));
+            return;
+        }
+
+        // No backend yet, so any other well-formed login is accepted. The password is never stored.
         Session session = new Session(this);
         session.logIn(phone);
         startActivity(session.homeIntent(this));

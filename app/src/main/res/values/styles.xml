@@ -149,6 +149,12 @@
         <item name="android:minHeight">@dimen/button_height_xl</item>
     </style>
 
+    <!-- The notification's own "I'm here": ordinary button size (canvas 20, 21) -->
+    <style name="Widget.Quapp.Button.Call.Small">
+        <item name="android:textAppearance">?attr/textAppearanceLabelLarge</item>
+        <item name="android:minHeight">@dimen/touch_target_min</item>
+    </style>
+
     <!-- Danger: filled error red, for an action that can't be undone ("Remove from line",
          "Close and release 8"). It takes the place of the screen's filled button. -->
     <style name="Widget.Quapp.Button.Danger" parent="Widget.Quapp.Button">

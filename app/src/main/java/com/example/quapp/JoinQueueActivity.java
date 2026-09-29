@@ -140,6 +140,10 @@ public class JoinQueueActivity extends AppCompatActivity {
         ActiveTicketStore.add(ticket);
 
         startActivity(ActiveTicketActivity.intent(this, ticket.getId()));
+        // Once, on Android 13+: ask for notifications on top of the new ticket (canvas 20).
+        if (NotificationPermissionActivity.shouldAsk(this)) {
+            startActivity(NotificationPermissionActivity.intent(this, ticket.getId()));
+        }
         finish();
     }
 }

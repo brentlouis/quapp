@@ -15,10 +15,16 @@ import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
 
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
+import com.google.android.material.snackbar.Snackbar;
 
+import java.time.format.DateTimeFormatter;
 import java.util.List;
+import java.util.Locale;
 
-/** Profile. The last tab on both homes; the rows adapt to the current role. */
+/**
+ * Profile. The last tab on both homes; the rows adapt to the current role. Organizers also see
+ * where their verification stands: Get verified, pending (canvas 51), or the badge.
+ */
 public class ProfileFragment extends Fragment {
 
     private Session session;
@@ -36,6 +42,7 @@ public class ProfileFragment extends Fragment {
 
         bindUser(view);
         bindSwitchRow(view);
+        bindHelpRow(view);
         bindLogoutRow(view);
 
         view.findViewById(R.id.profile_history_row).setOnClickListener(new View.OnClickListener() {
@@ -51,6 +58,7 @@ public class ProfileFragment extends Fragment {
     public void onResume() {
         super.onResume();
         bindRecord();
+        bindVerification();
     }
 
     @Override
@@ -58,6 +66,7 @@ public class ProfileFragment extends Fragment {
         super.onHiddenChanged(hidden);
         if (!hidden) {
             bindRecord();
+            bindVerification();
         }
     }
 
@@ -66,7 +75,88 @@ public class ProfileFragment extends Fragment {
                 ? getString(R.string.profile_name_fallback) : session.getName();
         ((TextView) view.findViewById(R.id.profile_name)).setText(name);
         ((TextView) view.findViewById(R.id.profile_initials)).setText(Format.initials(name));
-        ((TextView) view.findViewById(R.id.profile_phone)).setText(Format.spacedPhone(session.getPhone()));
+        String phone = Format.spacedPhone(session.getPhone());
+        // Organizers: "0918 222 3141 · City Health Office" (canvas 51).
+        ((TextView) view.findViewById(R.id.profile_phone)).setText(
+                session.getRole() == Session.Role.OWNER
+                        ? getString(R.string.profile_phone_org_format, phone, FakeData.MY_ORGANIZER_NAME)
+                        : phone);
+    }
+
+    /**
+     * Organizers only. Not asked (or turned down): a Get verified row. Asked: the pending card
+     * with the number the admin will call. Verified: the badge, no chevron.
+     *
+     * Demo hook until the admin page exists: long-press the row or the card to play the admin.
+     * Verified → back to unverified, pending → approved.
+     */
+    private void bindVerification() {
+        View view = getView();
+        if (view == null) {
+            return;
+        }
+        View row = view.findViewById(R.id.profile_verify_row);
+        View divider = view.findViewById(R.id.profile_verify_divider);
+        View pending = view.findViewById(R.id.profile_pending);
+        boolean isOwner = session.getRole() == Session.Role.OWNER;
+        VerificationStatus status = FakeData.myVerification();
+
+        pending.setVisibility(isOwner && status == VerificationStatus.PENDING ? View.VISIBLE : View.GONE);
+        boolean showRow = isOwner && status != VerificationStatus.PENDING;
+        row.setVisibility(showRow ? View.VISIBLE : View.GONE);
+        divider.setVisibility(showRow ? View.VISIBLE : View.GONE);
+        if (!isOwner) {
+            return;
+        }
+
+        VerificationRequest request = FakeData.myVerificationRequest();
+        if (status == VerificationStatus.PENDING && request != null) {
+            ((TextView) view.findViewById(R.id.profile_pending_body)).setText(getString(
+                    R.string.profile_verification_pending_body,
+                    request.getCreatedAt().atZone(Format.MANILA).format(
+                            DateTimeFormatter.ofPattern("MMM d", Locale.getDefault())),
+                    request.getOfficePhone()));
+        }
+
+        View chevron = row.findViewById(R.id.row_chevron);
+        ImageView icon = row.findViewById(R.id.row_icon);
+        if (status == VerificationStatus.VERIFIED) {
+            ListRow.bind(row, R.drawable.ic_badge_check, getString(R.string.profile_verified),
+                    FakeData.MY_ORGANIZER_NAME);
+            icon.setColorFilter(ContextCompat.getColor(requireContext(), R.color.ok));
+            chevron.setVisibility(View.GONE);
+            row.setOnClickListener(null);
+            row.setClickable(true);
+        } else {
+            ListRow.bind(row, R.drawable.ic_badge_check, getString(R.string.profile_get_verified),
+                    getString(status == VerificationStatus.REJECTED
+                            ? R.string.profile_get_verified_rejected
+                            : status == VerificationStatus.REVOKED
+                                    ? R.string.profile_get_verified_revoked
+                                    : R.string.profile_get_verified_hint));
+            icon.setColorFilter(ContextCompat.getColor(requireContext(), R.color.ink_muted));
+            chevron.setVisibility(View.VISIBLE);
+            row.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    startActivity(new Intent(requireContext(), GetVerifiedActivity.class));
+                }
+            });
+        }
+
+        View.OnLongClickListener playAdmin = new View.OnLongClickListener() {
+            @Override
+            public boolean onLongClick(View v) {
+                boolean approve = FakeData.myVerification() == VerificationStatus.PENDING;
+                FakeData.setMyVerification(approve ? VerificationStatus.VERIFIED : VerificationStatus.NONE);
+                bindVerification();
+                Snackbar.make(v, approve ? R.string.profile_demo_approved : R.string.profile_demo_reset,
+                        Snackbar.LENGTH_SHORT).show();
+                return true;
+            }
+        };
+        row.setOnLongClickListener(playAdmin);
+        pending.setOnLongClickListener(playAdmin);
     }
 
     /**
@@ -117,6 +207,19 @@ public class ProfileFragment extends Fragment {
             public void onClick(View v) {
                 session.setRole(isOwner ? Session.Role.QUEUER : Session.Role.OWNER);
                 startActivity(session.homeIntent(requireContext()));
+            }
+        });
+    }
+
+    /** Help and support (canvas 49), on both sides. */
+    private void bindHelpRow(View view) {
+        View helpRow = view.findViewById(R.id.profile_help_row);
+        ListRow.bind(helpRow, R.drawable.ic_info, getString(R.string.help_title),
+                getString(R.string.profile_help_hint));
+        helpRow.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                startActivity(new Intent(requireContext(), HelpActivity.class));
             }
         });
     }

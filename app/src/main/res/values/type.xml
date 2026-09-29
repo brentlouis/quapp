@@ -41,6 +41,12 @@
         <item name="lineHeight">119sp</item>
     </style>
 
+    <!-- The counter display (canvas 32): read from across a waiting room -->
+    <style name="TextAppearance.Quapp.TicketNumber.Counter">
+        <item name="android:textSize">160sp</item>
+        <item name="lineHeight">144sp</item>
+    </style>
+
     <!-- ===== IBM Plex Sans: everything read ===== -->
 
     <style name="TextAppearance.Quapp.HeadingSmall" parent="TextAppearance.Material3.TitleMedium">

@@ -54,6 +54,9 @@
     <dimen name="brand_mark_height">42.5dp</dimen>
     <dimen name="tile_size">40dp</dimen>          <!-- icon tile in a list row or card -->
     <dimen name="forgot_step_size">32dp</dimen>
+    <dimen name="field_height">52dp</dimen>        <!-- a text field's box (DESIGN.md section 9) -->
+    <dimen name="share_qr_size">200dp</dimen>      <!-- Share queue's QR (canvas 31) -->
+    <dimen name="counter_qr_size">168dp</dimen>    <!-- the counter display's QR (canvas 32) -->
 
     <dimen name="touch_target_min">48dp</dimen>
     <dimen name="button_height_lg">56dp</dimen> <!-- buttons in the dock -->

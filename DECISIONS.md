@@ -1142,6 +1142,84 @@ To make "I need more time" demonstrable, seeded open queues simulate one new arr
 
 ---
 
+## Proximity check: framework LocationManager, read once at Join
+
+**Decision:** Join on a queue with a radius first shows "Check that you're nearby" (44), then Android's permission dialog. `ProximityCheck` reads one location with `LocationManagerCompat.getCurrentLocation` (fused provider on Android 12+, else network, else GPS), or uses a fix from the last 2 minutes straight away, and gives up after 15 s with the last known fix. Inside the radius goes on to Join; outside shows "You're 4.2 km away" with Check again (45); refused permission or the phone's Location switch off shows "Location is off for Quapp" (48) with a button to fix whichever it is. Precise or approximate location is accepted.
+
+**Why:** It's the whole check, with no library: Google Play services' FusedLocationProviderClient would add a dependency and needs Play services on the phone. The smallest radius is 500 m, so approximate location is good enough.
+
+**Also considered:** Play services location (more accurate indoors, one more dependency); checking again at "I'm here" (that's tracking, which the design promises not to do).
+
+**Status:** Current. Built Sep 29. The server should check the radius again with the lat/lng sent at join (MODELS.md `POST /queues/{id}/tickets`); today the app's check is the only one.
+
+---
+
+## Offline shows the last numbers, not a guess
+
+**Decision:** My ticket watches connectivity (`Connectivity`, a `ConnectivityManager` callback; "online" means Android validated the internet). Offline, the waiting ticket keeps the numbers it last had, says "as of 10:12 AM", drops the ticks and Now serving, says the wait can't update, and adds "Your spot is kept. Show #43 to staff at the counter" (25). Retry, Leave and I need more time wait for the connection. It catches up by itself when the phone is back.
+
+**Why:** A queue app is most likely to lose signal inside a crowded venue. Stale numbers labelled as stale are more useful than a spinner, and the one thing the queuer needs to know is that their place is safe.
+
+**Status:** Current. Built Sep 29. With FakeData nothing actually needs the network, so offline is simulated by freezing; with Retrofit it becomes real.
+
+---
+
+## Notifications: an Application class stands in for the push
+
+**Decision:** `QuappApplication` creates the "You're being called" channel (high importance) and listens to FakeData's `CounterListener`. When the counter calls one of the queuer's tickets, `CalledNotifier` posts a heads-up notification with a live countdown, "I'm here" (a `BroadcastReceiver`, so the app doesn't open) and "Open ticket"; it's cleared when the ticket leaves the counter and times out with the grace period. The permission screen (20) shows once, over the new ticket, after the first join on Android 13+.
+
+**Why:** "Notifications aren't optional for the grace-period strategy" (Open questions): a queuer with the phone in a pocket would otherwise miss 3 minutes and get a no-show they didn't earn. Building the notification now means the backend only has to replace what triggers it (a Firebase message instead of FakeData's listener).
+
+**Also considered:** Posting from each screen that notices the call (misses the case the notification exists for: no screen open).
+
+**Status:** Current. Built Sep 29. On one phone the demo is: join as queuer, switch to managing queues, Call next until you're called.
+
+---
+
+## Share link and QR with ZXing; quapp.app is a placeholder
+
+**Decision:** Share queue (31) and the counter display (32) draw a real, scannable QR with ZXing core (`com.google.zxing:core`, encoding only, pure Java). The link is `https://quapp.app/q/<name-slug>`.
+
+**Why:** The design leans on the organizer's link and QR as the main way in, so a picture of a QR that doesn't scan would be dishonest in the demo. ZXing core is small, has no Android or camera parts, and drawing QR codes by hand is not worth the code.
+
+**Also considered:** A decorative QR image (doesn't scan); a QR drawing library with more features (not needed).
+
+**Status:** Current. Built Sep 29. The domain isn't owned: the link opens nothing yet. Needs a real domain (or the FastAPI server's address) and an App Link intent filter so it opens Queue detail.
+
+---
+
+## Organizer verification lives on the organizer, and the demo plays the admin
+
+**Decision:** FakeData keeps the logged-in organizer's `VerificationStatus`; every queue they own reads its badge from it, so a revoke shows everywhere at once (the canvas note "Queue: no badge field"). Get verified (50) makes it PENDING; Profile shows the pending card (51). Until the admin page exists, long-pressing the Profile row or card plays the admin: verified → back to unverified, pending → approved. Unverified organizers get the note on Queue detail (53), no listing in "Open now across Bohol", and one live (open or paused) queue: creating a queue that opens now, or reopening a closed one, while another is live shows the limit sheet (58). An upcoming one is allowed.
+
+The organizer line on Queue detail opens the badge sheet (52) for both verified and unverified organizers, with Report this queue. Report (54) comes from there, or from Help with a queue picker.
+
+**Why:** It follows "Unverified organizers can post, with limits" without building the admin page first. Starting verified keeps the seeded queues looking like the canvas.
+
+**Status:** Current. Built Sep 29. Demo hooks are listed under Known compromises.
+
+---
+
+## Suspension and the device limit, locally
+
+**Decision:** Login checks `FakeData.suspendedAccount(phone)` and shows Account suspended (55) instead of logging in; 0918 000 0000 is the seeded suspended account. Create account counts the phones registered on this install in a separate SharedPreferences file that logging out doesn't clear; at 2 it shows the device limit (56) and its one button goes back to Log in.
+
+**Why:** Both are server rules (403 at `/auth/login`, `device_install_id` at `/auth/register`); these stand-ins let the screens be built and shown now, and are deleted with FakeData.
+
+**Status:** Current. Built Sep 29. Clearing the app's data resets the local count; the server's install id won't have that hole.
+
+---
+
+## Minimum password length is 8
+
+**Decision:** `Validation.MIN_PASSWORD_LENGTH` goes from 6 to 8.
+
+**Why:** MODELS.md settled 8 on Sep 28 and the canvas says "At least 8 characters"; the code still said 6.
+
+**Status:** Current. Sep 29.
+
+---
+
 ## Known compromises
 
 Deliberate shortcuts, not oversights. Each has a planned fix.
@@ -1163,6 +1241,10 @@ Deliberate shortcuts, not oversights. Each has a planned fix.
 8. **Queue history has no dates.** `Ticket` has no `joinedAt` field, so rows show queue, ticket number and outcome only. Adding it is a model change to propose.
 
 9. **New queues get Tagbilaran City's coordinates** until Create Queue has a map picker.
+
+10. **Trust and safety demo hooks.** Long-press the organizer's verification row or pending card in Profile to play the admin (verified → unverified, pending → approved). Logging in as 0918 000 0000 shows a suspended account. The device limit counts registrations in local storage. All three move to the server and the admin page.
+
+11. **The called notification is triggered by FakeData**, which only works while the owner and the queuer are the same app process (one phone). Real push needs Firebase Cloud Messaging and the backend.
 
 **Status:** Deferred to full app.
 

@@ -290,9 +290,7 @@ public final class QueueCards {
 
     /** "500 m" or "2 km". */
     static String radiusText(Context context, int meters) {
-        return meters >= 1000 && meters % 1000 == 0
-                ? context.getString(R.string.detail_radius_km, meters / 1000)
-                : context.getString(R.string.detail_radius_m, meters);
+        return Format.distance(context, meters);
     }
 
     private static TextView text(View card, int id) {

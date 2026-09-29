@@ -251,7 +251,7 @@ public class CreateQueueActivity extends AppCompatActivity {
         ((TextView) findViewById(R.id.create_posting_as)).setText(
                 getString(R.string.create_posting_as, FakeData.MY_ORGANIZER_NAME));
         findViewById(R.id.create_posting_verified).setVisibility(
-                FakeData.MY_ORGANIZER_VERIFIED ? View.VISIBLE : View.GONE);
+                FakeData.isMyOrganizerVerified() ? View.VISIBLE : View.GONE);
     }
 
     // ---- Pickers --------------------------------------------------------------
@@ -515,13 +515,22 @@ public class CreateQueueActivity extends AppCompatActivity {
             return;
         }
 
+        // Unverified organizers run one queue at a time (canvas 58). One that opens later is fine.
+        if (existingQueue == null && !startsLater() && !FakeData.isMyOrganizerVerified()) {
+            Queue running = FakeData.myLiveQueue(null);
+            if (running != null) {
+                TrustSheets.showOneLiveQueue(this, running);
+                return;
+            }
+        }
+
         // Editing keeps id, organizer, location and status; creating starts fresh.
         Queue.Builder builder = existingQueue != null
                 ? existingQueue.toBuilder()
                 : new Queue.Builder()
                         .setId(FakeData.newQueueId())
                         .setOrganizer(FakeData.MY_ORGANIZER_ID, FakeData.MY_ORGANIZER_NAME,
-                                FakeData.MY_ORGANIZER_VERIFIED)
+                                FakeData.isMyOrganizerVerified())
                         .setLocation(FakeData.defaultLatitude(), FakeData.defaultLongitude())
                         .setStatus(startsLater() ? Queue.Status.UPCOMING : Queue.Status.OPEN);
 

@@ -31,9 +31,19 @@ public class ValidationTest {
 
     @Test
     public void passwordNeedsMinimumLength() {
-        assertFalse(Validation.isValidPassword("12345"));
-        assertTrue(Validation.isValidPassword("123456"));
+        assertFalse(Validation.isValidPassword("1234567"));
+        assertTrue(Validation.isValidPassword("12345678"));
         assertFalse(Validation.isValidPassword(null));
+    }
+
+    @Test
+    public void officePhoneTakesLandlinesAndMobiles() {
+        assertTrue(Validation.isValidOfficePhone("(038) 411 2345"));
+        assertTrue(Validation.isValidOfficePhone("411-2345"));
+        assertTrue(Validation.isValidOfficePhone("0917 123 4567"));
+        assertFalse(Validation.isValidOfficePhone("12345"));
+        assertFalse(Validation.isValidOfficePhone("0917 123 4567 8"));
+        assertFalse(Validation.isValidOfficePhone(null));
     }
 
     @Test

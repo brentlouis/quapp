@@ -3,6 +3,7 @@
      with the keyboard (SystemBars.applyPaddingWithKeyboard). -->
 <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/register_root"
     android:layout_width="match_parent"
     android:layout_height="match_parent">
@@ -151,6 +152,54 @@
                     android:autofillHints="newPassword"
                     android:inputType="textPassword" />
             </com.google.android.material.textfield.TextInputLayout>
+
+            <!-- Device limit (canvas 56): this phone already made 2 accounts -->
+            <LinearLayout
+                android:id="@+id/register_limit"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/space_lg"
+                android:background="@drawable/bg_note_warn"
+                android:orientation="horizontal"
+                android:paddingStart="@dimen/space_md"
+                android:paddingTop="@dimen/space_ms"
+                android:paddingEnd="@dimen/space_md"
+                android:paddingBottom="@dimen/space_ms"
+                android:visibility="gone"
+                tools:visibility="visible">
+
+                <ImageView
+                    android:layout_width="@dimen/icon_small"
+                    android:layout_height="@dimen/icon_small"
+                    android:importantForAccessibility="no"
+                    android:src="@drawable/ic_info"
+                    app:tint="@color/warn" />
+
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="@dimen/space_ms"
+                    android:layout_weight="1"
+                    android:orientation="vertical">
+
+                    <TextView
+                        android:id="@+id/register_limit_title"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:accessibilityLiveRegion="polite"
+                        android:textAppearance="?attr/textAppearanceTitleSmall"
+                        tools:text="This phone already has 2 Quapp accounts" />
+
+                    <TextView
+                        android:id="@+id/register_limit_body"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="@dimen/space_xs"
+                        android:textAppearance="?attr/textAppearanceBodySmall"
+                        android:textColor="?attr/colorOnSurface"
+                        tools:text="Log in to one of them instead. One phone can hold up to 2 accounts, so a shared family phone still works." />
+                </LinearLayout>
+            </LinearLayout>
         </LinearLayout>
     </androidx.core.widget.NestedScrollView>
 
@@ -183,6 +232,7 @@
             android:text="@string/register_action" />
 
         <LinearLayout
+            android:id="@+id/register_login_row"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="center_horizontal"

@@ -42,6 +42,22 @@ public final class Format {
         return phone.substring(0, 4) + " " + phone.substring(4, 7) + " " + phone.substring(7);
     }
 
+    /**
+     * A join radius or a measured distance: "500 m", "2 km", "4.2 km". One decimal below 10 km,
+     * and a whole number of km never gets a ".0".
+     */
+    public static String distance(Context context, double meters) {
+        if (meters < 1000) {
+            return context.getString(R.string.detail_radius_m, (int) Math.round(meters));
+        }
+        double km = meters / 1000d;
+        // %,d groups thousands, so a phone far away reads "11,417 km".
+        String number = km >= 10 || km == Math.rint(km)
+                ? String.format(Locale.US, "%,d", Math.round(km))
+                : String.format(Locale.US, "%.1f", km);
+        return context.getString(R.string.detail_radius_km, number);
+    }
+
     public static LocalDate today() {
         return LocalDate.now(MANILA);
     }

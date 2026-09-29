@@ -4,6 +4,9 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 
+import java.util.HashSet;
+import java.util.Set;
+
 /**
  * Who's logged in and which side of the app they use. Stored in SharedPreferences
  * so it survives the app being closed — that's the "session persistence".
@@ -24,12 +27,25 @@ public class Session {
     private static final String KEY_PHONE = "phone";
     private static final String KEY_ROLE = "role";
     private static final String KEY_TOWN = "town";
+    private static final String KEY_NOTIFICATIONS_ASKED = "notifications_asked";
+
+    /**
+     * What this install remembers across accounts, so logging out doesn't reset it. Stands in
+     * for the server's device_install_id count (MODELS.md) until there's a backend.
+     */
+    private static final String DEVICE_PREFS_NAME = "quapp_device";
+    private static final String KEY_DEVICE_ACCOUNTS = "accounts";
+    /** One phone can hold 2 accounts, so a shared family phone still works (canvas 56). */
+    public static final int MAX_ACCOUNTS_PER_DEVICE = 2;
 
     private final SharedPreferences prefs;
+    private final SharedPreferences devicePrefs;
 
     public Session(Context context) {
         prefs = context.getApplicationContext()
                 .getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
+        devicePrefs = context.getApplicationContext()
+                .getSharedPreferences(DEVICE_PREFS_NAME, Context.MODE_PRIVATE);
     }
 
     public boolean isLoggedIn() {
@@ -52,6 +68,10 @@ public class Session {
     }
 
     public void register(String name, String phone) {
+        Set<String> accounts = deviceAccounts();
+        accounts.add(phone);
+        devicePrefs.edit().putStringSet(KEY_DEVICE_ACCOUNTS, accounts).apply();
+
         prefs.edit()
                 .putBoolean(KEY_LOGGED_IN, true)
                 .putString(KEY_NAME, name)
@@ -80,6 +100,34 @@ public class Session {
 
     public void setTown(String town) {
         prefs.edit().putString(KEY_TOWN, town).apply();
+    }
+
+    /**
+     * The phone numbers that created an account on this install. A copy: Android's own set
+     * from getStringSet must never be changed in place.
+     */
+    public Set<String> deviceAccounts() {
+        Set<String> accounts = new HashSet<>(
+                devicePrefs.getStringSet(KEY_DEVICE_ACCOUNTS, new HashSet<String>()));
+        // Registered before this list existed: that account still counts.
+        if (accounts.isEmpty() && getName() != null && !getPhone().isEmpty()) {
+            accounts.add(getPhone());
+        }
+        return accounts;
+    }
+
+    /** The device limit (canvas 56): no third account on the same phone. */
+    public boolean deviceAccountLimitReached() {
+        return deviceAccounts().size() >= MAX_ACCOUNTS_PER_DEVICE;
+    }
+
+    /** The notification permission screen (canvas 20) is shown once, after the first join. */
+    public boolean wasAskedForNotifications() {
+        return prefs.getBoolean(KEY_NOTIFICATIONS_ASKED, false);
+    }
+
+    public void setAskedForNotifications() {
+        prefs.edit().putBoolean(KEY_NOTIFICATIONS_ASKED, true).apply();
     }
 
     public void setRole(Role role) {

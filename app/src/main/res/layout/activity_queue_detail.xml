@@ -105,12 +105,17 @@
                     app:icon="@drawable/ic_navigation" />
             </LinearLayout>
 
-            <!-- Who runs it: verified organizers get the badge -->
+            <!-- Who runs it: verified organizers get the badge. Tapping explains it (canvas 52). -->
             <LinearLayout
+                android:id="@+id/detail_organizer_row"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="@dimen/space_sm"
+                android:layout_marginTop="@dimen/space_xs"
+                android:background="?attr/selectableItemBackground"
+                android:clickable="true"
+                android:focusable="true"
                 android:gravity="center_vertical"
+                android:minHeight="@dimen/touch_target_min"
                 android:orientation="horizontal">
 
                 <TextView
@@ -170,6 +175,55 @@
                 android:paddingEnd="@dimen/space_md"
                 android:paddingBottom="@dimen/space_xs"
                 android:showDividers="middle" />
+
+            <!-- Proximity check result: too far (canvas 45) or location off (48) -->
+            <LinearLayout
+                android:id="@+id/detail_location_note"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/space_md"
+                android:background="@drawable/bg_note_warn"
+                android:orientation="horizontal"
+                android:paddingStart="@dimen/space_md"
+                android:paddingTop="@dimen/space_ms"
+                android:paddingEnd="@dimen/space_md"
+                android:paddingBottom="@dimen/space_ms"
+                android:visibility="gone"
+                tools:visibility="visible">
+
+                <ImageView
+                    android:id="@+id/detail_location_icon"
+                    android:layout_width="@dimen/icon_small"
+                    android:layout_height="@dimen/icon_small"
+                    android:importantForAccessibility="no"
+                    android:src="@drawable/ic_map_pin"
+                    app:tint="@color/warn" />
+
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="@dimen/space_ms"
+                    android:layout_weight="1"
+                    android:orientation="vertical">
+
+                    <TextView
+                        android:id="@+id/detail_location_title"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:accessibilityLiveRegion="polite"
+                        android:textAppearance="?attr/textAppearanceTitleSmall"
+                        tools:text="You're 4.2 km away" />
+
+                    <TextView
+                        android:id="@+id/detail_location_body"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="@dimen/space_xs"
+                        android:textAppearance="?attr/textAppearanceBodySmall"
+                        android:textColor="?attr/colorOnSurface"
+                        tools:text="This queue takes people within 1 km of the venue. Head there, then tap Check again." />
+                </LinearLayout>
+            </LinearLayout>
 
             <TextView
                 android:id="@+id/detail_bring"

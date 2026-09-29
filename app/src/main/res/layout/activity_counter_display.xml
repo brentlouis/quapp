@@ -1,0 +1,133 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Counter display (canvas 32): a phone or tablet propped at the counter, in landscape. The
+     whole ground is the spotlight (Theme.Quapp.Called), the serving number at 160 in signal,
+     and the QR on a raised paper plate so it scans. Refreshes itself every few seconds. -->
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/counter_root"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:keepScreenOn="true"
+    android:paddingStart="@dimen/space_xl"
+    android:paddingTop="@dimen/space_lg"
+    android:paddingEnd="@dimen/space_xl"
+    android:paddingBottom="@dimen/space_lg">
+
+    <androidx.constraintlayout.widget.Guideline
+        android:id="@+id/counter_split"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        app:layout_constraintGuide_percent="0.56" />
+
+    <!-- ===== Left: now serving ===== -->
+
+    <TextView
+        android:id="@+id/counter_serving_label"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:text="@string/counter_now_serving"
+        android:textAppearance="?attr/textAppearanceLabelSmall"
+        android:textColor="?attr/colorOnSurfaceVariant"
+        app:layout_constraintBottom_toTopOf="@id/counter_number"
+        app:layout_constraintEnd_toStartOf="@id/counter_split"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_chainStyle="packed" />
+
+    <TextView
+        android:id="@+id/counter_number"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:accessibilityLiveRegion="polite"
+        android:maxLines="1"
+        android:textAppearance="?attr/textAppearanceTicketNumberCounter"
+        android:textColor="@color/signal"
+        app:layout_constraintBottom_toTopOf="@id/counter_instruction"
+        app:layout_constraintEnd_toStartOf="@id/counter_split"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/counter_serving_label"
+        tools:text="#23" />
+
+    <TextView
+        android:id="@+id/counter_instruction"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginEnd="@dimen/space_md"
+        android:textAppearance="?attr/textAppearanceTitleLarge"
+        app:layout_constraintBottom_toTopOf="@id/counter_queue"
+        app:layout_constraintEnd_toStartOf="@id/counter_split"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/counter_number"
+        tools:text="@string/counter_come_up" />
+
+    <TextView
+        android:id="@+id/counter_queue"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/space_lg"
+        android:layout_marginEnd="@dimen/space_md"
+        android:textAppearance="?attr/textAppearanceBodyLarge"
+        android:textColor="?attr/colorOnSurfaceVariant"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toStartOf="@id/counter_split"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/counter_instruction"
+        tools:text="Free Medical Mission · 8 waiting" />
+
+    <!-- ===== Right: up next, then the QR ===== -->
+
+    <TextView
+        android:id="@+id/counter_next_label"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:text="@string/counter_up_next"
+        android:textAppearance="?attr/textAppearanceLabelSmall"
+        android:textColor="?attr/colorOnSurfaceVariant"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toEndOf="@id/counter_split"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <TextView
+        android:id="@+id/counter_next"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/space_xs"
+        android:maxLines="1"
+        android:textAppearance="?attr/textAppearanceTicketNumber"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toEndOf="@id/counter_split"
+        app:layout_constraintTop_toBottomOf="@id/counter_next_label"
+        tools:text="#24   #25   #26" />
+
+    <FrameLayout
+        android:id="@+id/counter_qr_plate"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:background="@drawable/bg_qr_plate"
+        android:padding="@dimen/space_ms"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toEndOf="@id/counter_split">
+
+        <ImageView
+            android:id="@+id/counter_qr"
+            android:layout_width="@dimen/counter_qr_size"
+            android:layout_height="@dimen/counter_qr_size"
+            android:contentDescription="@string/share_qr_description" />
+    </FrameLayout>
+
+    <TextView
+        android:id="@+id/counter_scan"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="@dimen/space_md"
+        android:textAppearance="?attr/textAppearanceBodyMedium"
+        android:textColor="?attr/colorOnSurfaceVariant"
+        app:layout_constraintBottom_toBottomOf="@id/counter_qr_plate"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toEndOf="@id/counter_qr_plate"
+        app:layout_constraintTop_toTopOf="@id/counter_qr_plate"
+        tools:text="Scan to join from your phone, or search &quot;Free Medical Mission&quot; in Quapp." />
+
+</androidx.constraintlayout.widget.ConstraintLayout>

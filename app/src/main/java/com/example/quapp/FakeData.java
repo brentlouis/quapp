@@ -2,6 +2,8 @@ package com.example.quapp;
 
 import android.os.SystemClock;
 
+import androidx.annotation.Nullable;
+
 import java.time.Duration;
 import java.time.Instant;
 import java.time.LocalDate;
@@ -28,9 +30,11 @@ public final class FakeData {
 
     /** The organizer id FakeData uses for "the logged-in owner" until there are real accounts. */
     public static final String MY_ORGANIZER_ID = "me";
-    /** The logged-in owner's organization and whether Quapp has verified it. */
+    /** The logged-in owner's organization. Whether it's verified is myVerification(). */
     public static final String MY_ORGANIZER_NAME = "Brgy. Poblacion Council";
-    public static final boolean MY_ORGANIZER_VERIFIED = true;
+
+    /** A suspended account for the demo: log in with this number (canvas 55). */
+    public static final String SUSPENDED_PHONE = "09180000000";
 
     // Default coordinates (Tagbilaran City) for new queues until there's a map picker.
     private static final double DEFAULT_LATITUDE = 9.6496;
@@ -70,8 +74,34 @@ public final class FakeData {
     private static int nextQueueNumber = 1;
     private static boolean seeded;
 
+    /**
+     * What a push message from the server would tell the queuer's phone. QuappApplication
+     * listens, and posts or clears the "You're being called" notification.
+     */
+    public interface CounterListener {
+        /** A ticket was just called to the counter. */
+        void onCalled(Ticket ticket);
+
+        /** A ticket stopped waiting at the counter: confirmed, served, released or moved. */
+        void onLeftCounter(String ticketId);
+    }
+
+    @Nullable
+    private static CounterListener counterListener;
+
+    // Trust and safety: the logged-in organizer's badge, reports sent, suspended accounts.
+    // Verified to start with, so the seeded queues have their badges; see setMyVerification.
+    private static VerificationStatus myVerification = VerificationStatus.VERIFIED;
+    @Nullable
+    private static VerificationRequest myRequest;
+    private static final List<Report> reports = new ArrayList<>();
+
     private FakeData() {
         // Utility class.
+    }
+
+    public static void setCounterListener(@Nullable CounterListener listener) {
+        counterListener = listener;
     }
 
     // ---- Queues -------------------------------------------------------------
@@ -371,6 +401,7 @@ public final class FakeData {
         LiveQueue state = liveState(queueId);
         if (isAtCounter(state, ticketId)) {
             state.nowServingConfirmedAt = Instant.now();
+            leftCounter(ticketId);
         }
     }
 
@@ -388,6 +419,7 @@ public final class FakeData {
         if (isAtCounter(state, ticketId)) {
             state.nowServing = null;
             state.nowServingConfirmedAt = null;
+            leftCounter(ticketId);
         } else {
             removeById(state.waiting, ticketId);
         }
@@ -407,6 +439,7 @@ public final class FakeData {
             state.nowServing = null;
             state.nowServingConfirmedAt = null;
             index = Math.min(places, state.waiting.size());
+            leftCounter(ticketId);
         } else {
             int from = indexOf(state.waiting, ticketId);
             if (from < 0) {
@@ -447,6 +480,78 @@ public final class FakeData {
                 // FakeData only has the rolling average; the learning model lives on the server.
                 QueueStats.EstimateSource.ROLLING_AVERAGE,
                 0);
+    }
+
+    // ---- Trust and safety (canvas 50-58) ---------------------------------------
+
+    public static VerificationStatus myVerification() {
+        return myVerification;
+    }
+
+    public static boolean isMyOrganizerVerified() {
+        return myVerification == VerificationStatus.VERIFIED;
+    }
+
+    /** The organizer's last request, for "Submitted Sep 28. We'll call …"; null if none. */
+    @Nullable
+    public static VerificationRequest myVerificationRequest() {
+        return myRequest;
+    }
+
+    /** Get verified (canvas 50): the request waits for the admin to call. */
+    public static void submitVerification(VerificationRequest request) {
+        myRequest = request;
+        myVerification = VerificationStatus.PENDING;
+    }
+
+    /**
+     * Demo hook for the admin page, which doesn't exist yet: approve, reject or revoke. Also
+     * used to go back to unverified so the Get verified flow can be shown.
+     */
+    public static void setMyVerification(VerificationStatus status) {
+        myVerification = status;
+        if (myRequest != null && status != VerificationStatus.PENDING) {
+            myRequest = status == VerificationStatus.NONE ? null : myRequest.decided(status);
+        }
+    }
+
+    /**
+     * The organizer's queue that's running now (open or paused), or null. Unverified organizers
+     * get one at a time (canvas 58); an upcoming queue doesn't count.
+     */
+    @Nullable
+    public static Queue myLiveQueue(@Nullable String exceptQueueId) {
+        for (Queue queue : ownedQueues()) {
+            boolean live = queue.getStatus() == Queue.Status.OPEN
+                    || queue.getStatus() == Queue.Status.PAUSED;
+            if (live && !queue.getId().equals(exceptQueueId)) {
+                return queue;
+            }
+        }
+        return null;
+    }
+
+    /** Report a queue (canvas 54). On the server it goes to the admin page. */
+    public static void report(String queueId, Report.Reason reason, @Nullable String details) {
+        reports.add(new Report("r" + (reports.size() + 1), queueId, reason, details, Instant.now()));
+    }
+
+    public static List<Report> reports() {
+        return new ArrayList<>(reports);
+    }
+
+    /**
+     * Login's check (canvas 55): the account for this phone if the admin suspended it, else
+     * null. With the backend, /auth/login answers 403 with the reason instead.
+     */
+    @Nullable
+    public static User suspendedAccount(String phone) {
+        if (!SUSPENDED_PHONE.equals(phone)) {
+            return null;
+        }
+        Instant since = LocalDate.of(2026, 9, 28).atTime(9, 0).atZone(Format.MANILA).toInstant();
+        return new User("u-suspended", "Jun Dela Cruz", phone, User.Status.SUSPENDED,
+                "Posting a fake queue", since, VerificationStatus.REVOKED, null);
     }
 
     // ---- Queuer history -----------------------------------------------------
@@ -519,7 +624,12 @@ public final class FakeData {
         int waiting = state.waiting.size();
         int eta = queue.getStatus() == Queue.Status.CLOSED ? 0 : forecastMinutes(state, waiting);
 
-        return queue.toBuilder()
+        Queue.Builder builder = queue.toBuilder();
+        // The badge follows the organizer, not the queue: a revoke shows everywhere at once.
+        if (MY_ORGANIZER_ID.equals(queue.getOrganizerId())) {
+            builder.setOrganizer(MY_ORGANIZER_ID, MY_ORGANIZER_NAME, isMyOrganizerVerified());
+        }
+        return builder
                 .setPeopleWaiting(waiting)
                 .setNowServing(state.nowServing == null ? null : state.nowServing.getTicketNumber())
                 .setEstimatedWaitMinutes(eta)
@@ -543,6 +653,13 @@ public final class FakeData {
     /** Records how a ticket that left the line ended, for the queuer's app to read back. */
     private static void finish(Ticket ticket, Ticket.Status status) {
         finished.put(ticket.getId(), ticket.withStatus(status));
+        leftCounter(ticket.getId());
+    }
+
+    private static void leftCounter(String ticketId) {
+        if (counterListener != null) {
+            counterListener.onLeftCounter(ticketId);
+        }
     }
 
     private static void timeOut(LiveQueue state) {
@@ -557,6 +674,9 @@ public final class FakeData {
         state.nowServingConfirmedAt = null;
         state.nowServing = state.waiting.isEmpty() ? null
                 : state.waiting.remove(0).withStatus(Ticket.Status.CALLED);
+        if (state.nowServing != null && counterListener != null) {
+            counterListener.onCalled(state.nowServing);
+        }
     }
 
     /**
@@ -617,7 +737,7 @@ public final class FakeData {
 
         seed(new Queue.Builder()
                         .setId("q1")
-                        .setOrganizer(MY_ORGANIZER_ID, MY_ORGANIZER_NAME, MY_ORGANIZER_VERIFIED)
+                        .setOrganizer(MY_ORGANIZER_ID, MY_ORGANIZER_NAME, true)
                         .setName("Barangay Relief Distribution")
                         .setCategory(Category.RELIEF)
                         .setShortDescription("Family food packs for registered households")
@@ -651,7 +771,7 @@ public final class FakeData {
 
         seed(new Queue.Builder()
                         .setId("q3")
-                        .setOrganizer(MY_ORGANIZER_ID, MY_ORGANIZER_NAME, MY_ORGANIZER_VERIFIED)
+                        .setOrganizer(MY_ORGANIZER_ID, MY_ORGANIZER_NAME, true)
                         .setName("Barangay Clearance Processing")
                         .setCategory(Category.GOVERNMENT)
                         .setShortDescription("Clearance for work and business permits")
@@ -684,7 +804,7 @@ public final class FakeData {
 
         seed(new Queue.Builder()
                         .setId("q5")
-                        .setOrganizer(MY_ORGANIZER_ID, MY_ORGANIZER_NAME, MY_ORGANIZER_VERIFIED)
+                        .setOrganizer(MY_ORGANIZER_ID, MY_ORGANIZER_NAME, true)
                         .setName("Senior Citizen Pension Payout")
                         .setCategory(Category.GOVERNMENT)
                         .setShortDescription("Quarterly payout for registered senior citizens")

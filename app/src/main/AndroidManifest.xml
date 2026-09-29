@@ -2,7 +2,16 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools">
 
+    <!-- The proximity check reads the location once, at Join (canvas 44). Either is enough. -->
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
+    <!-- The "You're being called" notification (canvas 21); Android 13+ asks the user -->
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+    <!-- The offline state on the ticket (canvas 25) -->
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+
     <application
+        android:name=".QuappApplication"
         android:allowBackup="true"
         android:dataExtractionRules="@xml/data_extraction_rules"
         android:fullBackupContent="@xml/backup_rules"
@@ -25,20 +34,35 @@
 
         <activity android:name=".LoginActivity" />
         <activity android:name=".ForgotPasswordActivity" />
+        <activity android:name=".AccountSuspendedActivity" />
         <activity android:name=".RoleSelectActivity" />
         <activity android:name=".RegisterActivity" />
         <activity android:name=".QueuerHomeActivity" />
         <activity android:name=".QueueDetailActivity" />
         <activity android:name=".JoinQueueActivity" />
+        <activity android:name=".NotificationPermissionActivity" />
         <activity android:name=".ActiveTicketActivity" />
         <activity
             android:name=".CalledActivity"
             android:theme="@style/Theme.Quapp.Called" />
+        <activity android:name=".HelpActivity" />
+        <activity android:name=".ReportQueueActivity" />
         <activity android:name=".OwnerHomeActivity" />
         <activity android:name=".CreateQueueActivity"/>
         <activity android:name=".LiveConsoleActivity"/>
+        <activity android:name=".ShareQueueActivity" />
+        <activity
+            android:name=".CounterDisplayActivity"
+            android:screenOrientation="sensorLandscape"
+            android:theme="@style/Theme.Quapp.Called" />
         <activity android:name=".QueueAnalyticsActivity" />
         <activity android:name=".HistoryActivity" />
+        <activity android:name=".GetVerifiedActivity" />
+
+        <!-- "I'm here" on the called notification; only Quapp's own notification sends it -->
+        <receiver
+            android:name=".HereReceiver"
+            android:exported="false" />
     </application>
 
 </manifest>

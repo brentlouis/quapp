@@ -207,6 +207,11 @@ public class LiveConsoleActivity extends AppCompatActivity
             }
 
             @Override
+            public void onShare() {
+                startActivity(ShareQueueActivity.intent(LiveConsoleActivity.this, queueId));
+            }
+
+            @Override
             public void onStatus(Queue.Status status) {
                 changeStatus(status);
             }
@@ -263,6 +268,13 @@ public class LiveConsoleActivity extends AppCompatActivity
     }
 
     private void changeStatus(Queue.Status status) {
+        // Reopening makes it live again, which an unverified organizer may do for one queue.
+        boolean opening = status == Queue.Status.OPEN && queue.getStatus() == Queue.Status.CLOSED;
+        Queue running = FakeData.myLiveQueue(queueId);
+        if (opening && running != null && !FakeData.isMyOrganizerVerified()) {
+            TrustSheets.showOneLiveQueue(this, running);
+            return;
+        }
         FakeData.setQueueStatus(queueId, status);
         render();
     }

@@ -1,14 +1,9 @@
 package com.example.quapp;
 
-import android.content.ActivityNotFoundException;
-import android.content.Intent;
-import android.net.Uri;
 import android.os.Bundle;
 import android.view.View;
 
 import androidx.appcompat.app.AppCompatActivity;
-
-import com.google.android.material.snackbar.Snackbar;
 
 /**
  * Forgot password. There's no SMS gateway, so there are no reset codes: this screen explains
@@ -40,23 +35,8 @@ public class ForgotPasswordActivity extends AppCompatActivity {
         });
     }
 
-    /**
-     * ACTION_SENDTO with a mailto: address only matches email apps, not every app that can
-     * share text. The subject and body are filled in so the user only types their details.
-     */
     private void emailSupport() {
-        String address = getString(R.string.forgot_support_email);
-        Intent intent = new Intent(Intent.ACTION_SENDTO, Uri.parse("mailto:" + address));
-        intent.putExtra(Intent.EXTRA_SUBJECT, getString(R.string.forgot_email_subject));
-        intent.putExtra(Intent.EXTRA_TEXT, getString(R.string.forgot_email_body));
-
-        try {
-            startActivity(intent);
-        } catch (ActivityNotFoundException e) {
-            // No email app installed: show the address so they can write from anywhere.
-            Snackbar.make(findViewById(R.id.forgot_root),
-                    getString(R.string.forgot_no_email_app, address),
-                    Snackbar.LENGTH_LONG).show();
-        }
+        Support.email(this, getString(R.string.forgot_email_subject),
+                getString(R.string.forgot_email_body));
     }
 }

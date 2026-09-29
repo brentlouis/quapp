@@ -2,6 +2,7 @@ package com.example.quapp;
 
 import android.os.Bundle;
 import android.view.View;
+import android.widget.TextView;
 
 import androidx.appcompat.app.AppCompatActivity;
 
@@ -41,6 +42,33 @@ public class RegisterActivity extends AppCompatActivity {
         });
 
         loginButton.setOnClickListener(backToLogin);
+
+        bindDeviceLimit(submitButton, backToLogin);
+    }
+
+    /**
+     * Canvas 56: this phone already made the most accounts it can. The form stays visible but
+     * does nothing; the one button goes back to Log in. The server enforces the same limit by
+     * install id; this is the local stand-in.
+     */
+    private void bindDeviceLimit(MaterialButton submitButton, View.OnClickListener backToLogin) {
+        Session session = new Session(this);
+        if (!session.deviceAccountLimitReached()) {
+            return;
+        }
+        int max = Session.MAX_ACCOUNTS_PER_DEVICE;
+        findViewById(R.id.register_limit).setVisibility(View.VISIBLE);
+        ((TextView) findViewById(R.id.register_limit_title)).setText(
+                getResources().getQuantityString(R.plurals.register_limit_title, max, max));
+        ((TextView) findViewById(R.id.register_limit_body)).setText(
+                getResources().getQuantityString(R.plurals.register_limit_body, max, max));
+        for (int id : new int[]{R.id.register_name_layout, R.id.register_phone_layout,
+                R.id.register_password_layout, R.id.register_confirm_layout}) {
+            findViewById(id).setEnabled(false);
+        }
+        findViewById(R.id.register_login_row).setVisibility(View.GONE);
+        submitButton.setText(R.string.register_limit_action);
+        submitButton.setOnClickListener(backToLogin);
     }
 
     private void submitRegistration() {

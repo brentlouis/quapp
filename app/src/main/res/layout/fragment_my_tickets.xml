@@ -158,6 +158,15 @@
             android:text="@string/ticket_here_action"
             app:icon="@drawable/ic_check"
             app:iconGravity="textStart" />
+
+        <!-- Not there yet: the same sheet as the Called screen (28). Gone once moved back. -->
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/my_tickets_called_move_back"
+            style="@style/Widget.Quapp.Button.Outlined"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/space_sm"
+            android:text="@string/called_move_back_action" />
     </LinearLayout>
 
     <androidx.constraintlayout.widget.ConstraintLayout

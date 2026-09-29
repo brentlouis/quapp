@@ -4,6 +4,7 @@
 <resources>
     <attr name="textAppearanceTicketNumber" format="reference" />
     <attr name="textAppearanceTicketNumberCalled" format="reference" />
+    <attr name="textAppearanceTicketNumberCounter" format="reference" />
     <attr name="textAppearanceStat" format="reference" />
     <attr name="textAppearanceStatHero" format="reference" />
     <attr name="textAppearanceFieldLabel" format="reference" />

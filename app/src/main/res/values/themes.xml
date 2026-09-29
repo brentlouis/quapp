@@ -60,6 +60,7 @@
         <item name="textAppearanceLabelSmall">@style/TextAppearance.Quapp.Label</item>
         <item name="textAppearanceTicketNumber">@style/TextAppearance.Quapp.TicketNumber</item>
         <item name="textAppearanceTicketNumberCalled">@style/TextAppearance.Quapp.TicketNumber.Called</item>
+        <item name="textAppearanceTicketNumberCounter">@style/TextAppearance.Quapp.TicketNumber.Counter</item>
         <item name="textAppearanceStat">@style/TextAppearance.Quapp.Stat</item>
         <item name="textAppearanceStatHero">@style/TextAppearance.Quapp.StatHero</item>
         <item name="textAppearanceFieldLabel">@style/TextAppearance.Quapp.FieldLabel</item>

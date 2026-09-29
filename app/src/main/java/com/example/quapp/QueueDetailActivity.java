@@ -2,7 +2,10 @@ package com.example.quapp;
 
 import android.content.Intent;
 import android.content.res.ColorStateList;
+import android.location.Location;
+import android.net.Uri;
 import android.os.Bundle;
+import android.provider.Settings;
 import android.text.Html;
 import android.text.TextUtils;
 import android.view.View;
@@ -11,19 +14,57 @@ import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
+import androidx.activity.result.ActivityResultCallback;
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
+import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 import androidx.core.view.ViewCompat;
 
+import com.google.android.material.bottomsheet.BottomSheetDialog;
 import com.google.android.material.button.MaterialButton;
+import com.google.android.material.snackbar.Snackbar;
 
 import java.time.Instant;
+import java.util.Map;
 
 public class QueueDetailActivity extends AppCompatActivity {
 
     public static final String EXTRA_QUEUE_ID = "com.example.quapp.EXTRA_QUEUE_ID";
 
+    /** Where the proximity check stands for this visit (canvas 44, 45, 48). */
+    private enum LocationState {
+        /** Not checked yet, or passed: Join works as usual. */
+        UNCHECKED,
+        CHECKING,
+        TOO_FAR,
+        /** Permission refused, or the phone's Location switch is off. */
+        OFF
+    }
+
     private String queueId;
+    private LocationState locationState = LocationState.UNCHECKED;
+    /** How far away the last check found the queuer, for "You're 4.2 km away". */
+    private float distanceMeters;
+
+    /**
+     * Android's own permission dialog. Registered as a field because an Activity must register
+     * for results before it starts; the callback runs when the dialog closes.
+     */
+    private final ActivityResultLauncher<String[]> locationPermission = registerForActivityResult(
+            new ActivityResultContracts.RequestMultiplePermissions(),
+            new ActivityResultCallback<Map<String, Boolean>>() {
+                @Override
+                public void onActivityResult(Map<String, Boolean> result) {
+                    if (ProximityCheck.hasPermission(QueueDetailActivity.this)) {
+                        checkLocation();
+                    } else {
+                        setLocationState(LocationState.OFF);
+                    }
+                }
+            });
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -77,6 +118,12 @@ public class QueueDetailActivity extends AppCompatActivity {
             return;
         }
 
+        // Back from Settings with location allowed and on: Join works again.
+        if (locationState == LocationState.OFF && ProximityCheck.hasPermission(this)
+                && ProximityCheck.isLocationOn(this)) {
+            locationState = LocationState.UNCHECKED;
+        }
+
         bindQueue(queue);
         bindJoinButton(queue);
     }
@@ -94,6 +141,7 @@ public class QueueDetailActivity extends AppCompatActivity {
 
         notice.setVisibility(View.GONE);
         youWillBe.setVisibility(View.GONE);
+        findViewById(R.id.detail_location_note).setVisibility(View.GONE);
         showCooldown(false);
         joinButton.setEnabled(false);
         joinButton.setOnClickListener(null);
@@ -138,6 +186,11 @@ public class QueueDetailActivity extends AppCompatActivity {
             return;
         }
 
+        if (queue.isProximityCheckEnabled() && locationState != LocationState.UNCHECKED) {
+            bindLocationState(queue, joinButton);
+            return;
+        }
+
         // Free to join: the stub shows the number you'd be handed.
         youWillBe.setVisibility(View.VISIBLE);
         ((TextView) findViewById(R.id.detail_next_number)).setText(
@@ -149,11 +202,150 @@ public class QueueDetailActivity extends AppCompatActivity {
         joinButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                Intent intent = new Intent(QueueDetailActivity.this, JoinQueueActivity.class);
-                intent.putExtra(JoinQueueActivity.EXTRA_QUEUE_ID, queue.getId());
-                startActivity(intent);
+                if (!queue.isProximityCheckEnabled()) {
+                    openJoin();
+                } else if (ProximityCheck.hasPermission(QueueDetailActivity.this)) {
+                    checkLocation();
+                } else {
+                    showLocationSheet(queue);
+                }
             }
         });
+    }
+
+    private void openJoin() {
+        Intent intent = new Intent(this, JoinQueueActivity.class);
+        intent.putExtra(JoinQueueActivity.EXTRA_QUEUE_ID, queueId);
+        startActivity(intent);
+    }
+
+    // ---- Proximity check (canvas 44, 45, 48) ------------------------------------
+
+    /** Explains the check before Android's permission dialog. "Not now" just closes it. */
+    private void showLocationSheet(Queue queue) {
+        final BottomSheetDialog sheet = new BottomSheetDialog(this);
+        View content = getLayoutInflater().inflate(R.layout.sheet_location, null);
+        ((TextView) content.findViewById(R.id.location_sheet_body)).setText(getString(
+                R.string.location_sheet_body,
+                Format.distance(this, queue.getJoinRadiusMeters()), queue.getVenue()));
+        content.findViewById(R.id.location_sheet_allow).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                sheet.dismiss();
+                locationPermission.launch(ProximityCheck.PERMISSIONS);
+            }
+        });
+        content.findViewById(R.id.location_sheet_not_now).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                sheet.dismiss();
+            }
+        });
+        sheet.setContentView(content);
+        sheet.show();
+    }
+
+    /** Reads the location once. Inside the radius goes on to Join; outside shows how far. */
+    private void checkLocation() {
+        if (!ProximityCheck.isLocationOn(this)) {
+            setLocationState(LocationState.OFF);
+            return;
+        }
+        setLocationState(LocationState.CHECKING);
+        ProximityCheck.locate(this, new ProximityCheck.Callback() {
+            @Override
+            public void onLocated(@Nullable Location location) {
+                Queue queue = FakeData.queueById(queueId);
+                if (isFinishing() || queue == null) {
+                    return;
+                }
+                if (location == null) {
+                    setLocationState(LocationState.UNCHECKED);
+                    Snackbar.make(findViewById(R.id.detail_root), R.string.detail_location_failed,
+                            Snackbar.LENGTH_LONG).setAnchorView(R.id.detail_dock).show();
+                    return;
+                }
+                distanceMeters = ProximityCheck.distanceMeters(location, queue);
+                if (distanceMeters <= queue.getJoinRadiusMeters()) {
+                    setLocationState(LocationState.UNCHECKED);
+                    openJoin();
+                } else {
+                    setLocationState(LocationState.TOO_FAR);
+                }
+            }
+        });
+    }
+
+    private void setLocationState(LocationState state) {
+        locationState = state;
+        Queue queue = FakeData.queueById(queueId);
+        if (queue != null) {
+            bindJoinButton(queue);
+        }
+    }
+
+    /** The dock and the note for a check that's running, failed or found you too far. */
+    private void bindLocationState(Queue queue, MaterialButton joinButton) {
+        String radius = Format.distance(this, queue.getJoinRadiusMeters());
+        switch (locationState) {
+            case CHECKING:
+                joinButton.setText(R.string.detail_checking_location);
+                break;
+            case TOO_FAR:
+                // Directions stays next to the venue; the dock is one full-width Check again.
+                showLocationNote(getString(R.string.detail_too_far_title,
+                                Format.distance(this, distanceMeters)),
+                        getString(R.string.detail_too_far_body, radius));
+                joinButton.setEnabled(true);
+                joinButton.setText(R.string.detail_check_again);
+                joinButton.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View view) {
+                        checkLocation();
+                    }
+                });
+                break;
+            case OFF:
+            default:
+                showLocationNote(getString(R.string.detail_location_off_title),
+                        getString(R.string.detail_location_off_body, radius));
+                findViewById(R.id.detail_browse_button).setVisibility(View.VISIBLE);
+                joinButton.setEnabled(true);
+                joinButton.setText(R.string.detail_location_on_action);
+                joinButton.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View view) {
+                        turnOnLocation();
+                    }
+                });
+                break;
+        }
+    }
+
+    private void showLocationNote(String title, String body) {
+        findViewById(R.id.detail_location_note).setVisibility(View.VISIBLE);
+        ((TextView) findViewById(R.id.detail_location_title)).setText(title);
+        ((TextView) findViewById(R.id.detail_location_body)).setText(body);
+    }
+
+    /**
+     * Whichever is in the way: Quapp's permission, or the phone's Location switch. Android only
+     * shows its permission dialog again if the user hasn't refused twice; after that, the app's
+     * settings page is the only place to allow it.
+     */
+    private void turnOnLocation() {
+        if (!ProximityCheck.hasPermission(this)) {
+            boolean canAskAgain = ActivityCompat.shouldShowRequestPermissionRationale(this,
+                    ProximityCheck.PERMISSIONS[0]);
+            if (canAskAgain) {
+                locationPermission.launch(ProximityCheck.PERMISSIONS);
+            } else {
+                startActivity(new Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS,
+                        Uri.fromParts("package", getPackageName(), null)));
+            }
+        } else {
+            startActivity(new Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS));
+        }
     }
 
     /**
@@ -218,14 +410,30 @@ public class QueueDetailActivity extends AppCompatActivity {
         bindVerification(queue);
     }
 
-    /** "Organized by …", with the badge when Quapp checked who runs the account. */
-    private void bindOrganizer(Queue queue) {
+    /**
+     * "Organized by … · Verified" with the badge, or "· Unverified" and a note to check the
+     * organizer's own announcement (canvas 53). Either way, tapping it explains (52).
+     */
+    private void bindOrganizer(final Queue queue) {
         ((TextView) findViewById(R.id.detail_organizer)).setText(
                 getString(R.string.detail_organized_by, queue.getOrganizerName()));
         boolean verified = queue.isOrganizerVerified();
         findViewById(R.id.detail_verified_icon).setVisibility(verified ? View.VISIBLE : View.GONE);
-        findViewById(R.id.detail_verified_label).setVisibility(verified ? View.VISIBLE : View.GONE);
-        findViewById(R.id.detail_unverified_note).setVisibility(verified ? View.GONE : View.VISIBLE);
+        TextView label = findViewById(R.id.detail_verified_label);
+        label.setText(verified ? R.string.detail_verified : R.string.detail_unverified);
+        label.setTextColor(ContextCompat.getColor(this, verified ? R.color.ok : R.color.ink_muted));
+
+        TextView note = findViewById(R.id.detail_unverified_note);
+        note.setVisibility(verified ? View.GONE : View.VISIBLE);
+        note.setText(Html.fromHtml(getString(R.string.detail_unverified_note),
+                Html.FROM_HTML_MODE_LEGACY));
+
+        findViewById(R.id.detail_organizer_row).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                TrustSheets.showOrganizer(QueueDetailActivity.this, queue);
+            }
+        });
     }
 
     /** Open is green on its soft ground, paused amber, upcoming and closed plain grey. */
@@ -272,7 +480,7 @@ public class QueueDetailActivity extends AppCompatActivity {
         proximity.setVisibility(queue.isProximityCheckEnabled() ? View.VISIBLE : View.GONE);
         if (queue.isProximityCheckEnabled()) {
             fillRule(proximity, R.drawable.ic_navigation,
-                    getString(R.string.detail_proximity_title_format, radius(queue.getJoinRadiusMeters())),
+                    getString(R.string.detail_proximity_title_format, Format.distance(this, queue.getJoinRadiusMeters())),
                     getString(R.string.detail_verification_proximity_body), true);
         }
         bindRule(R.id.detail_rule_grace, queue.isGracePeriodEnabled(), R.drawable.ic_timer,
@@ -283,13 +491,6 @@ public class QueueDetailActivity extends AppCompatActivity {
         View otp = findViewById(R.id.detail_rule_otp);
         fillRule(otp, R.drawable.ic_sms, getString(R.string.requirement_otp_title),
                 getString(R.string.detail_verification_otp_planned), false);
-    }
-
-    /** "500 m" or "2 km". */
-    private String radius(int meters) {
-        return meters >= 1000 && meters % 1000 == 0
-                ? getString(R.string.detail_radius_km, meters / 1000)
-                : getString(R.string.detail_radius_m, meters);
     }
 
     private void bindRule(int includeId, boolean enabled, int iconRes, int titleRes, String body) {

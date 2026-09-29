@@ -16,6 +16,7 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.google.android.material.progressindicator.CircularProgressIndicator;
 import com.google.android.material.shape.ShapeAppearanceModel;
+import com.google.android.material.snackbar.Snackbar;
 
 import java.util.List;
 import java.util.Locale;
@@ -98,6 +99,23 @@ public class MyTicketsFragment extends Fragment implements MyTicketsAdapter.OnTi
                 }
                 ActiveTicketStore.markServed(spotlight.getId());
                 startActivity(ActiveTicketActivity.intent(requireContext(), spotlight.getId()));
+            }
+        });
+
+        view.findViewById(R.id.my_tickets_called_move_back).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (spotlight == null) {
+                    return;
+                }
+                MoreTimeSheet.show(requireContext(), spotlight.getId(), new MoreTimeSheet.OnMovedListener() {
+                    @Override
+                    public void onMoved(Ticket moved, int places) {
+                        bind();
+                        Snackbar.make(requireView(), getResources().getQuantityString(R.plurals.more_time_moved,
+                                places, places, moved.getTicketNumber()), Snackbar.LENGTH_LONG).show();
+                    }
+                });
             }
         });
 
@@ -210,6 +228,9 @@ public class MyTicketsFragment extends Fragment implements MyTicketsAdapter.OnTi
                 R.string.my_tickets_row_finished_format, ticket.getQueueName(), ticket.getVenue()));
         called.setContentDescription(getString(R.string.my_tickets_open_description,
                 ticket.getQueueName(), ticket.getTicketNumber()));
+        // Moving back is once per ticket, as on the Called screen.
+        called.findViewById(R.id.my_tickets_called_move_back)
+                .setVisibility(ticket.isMovedBack() ? View.GONE : View.VISIBLE);
 
         graceTimer = new CountDownTimer(ActiveTicketStore.graceRemainingMs(ticket), 1_000L) {
             @Override

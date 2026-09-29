@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- A short explanation with one or two ways on: the organizer badge sheet (canvas 52) and the
+     one-live-queue limit (58). TrustSheets fills it. -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:paddingStart="@dimen/space_md"
+    android:paddingEnd="@dimen/space_md"
+    android:paddingBottom="@dimen/space_md">
+
+    <com.google.android.material.bottomsheet.BottomSheetDragHandleView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center_vertical"
+        android:orientation="horizontal">
+
+        <FrameLayout
+            android:layout_width="@dimen/tile_size"
+            android:layout_height="@dimen/tile_size"
+            android:background="@drawable/bg_tile">
+
+            <ImageView
+                android:id="@+id/notice_icon"
+                android:layout_width="@dimen/icon_small"
+                android:layout_height="@dimen/icon_small"
+                android:layout_gravity="center"
+                android:importantForAccessibility="no"
+                tools:src="@drawable/ic_badge_check" />
+        </FrameLayout>
+
+        <TextView
+            android:id="@+id/notice_title"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="@dimen/space_ms"
+            android:layout_weight="1"
+            android:accessibilityHeading="true"
+            android:textAppearance="?attr/textAppearanceTitleLarge"
+            tools:text="Verified organizer" />
+    </LinearLayout>
+
+    <TextView
+        android:id="@+id/notice_body"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/space_ms"
+        android:textAppearance="?attr/textAppearanceBodyLarge"
+        tools:text="Quapp confirmed that Brgy. Poblacion Council runs this account, by calling their office." />
+
+    <TextView
+        android:id="@+id/notice_note"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/space_sm"
+        android:textAppearance="?attr/textAppearanceBodyMedium"
+        android:textColor="?attr/colorOnSurfaceVariant"
+        tools:text="It doesn't check each queue's details. If something about this queue looks wrong, report it." />
+
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/notice_primary"
+        android:layout_width="match_parent"
+        android:layout_height="@dimen/button_height_lg"
+        android:layout_marginTop="@dimen/space_lg"
+        tools:text="Got it" />
+
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/notice_secondary"
+        style="@style/Widget.Quapp.Button.Text"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/space_xs"
+        tools:text="Report this queue" />
+</LinearLayout>

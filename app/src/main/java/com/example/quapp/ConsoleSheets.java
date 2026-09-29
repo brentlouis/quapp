@@ -34,6 +34,7 @@ final class ConsoleSheets {
         void onExtend();
         void onEdit();
         void onInsights();
+        void onShare();
         void onStatus(Queue.Status status);
         void onClose();
     }
@@ -88,6 +89,13 @@ final class ConsoleSheets {
                     @Override
                     public void run() {
                         listener.onInsights();
+                    }
+                }));
+        sheet.iconRow(R.drawable.ic_share, context.getString(R.string.options_share_title),
+                context.getString(R.string.options_share_body), false, sheet.dismissThen(new Runnable() {
+                    @Override
+                    public void run() {
+                        listener.onShare();
                     }
                 }));
         if (status == Queue.Status.OPEN || status == Queue.Status.PAUSED) {
