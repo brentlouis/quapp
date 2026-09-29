@@ -1218,7 +1218,7 @@ The organizer line on Queue detail opens the badge sheet (52) for both verified 
 
 **Also considered:** Smaller cards (loses the wait / in line / now serving numbers); the whole header scrolling away (then changing the filter means scrolling back up); `enterAlways` so the header returns on any upward scroll (a tall block jumping back in steals the space again).
 
-**Status:** Current. Sep 29.
+**Status:** Current. Sep 29. The owner's Queues tab got the same treatment the same day (Brent): the title, greeting and live-queue spotlight scroll away, the status chips stay. The Today tab keeps its fixed header: it's a short report with compact rows and no filters.
 
 ---
 
