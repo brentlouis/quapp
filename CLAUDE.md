@@ -2,7 +2,7 @@
 
 Quapp is a public community queue management app for an Android course at BISU. Queue owners (LGU staff, clinics, organizers) create public queues; queuers browse and join remotely. Wait-time forecasting (rolling average, also used to turn "I need more time" into places moved back), three anti-prank checks (grace period with "I'm here", no-show cooldown, proximity at join), several tickets per queuer (hours can't overlap), and organizer trust and safety (verified badge, reports, removals, suspension, admin web page) are in scope. SMS confirmation and the proposal's other forecasting method are future work. The data contract is `MODELS.md`.
 
-Before changing anything structural, read `DECISIONS.md` — it records why things are the way they are. `DESIGN.md` is the visual system (Civic Paper): colours, type, spacing, the ticket details and where each one goes; build every screen from it and the design canvas it links to. `PROGRESS.md` is the task list: tick items in the same commit as the work.
+Before changing anything structural, read `DECISIONS.md` — it records why things are the way they are. `DESIGN.md` is the visual system (Civic Paper): colours, type, spacing, the ticket details and where each one goes; build every screen from it and the design canvas it links to. `PROGRESS.md` is the task list: tick items in the same commit as the work. `BACKEND.md` is the step-by-step backend plan; Brent writes the backend and Claude reviews.
 
 ## Stack — don't deviate
 - Native Android, **Java + XML views**. Min SDK 24. **No Kotlin, no Compose**, no cross-platform frameworks.

@@ -54,6 +54,7 @@ Team: 2 people. Brent builds the remaining screens and backend, and wires them. 
 - [x] Written API contract (endpoints + JSON shapes) matching the model classes (MODELS.md)
 
 ### Backend (FastAPI)
+Step-by-step plan: `BACKEND.md`. Schema: `MODELS.md` "Database (PostgreSQL)".
 - [ ] Auth
 - [ ] Queues CRUD
 - [ ] Join queue
