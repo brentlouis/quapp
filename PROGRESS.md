@@ -142,9 +142,9 @@ Designed on the Claude Design canvas; none of it is built. Decisions are in DECI
 - [x] Queuer home states: first visit (town picker), town picked, in line
 - [ ] Owner home: live-queue card, status chips, date / category / sort filters, Today tab
 - [x] Create Queue: Schedule section, category sheet, verification switches
-- [ ] Live Console: Now serving panel as the spotlight (awaiting, confirmed, timed out), queue options sheet, extend closing time
+- [x] Live Console: Now serving panel as the spotlight (awaiting, confirmed, timed out), queue options sheet, extend closing time
 - [ ] Ticket screens: called, served, slot released, queue closed, offline, leave confirmation
-- [ ] My tickets list (2+ tickets): called card (12) and still-in-line ticket (12b)
+- [x] My tickets list (2+ tickets): called card (12) and still-in-line ticket (12b)
 - [ ] Notification permission screen and "you're being called" notification with an "I'm here" action
 - [ ] Share queue and counter display
 - [ ] Nav hosts: `QueuerHomeActivity` + `OwnerHomeActivity` with `BottomNavigationView`; turn Browse, Profile and Owner dashboard into Fragments
@@ -156,8 +156,8 @@ Designed on the Claude Design canvas; none of it is built. Decisions are in DECI
 - [ ] Forgot password (mocked)
 - [ ] Language setting
 - [ ] Browse empty / no-results / error states (mocked)
-- [ ] "I need 10 more minutes" on the ticket (mocked)
-- [ ] Rename "My ticket" to "My tickets" everywhere (mocked)
+- [x] "I need 10 more minutes" on the ticket (mocked)
+- [x] Rename "My ticket" to "My tickets" everywhere (mocked)
 ---
 
 ## Polish and documentation
