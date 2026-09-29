@@ -10,7 +10,14 @@ from typing import Annotated
 
 from pydantic import BaseModel, ConfigDict, Field, PlainSerializer, field_validator
 
-from app.enums import Category, QueueStatus, UserStatus, VerificationStatus
+from app.enums import (
+    Category,
+    QueueStatus,
+    RemovalReason,
+    TicketStatus,
+    UserStatus,
+    VerificationStatus,
+)
 from app.security import MAX_PASSWORD_BYTES
 from app.timeutil import MANILA
 
@@ -228,3 +235,36 @@ class ExtendIn(BaseModel):
     """Extend closing time: the new closing time for today (the queue's last day)."""
 
     closes_at: time
+
+
+# ---- Tickets ------------------------------------------------------------------
+
+class JoinIn(BaseModel):
+    """Where the queuer is, read once when they tap Join. Only needed when the queue checks
+    proximity; nothing is kept after the check (ProximityCheck.java)."""
+
+    latitude: float | None = Field(default=None, ge=-90, le=90)
+    longitude: float | None = Field(default=None, ge=-180, le=180)
+
+
+class TicketOut(BaseModel):
+    """MODELS.md "Ticket", in its order. queue_name, venue, position and the wait aren't
+    ticket columns; routers/tickets.py fills them in."""
+
+    id: str
+    queue_id: str
+    queue_name: str
+    venue: str
+    holder_name: str
+    holder_phone: str | None
+    walk_in: bool
+    ticket_number: int
+    position: int
+    estimated_wait_minutes: int
+    status: TicketStatus
+    joined_at: Moment
+    called_at: Moment | None
+    finished_at: Moment | None
+    moved_back: bool
+    moved_back_at: Moment | None
+    removal_reason: RemovalReason | None

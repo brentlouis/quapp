@@ -23,9 +23,9 @@ class ErrorOut(BaseModel):
 _DESCRIPTIONS = {
     401: "Not signed in (NOT_SIGNED_IN), or wrong number or password (WRONG_CREDENTIALS)",
     403: "Suspended (SUSPENDED), or not the queue's organizer (NOT_OWNER)",
-    404: "No such queue (QUEUE_NOT_FOUND)",
+    404: "No such queue (QUEUE_NOT_FOUND) or ticket (TICKET_NOT_FOUND)",
     409: "Conflicts with the current state; the error code says which",
-    422: "A field isn't valid (INVALID_INPUT, with fields)",
+    422: "A field isn't valid (INVALID_INPUT, with fields), or a location is needed (LOCATION_NEEDED)",
 }
 
 

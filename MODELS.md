@@ -101,7 +101,7 @@ One person's place in one queue.
 | holderPhone | `holder_phone` | String? | Masked by the server for organizers ("0917 ••• 0002"); null for walk-ins |
 | walkIn | `walk_in` | boolean | Added at the counter by the organizer |
 | ticketNumber | `ticket_number` | int | Fixed for good |
-| position | `position` | int | Counts down; 1 = next |
+| position | `position` | int | Counts down; 1 = next. 0 when not WAITING (called or finished) |
 | estimatedWaitMinutes | `estimated_wait_minutes` | int | |
 | status | `status` | Ticket.Status | |
 | joinedAt | `joined_at` | Instant | History dates, "joined 24 min ago" |
@@ -112,6 +112,8 @@ One person's place in one queue.
 | removalReason | `removal_reason` | RemovalReason? | Only when status is REMOVED |
 
 Rules the server enforces:
+- **Cooldown.** On queues with the no-show penalty, strikes are NO_SHOW tickets and PRANK removals on penalty queues. Every second strike starts 30 minutes in which penalty queues refuse joins; the count then starts again (DECISIONS.md "No-show cooldown").
+- **Radius.** Distance is measured with the haversine formula. The app measures with Android's `Location.distanceBetween`, which can differ by up to about 0.5%, so the server allows 1% over the radius.
 - **Several tickets, hours can't overlap.** A queuer can hold live tickets (WAITING or CALLED) in more than one queue, as long as no two of those queues' opening hours overlap on the same day. A ticket is for one day: today once the queue has started, otherwise its first day, and each queue is compared on that day (DECISIONS.md "A ticket is for one day").
 - **Closed by the owner is not a no-show.** Closing a queue turns every WAITING or CALLED ticket into QUEUE_CLOSED and never counts toward the cooldown.
 - **Removal.** PRANK counts as a no-show and goes to the admin; DUPLICATE and ASKED_TO_LEAVE don't count.
@@ -218,6 +220,14 @@ Every error has the same JSON body, so the app can pick a message by `error` wit
 | 403 | `NOT_OWNER` | An organizer-only call on someone else's queue | |
 | 409 | `ONE_LIVE_QUEUE` | An unverified organizer opening a second live (open or paused) queue; an upcoming one is allowed | |
 | 409 | `WRONG_STATUS` | A status change that doesn't fit ("Only an open queue can be paused"), or editing a closed queue | |
+| 409 | `QUEUE_PAUSED` | Joining a paused queue | |
+| 409 | `QUEUE_NOT_OPEN` | Joining a closed queue, or an open one after today's closing time | |
+| 409 | `ALREADY_IN_LINE` | Joining a queue you already have a live ticket in | `ticket_id` |
+| 409 | `HOURS_OVERLAP` | Joining while holding a live ticket for a queue on the same day with overlapping hours | `other_queue_id`, `other_queue_name` |
+| 409 | `COOLDOWN` | Joining a queue with the no-show penalty during a cooldown | `until` |
+| 422 | `LOCATION_NEEDED` | Joining a queue with the proximity check without `latitude`/`longitude` | |
+| 409 | `TOO_FAR` | Joining from farther than the queue's radius | `distance_meters`, `join_radius_meters` |
+| 404 | `TICKET_NOT_FOUND` | No such ticket, or not yours | |
 
 Later steps add their own codes here (join rules, the one-live-queue limit, …).
 
@@ -243,11 +253,12 @@ Auth is a bearer token from `/auth/login`. "Owner" means the queue's organizer.
 | POST | `/queues/{id}/no-show` | owner | marks the current one no-show, calls the next |
 | POST | `/queues/{id}/walk-ins` | owner | name → Ticket |
 | POST | `/tickets/{id}/remove` | owner | reason → TicketRemoval |
-| POST | `/queues/{id}/tickets` | user | join (checks overlap, cooldown, radius with lat/lng) → Ticket |
+| POST | `/queues/{id}/tickets` | user | join; body `{latitude, longitude}` (needed only when the queue checks proximity) → Ticket. Checks, in order: the queue takes joins now, not already in it, cooldown, overlap, radius |
 | GET | `/me/tickets?live=true` | user | My tickets; `live=false` for History |
 | POST | `/tickets/{id}/here` | holder | "I'm here" within the grace window |
 | POST | `/tickets/{id}/move-back` | holder | minutes_needed → Ticket (once) |
-| DELETE | `/tickets/{id}` | holder | leave the queue |
+| GET | `/tickets/{id}` | holder | one of my tickets, with its position and wait now |
+| DELETE | `/tickets/{id}` | holder | leave the queue (waiting or called) → 204. The ticket is deleted: not a no-show, not in history (FakeData.leave) |
 | POST | `/me/verification` | user | VerificationRequest |
 | POST | `/queues/{id}/reports` | user | Report |
 | GET/POST | `/admin/...` | admin | web page: verification requests, reports, suspend and revoke |
