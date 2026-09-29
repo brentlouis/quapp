@@ -1,0 +1,10 @@
+# The Python environment: recreate it from requirements.txt
+.venv/
+__pycache__/
+.pytest_cache/
+
+# Secrets (the root .gitignore also ignores .env; kept here so backend/ stands on its own)
+.env
+
+# The wait-time model the server learns and saves (BACKEND.md phase 9)
+*.joblib

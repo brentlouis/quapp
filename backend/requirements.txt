@@ -1,0 +1,30 @@
+# The packages the server uses directly (BACKEND.md "The stack"), pinned to the versions
+# it was built with. pip installs their own dependencies by itself.
+#   python -m venv .venv
+#   .venv\Scripts\activate
+#   pip install -r requirements.txt
+
+# Web
+fastapi==0.141.1
+uvicorn[standard]==0.54.0
+
+# Database
+sqlalchemy==2.1.1
+psycopg[binary]==3.3.6
+pydantic-settings==2.15.0
+
+# Accounts
+bcrypt==5.0.0
+
+# Admin page
+jinja2==3.1.6
+python-multipart==0.0.32
+
+# Wait-time model
+scikit-learn==1.9.1
+numpy==2.5.3
+joblib==1.6.0
+
+# Tests
+pytest==9.1.1
+httpx==0.28.1
