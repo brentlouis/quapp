@@ -1,0 +1,13 @@
+{% extends "admin/base.html" %}
+{% block title %}Sign in · Quapp admin{% endblock %}
+{% block content %}
+<div class="card" style="max-width: 380px; margin: 64px auto;">
+  <h1>Quapp admin</h1>
+  {% if error %}<div class="done bad">Wrong number or password, or not an admin account.</div>{% endif %}
+  <form method="post" action="/admin/login">
+    <p><label>Phone<br><input type="text" name="phone" autocomplete="username" required></label></p>
+    <p><label>Password<br><input type="password" name="password" autocomplete="current-password" required></label></p>
+    <button class="primary">Sign in</button>
+  </form>
+</div>
+{% endblock %}

@@ -10,8 +10,10 @@ Demo accounts (all use DEMO_PASSWORD):
     09175550001  Maria Santos   queuer, with a few past visits in history
     09175550002  Rhea Cruz      organizer, Brgy. Poblacion Council (verified), owns q1, q3, q5
     09180000000  Jun Dela Cruz  suspended ("Posting a fake queue")
-    09990000000  Quapp Admin    can open the admin page
+    09990000000  Quapp Admin    can open the admin page (http://localhost:8000/admin)
 The other organizers and everyone standing in line are accounts too, so their tickets are real.
+The admin page starts with a pending verification request (the Dauis office, q6) and two
+reports on q10.
 """
 
 from dataclasses import dataclass
@@ -22,8 +24,16 @@ from sqlalchemy.orm import Session
 
 from app import timeutil
 from app.database import Base, SessionLocal, engine
-from app.enums import Category, QueueStatus, TicketStatus, UserStatus, VerificationStatus
-from app.models import Queue, Ticket, User, new_id
+from app.enums import (
+    Category,
+    OrganizationType,
+    QueueStatus,
+    ReportReason,
+    TicketStatus,
+    UserStatus,
+    VerificationStatus,
+)
+from app.models import Queue, Report, Ticket, User, VerificationRequest, new_id
 from app.security import hash_password
 
 DEMO_PASSWORD = "quapp-demo"
@@ -279,6 +289,25 @@ def seed(db: Session) -> None:
         ticket(queues[queue_id], maria, maria.name,
                service_date=finished_at.astimezone(timeutil.MANILA).date(), status=status,
                joined_at=finished_at - timedelta(minutes=40), finished_at=finished_at)
+
+    # ---- Something for the admin page to act on (BACKEND.md phase 8) ----------------
+    # The Dauis office (q6, unverified) has asked for the badge
+    dauis = queues["q6"].organizer
+    dauis.verification_status = VerificationStatus.PENDING
+    db.add(VerificationRequest(user_id=dauis.id, organization_name=dauis.name,
+                               organization_type=OrganizationType.LGU_OFFICE,
+                               position="Municipal Agriculturist",
+                               office_phone="(038) 502 8113",
+                               created_at=now - timedelta(hours=3)))
+    # Two people reported the Purok 3 volunteers' queue (q10, unverified)
+    db.add(Report(queue_id="q10", reporter_id=maria.id, reason=ReportReason.ASKED_FOR_MONEY,
+                  details="They asked for ₱50 at the gate", created_at=now - timedelta(hours=1)))
+    neighbour = crowd_member(0)
+    # Saved before the report that points at it: Report has no SQLAlchemy relationship to its
+    # reporter, so SQLAlchemy can't work out that order by itself
+    db.flush()
+    db.add(Report(queue_id="q10", reporter_id=neighbour.id, reason=ReportReason.FAKE,
+                  created_at=now - timedelta(minutes=30)))
 
     db.commit()
 

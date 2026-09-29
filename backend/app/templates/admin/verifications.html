@@ -1,0 +1,49 @@
+{% extends "admin/base.html" %}
+{% set page = 'verifications' %}
+{% block title %}Verification · Quapp admin{% endblock %}
+{% block content %}
+<h1>Verification requests</h1>
+<p class="meta">Call the office number. Approve only if the office confirms this person works there
+  in that position. The answers are deleted after you decide; only the result and your note stay.</p>
+
+<h2>Waiting · {{ pending | length }}</h2>
+{% for r in pending %}
+  {% set u = users[r.user_id] %}
+  <div class="card">
+    <div class="row">
+      <strong>{{ r.organization_name }}</strong>
+      <span class="meta">asked {{ r.created_at | manila }}</span>
+    </div>
+    <dl>
+      <dt>Type</dt><dd>{{ ORG_TYPES[r.organization_type.value] }}</dd>
+      <dt>Account</dt><dd>{{ u.name }} · {{ u.phone }}</dd>
+      <dt>Position</dt><dd>{{ r.position }}</dd>
+      <dt>Office number</dt><dd><strong>{{ r.office_phone }}</strong></dd>
+    </dl>
+    <form method="post" class="inline">
+      <input type="text" name="note" placeholder="Note (who you spoke to, when)">
+      <button class="primary" formaction="/admin/verifications/{{ r.id }}/approve">Approve</button>
+      <button formaction="/admin/verifications/{{ r.id }}/reject">Reject</button>
+    </form>
+  </div>
+{% else %}
+  <p class="empty">Nothing waiting.</p>
+{% endfor %}
+
+<h2>Decided recently</h2>
+{% if decided %}
+<table>
+  <tr><th>Account</th><th>Result</th><th>Note</th><th>Decided</th></tr>
+  {% for r in decided %}
+  <tr>
+    <td>{{ users[r.user_id].name }} · {{ users[r.user_id].phone }}</td>
+    <td><span class="pill {{ 'ok' if r.status.value == 'VERIFIED' else 'err' }}">{{ r.status.value }}</span></td>
+    <td>{{ r.admin_note or '' }}</td>
+    <td class="meta">{{ r.decided_at | manila }}</td>
+  </tr>
+  {% endfor %}
+</table>
+{% else %}
+  <p class="empty">None yet.</p>
+{% endif %}
+{% endblock %}

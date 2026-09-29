@@ -1,0 +1,56 @@
+{% extends "admin/base.html" %}
+{% set page = 'reports' %}
+{% block title %}Reports · Quapp admin{% endblock %}
+{% block content %}
+<h1>Reports</h1>
+<p class="meta">Grouped by queue, unhandled first. The organizer never sees who reported.</p>
+
+{% for queue_id, rows in groups %}
+  {% set q = queues[queue_id] %}
+  {% set open = rows | rejectattr('handled_at') | list %}
+  <div class="card">
+    <div class="row">
+      <div>
+        <strong>{{ q.name }}</strong>
+        <div class="meta">{{ q.venue }}, {{ q.municipality }} · by {{ q.organizer.organization_name or q.organizer.name }}
+          ({{ q.organizer.phone }}) · {{ q.status.value | lower }}</div>
+      </div>
+      <div>
+        <span class="pill {{ 'err' if open else '' }}">{{ rows | length }} report{{ 's' if rows | length != 1 }}</span>
+        {% if open %}
+          <form method="post" action="/admin/reports/{{ queue_id }}/handled" class="inline">
+            <button>Mark handled</button>
+          </form>
+        {% endif %}
+      </div>
+    </div>
+    <table>
+      {% for r in rows %}
+      <tr>
+        <td><span class="pill {{ 'warn' if not r.handled_at }}">{{ r.reason.value | replace('_', ' ') }}</span></td>
+        <td>{{ r.details or '' }}</td>
+        <td class="meta">{{ r.created_at | manila }}{% if r.handled_at %} · handled{% endif %}</td>
+      </tr>
+      {% endfor %}
+    </table>
+  </div>
+{% else %}
+  <p class="empty">No reports.</p>
+{% endfor %}
+
+<h2>Removed from a line as a prank</h2>
+{% if pranks %}
+<table>
+  <tr><th>Holder</th><th>Queue</th><th>When</th></tr>
+  {% for removal, ticket, queue in pranks %}
+  <tr>
+    <td>{{ ticket.holder_name }}{% if ticket.holder_phone %} · {{ ticket.holder_phone }}{% endif %}</td>
+    <td>{{ queue.name }} · #{{ ticket.ticket_number }}</td>
+    <td class="meta">{{ removal.created_at | manila }}</td>
+  </tr>
+  {% endfor %}
+</table>
+{% else %}
+  <p class="empty">None.</p>
+{% endif %}
+{% endblock %}

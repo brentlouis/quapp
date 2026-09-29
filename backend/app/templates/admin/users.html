@@ -1,0 +1,42 @@
+{% extends "admin/base.html" %}
+{% set page = 'users' %}
+{% block title %}Users · Quapp admin{% endblock %}
+{% block content %}
+<h1>Users</h1>
+<form method="get" action="/admin/users" class="inline">
+  <input type="search" name="phone" value="{{ phone }}" placeholder="Phone number, or part of it">
+  <button class="primary">Find</button>
+</form>
+
+<h2>{{ 'Found' if phone else 'Suspended accounts' }} · {{ found | length }}</h2>
+{% for u in found %}
+  <div class="card">
+    <div class="row">
+      <div>
+        <strong>{{ u.name }}</strong> · {{ u.phone }}
+        {% if u.organization_name %}<div class="meta">Posting as {{ u.organization_name }}</div>{% endif %}
+      </div>
+      <div>
+        <span class="pill {{ 'err' if u.status.value == 'SUSPENDED' else 'ok' }}">{{ u.status.value }}</span>
+        <span class="pill {{ 'ok' if u.verification_status.value == 'VERIFIED' else '' }}">{{ u.verification_status.value }}</span>
+      </div>
+    </div>
+    {% if u.is_admin %}
+      <p class="meta">Admin account: can't be changed here.</p>
+    {% elif u.status.value == 'SUSPENDED' %}
+      <p class="meta">Suspended {{ u.suspended_at | manila }}: {{ u.suspended_reason }}</p>
+      <form method="post" action="/admin/users/{{ u.id }}/unsuspend" class="inline"><button>Unsuspend</button></form>
+    {% else %}
+      <form method="post" action="/admin/users/{{ u.id }}/suspend" class="inline">
+        <input type="text" name="reason" placeholder="Reason (they'll see it)" required>
+        <button class="danger">Suspend</button>
+      </form>
+      {% if u.verification_status.value == 'VERIFIED' %}
+        <form method="post" action="/admin/users/{{ u.id }}/revoke" class="inline"><button>Revoke badge</button></form>
+      {% endif %}
+    {% endif %}
+  </div>
+{% else %}
+  <p class="empty">{{ 'Nobody with that number.' if phone else 'Nobody is suspended.' }}</p>
+{% endfor %}
+{% endblock %}
