@@ -149,6 +149,14 @@
         <item name="android:minHeight">@dimen/button_height_xl</item>
     </style>
 
+    <!-- Danger: filled error red, for an action that can't be undone ("Remove from line",
+         "Close and release 8"). It takes the place of the screen's filled button. -->
+    <style name="Widget.Quapp.Button.Danger" parent="Widget.Quapp.Button">
+        <item name="backgroundTint">?attr/colorError</item>
+        <item name="android:textColor">?attr/colorOnError</item>
+        <item name="iconTint">?attr/colorOnError</item>
+    </style>
+
     <!-- Small tonal button inside a row ("Directions") -->
     <style name="Widget.Quapp.Button.Tonal.Small">
         <item name="android:paddingStart">@dimen/space_ms</item>
@@ -239,6 +247,12 @@
         <item name="iconPadding">@dimen/space_xs</item>
         <item name="iconSize">@dimen/icon_small</item>
         <item name="iconGravity">textStart</item>
+    </style>
+    <!-- Six short choices in one row ("5" … "45"): no minimum width, so they share the space -->
+    <style name="Widget.Quapp.Segment.Compact">
+        <item name="android:minWidth">0dp</item>
+        <item name="android:paddingStart">0dp</item>
+        <item name="android:paddingEnd">0dp</item>
     </style>
 
     <!-- ===== Bottom sheets (DESIGN.md "Sheets"): paper_raised, 16dp top corners, grab handle ===== -->

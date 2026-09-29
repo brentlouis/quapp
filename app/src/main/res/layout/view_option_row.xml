@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- One row of a sheet of choices: a tile icon (or a radio), a title and a line under it.
+     Used by Queue options (canvas 18), Extend closing time (19) and Remove from line (57). -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="?attr/selectableItemBackground"
+    android:clickable="true"
+    android:focusable="true"
+    android:gravity="center_vertical"
+    android:minHeight="@dimen/list_row_min_height"
+    android:orientation="horizontal"
+    android:paddingTop="@dimen/space_xs"
+    android:paddingBottom="@dimen/space_xs">
+
+    <FrameLayout
+        android:id="@+id/option_tile"
+        android:layout_width="40dp"
+        android:layout_height="40dp"
+        android:background="@drawable/bg_tile">
+
+        <ImageView
+            android:id="@+id/option_icon"
+            android:layout_width="@dimen/icon_small"
+            android:layout_height="@dimen/icon_small"
+            android:layout_gravity="center"
+            android:importantForAccessibility="no"
+            app:tint="?attr/colorOnSurface"
+            tools:src="@drawable/ic_pencil" />
+    </FrameLayout>
+
+    <!-- The radio variant: a real RadioButton so TalkBack says "selected" -->
+    <com.google.android.material.radiobutton.MaterialRadioButton
+        android:id="@+id/option_radio"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:clickable="false"
+        android:focusable="false"
+        android:importantForAccessibility="no"
+        android:minWidth="0dp"
+        android:minHeight="0dp"
+        android:visibility="gone" />
+
+    <LinearLayout
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="@dimen/space_ms"
+        android:layout_weight="1"
+        android:orientation="vertical">
+
+        <TextView
+            android:id="@+id/option_title"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textAppearance="?attr/textAppearanceTitleSmall"
+            tools:text="Edit details" />
+
+        <TextView
+            android:id="@+id/option_body"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textAppearance="?attr/textAppearanceBodySmall"
+            tools:text="Name, descriptions, category, hours, checks" />
+    </LinearLayout>
+</LinearLayout>

@@ -1,6 +1,5 @@
 package com.example.quapp;
 
-import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.TextView;
@@ -80,7 +79,7 @@ public class JoinQueueActivity extends AppCompatActivity {
         // Joining puts you at the back: everyone waiting now is ahead of you.
         int ahead = queue.getPeopleWaiting();
         ((TextView) findViewById(R.id.join_number)).setText(
-                getString(R.string.ticket_number_format, ahead + 1));
+                getString(R.string.ticket_number_format, FakeData.nextTicketNumber(queue.getId())));
         ((TextView) findViewById(R.id.join_ahead)).setText(ahead > 0
                 ? getString(R.string.join_ahead_format, ahead, queue.getEstimatedWaitMinutes())
                 : getString(R.string.join_ahead_next_format, queue.getEstimatedWaitMinutes()));
@@ -136,22 +135,11 @@ public class JoinQueueActivity extends AppCompatActivity {
             return;
         }
 
-        // A served or expired ticket that was never dismissed gets filed before it's replaced.
-        ActiveTicketStore.finishTicket();
+        // The ticket goes to the back of the real line; the store keeps it as one of yours.
+        Ticket ticket = FakeData.join(queue.getId(), holderName, holderPhone);
+        ActiveTicketStore.add(ticket);
 
-        Ticket ticket = new Ticket.Builder()
-                .setId("t-" + queue.getId())
-                .setQueue(queue.getId(), queue.getName(), queue.getVenue())
-                .setHolder(holderName, holderPhone)
-                .setTicketNumber(queue.getPeopleWaiting() + 1)
-                .setPosition(queue.getPeopleWaiting() + 1)
-                .setEstimatedWaitMinutes(queue.getEstimatedWaitMinutes())
-                .build();
-
-        ActiveTicketStore.setTicket(ticket);
-
-        Intent intent = new Intent(this, ActiveTicketActivity.class);
-        startActivity(intent);
+        startActivity(ActiveTicketActivity.intent(this, ticket.getId()));
         finish();
     }
 }

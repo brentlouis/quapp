@@ -1,5 +1,6 @@
 package com.example.quapp;
 
+import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.os.CountDownTimer;
@@ -17,17 +18,26 @@ import java.util.Locale;
  * (Theme.Quapp.Called in the manifest): espresso ground, light status bar icons, marigold number.
  *
  * The grace period (the anti-prank check) runs here: confirm with "I'm here" before the timer
- * ends, or the slot is released. Either way this screen hands back to ActiveTicketActivity,
- * which shows the outcome.
+ * ends, or the slot is released. "Move me back" opens the I-need-more-time sheet instead, which
+ * hands the slot back without a no-show. Every way out goes back to ActiveTicketActivity, which
+ * shows where the ticket ended up.
  */
 public class CalledActivity extends AppCompatActivity {
 
+    public static final String EXTRA_TICKET_ID = "com.example.quapp.EXTRA_CALLED_TICKET_ID";
     public static final long GRACE_PERIOD_MS = 180_000L;
     private static final long COUNTDOWN_TICK_MS = 1_000L;
 
+    private String ticketId;
     private CountDownTimer graceTimer;
     private TextView countdown;
     private CircularProgressIndicator ring;
+
+    public static Intent intent(Context context, String ticketId) {
+        Intent intent = new Intent(context, CalledActivity.class);
+        intent.putExtra(EXTRA_TICKET_ID, ticketId);
+        return intent;
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -35,6 +45,7 @@ public class CalledActivity extends AppCompatActivity {
         setContentView(R.layout.activity_called);
         SystemBars.applyPadding(findViewById(R.id.called_root));
 
+        ticketId = getIntent().getStringExtra(EXTRA_TICKET_ID);
         countdown = findViewById(R.id.called_countdown);
         ring = findViewById(R.id.called_ring);
 
@@ -48,8 +59,20 @@ public class CalledActivity extends AppCompatActivity {
         findViewById(R.id.called_here_button).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                ActiveTicketStore.markServed();
+                ActiveTicketStore.markServed(ticketId);
                 showOutcome();
+            }
+        });
+
+        findViewById(R.id.called_move_back).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                MoreTimeSheet.show(CalledActivity.this, ticketId, new MoreTimeSheet.OnMovedListener() {
+                    @Override
+                    public void onMoved(Ticket moved, int places) {
+                        showOutcome();
+                    }
+                });
             }
         });
 
@@ -69,9 +92,14 @@ public class CalledActivity extends AppCompatActivity {
     protected void onResume() {
         super.onResume();
 
-        Ticket ticket = ActiveTicketStore.getTicket();
+        Ticket ticket = ActiveTicketStore.ticket(ticketId);
         if (ticket == null || ticket.getStatus() != Ticket.Status.CALLED) {
-            finish();
+            // Released or served while away: the ticket screen shows how it ended.
+            if (ticket != null) {
+                showOutcome();
+            } else {
+                finish();
+            }
             return;
         }
 
@@ -80,13 +108,19 @@ public class CalledActivity extends AppCompatActivity {
         ((TextView) findViewById(R.id.called_number)).setText(
                 getString(R.string.ticket_number_format, ticket.getTicketNumber()));
 
-        startGraceTimer(ActiveTicketStore.graceRemainingMs());
+        // Moving back is once per ticket.
+        boolean canMove = !ticket.isMovedBack();
+        findViewById(R.id.called_move_back).setVisibility(canMove ? View.VISIBLE : View.GONE);
+        ((TextView) findViewById(R.id.called_move_back_hint)).setText(canMove
+                ? R.string.called_move_back_hint : R.string.called_moved_back_hint);
+
+        startGraceTimer(ActiveTicketStore.graceRemainingMs(ticket));
     }
 
     @Override
     protected void onPause() {
         super.onPause();
-        // The deadline lives in ActiveTicketStore, so stopping the display timer loses nothing.
+        // The deadline is the ticket's calledAt + 3 min, so stopping the display timer loses nothing.
         cancelGraceTimer();
     }
 
@@ -120,13 +154,13 @@ public class CalledActivity extends AppCompatActivity {
 
     private void expire() {
         cancelGraceTimer();
-        ActiveTicketStore.markNoShow();
+        ActiveTicketStore.markNoShow(ticketId);
         showOutcome();
     }
 
-    /** Back to the ticket screen, which now shows Served or Slot released. */
+    /** Back to the ticket screen, which shows Served, Slot released or the moved-back ticket. */
     private void showOutcome() {
-        startActivity(new Intent(this, ActiveTicketActivity.class));
+        startActivity(ActiveTicketActivity.intent(this, ticketId));
         finish();
     }
 }

@@ -156,10 +156,38 @@
         android:layout_height="@dimen/button_height_xl"
         android:layout_marginStart="@dimen/space_md"
         android:layout_marginEnd="@dimen/space_md"
-        android:layout_marginBottom="@dimen/space_md"
         android:text="@string/ticket_here_action"
         app:icon="@drawable/ic_check"
         app:iconGravity="textStart"
+        app:layout_constraintBottom_toTopOf="@id/called_move_back"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent" />
+
+    <!-- Not there yet: move back instead of losing the slot (canvas 09, opens the sheet from 28) -->
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/called_move_back"
+        style="@style/Widget.Quapp.Button.Outlined"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="@dimen/space_md"
+        android:layout_marginTop="@dimen/space_ms"
+        android:layout_marginEnd="@dimen/space_md"
+        android:text="@string/called_move_back_action"
+        app:layout_constraintBottom_toTopOf="@id/called_move_back_hint"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent" />
+
+    <TextView
+        android:id="@+id/called_move_back_hint"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="@dimen/space_md"
+        android:layout_marginTop="@dimen/space_sm"
+        android:layout_marginEnd="@dimen/space_md"
+        android:layout_marginBottom="@dimen/space_md"
+        android:gravity="center_horizontal"
+        android:text="@string/called_move_back_hint"
+        android:textAppearance="?attr/textAppearanceBodySmall"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent" />

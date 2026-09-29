@@ -1,7 +1,7 @@
 package com.example.quapp;
 
-import android.content.Intent;
 import android.os.Bundle;
+import android.os.CountDownTimer;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -11,15 +11,21 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 
+import com.google.android.material.progressindicator.CircularProgressIndicator;
 import com.google.android.material.shape.ShapeAppearanceModel;
 
+import java.util.List;
+import java.util.Locale;
+
 /**
- * The My tickets tab (canvas 12b). ActiveTicketStore holds one ticket today, so this shows that
- * ticket as the screen's spotlight, or an empty state. The list of several tickets (canvas 12)
- * comes with the model change for multiple tickets.
+ * The My tickets tab (canvas 12 and 12b). The ticket that matters most is the spotlight: the
+ * called card with its timer and I'm here when a queue is calling you, otherwise the espresso
+ * stub ticket. Any other tickets are cards below it. With no tickets, an empty state.
  */
-public class MyTicketsFragment extends Fragment {
+public class MyTicketsFragment extends Fragment implements MyTicketsAdapter.OnTicketClickListener {
 
     private TextView count;
     private TextView section;
@@ -30,7 +36,16 @@ public class MyTicketsFragment extends Fragment {
     private TextView headlineSuffix;
     private TextView queue;
     private TextView detail;
+    private View called;
+    private TextView calledCountdown;
+    private CircularProgressIndicator calledRing;
+    private View ruleNote;
     private View empty;
+    private MyTicketsAdapter adapter;
+    private CountDownTimer graceTimer;
+
+    /** The ticket shown as the spotlight, so its click and I'm here know which one. */
+    private Ticket spotlight;
 
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container,
@@ -50,12 +65,39 @@ public class MyTicketsFragment extends Fragment {
         headlineSuffix = view.findViewById(R.id.my_tickets_headline_suffix);
         queue = view.findViewById(R.id.my_tickets_queue);
         detail = view.findViewById(R.id.my_tickets_detail);
+        called = view.findViewById(R.id.my_tickets_called);
+        calledCountdown = view.findViewById(R.id.my_tickets_called_countdown);
+        calledRing = view.findViewById(R.id.my_tickets_called_ring);
+        ruleNote = view.findViewById(R.id.my_tickets_rule_note);
         empty = view.findViewById(R.id.my_tickets_empty);
 
-        ticketView.setOnClickListener(new View.OnClickListener() {
+        RecyclerView list = view.findViewById(R.id.my_tickets_list);
+        list.setLayoutManager(new LinearLayoutManager(requireContext()));
+        adapter = new MyTicketsAdapter(this);
+        list.setAdapter(adapter);
+
+        // The called card is the spotlight with punches halfway down its sides.
+        called.setBackground(TicketShapes.spotlightBackground(requireContext()));
+
+        View.OnClickListener openSpotlight = new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                startActivity(new Intent(requireContext(), ActiveTicketActivity.class));
+                if (spotlight != null) {
+                    onTicketClick(spotlight);
+                }
+            }
+        };
+        ticketView.setOnClickListener(openSpotlight);
+        called.setOnClickListener(openSpotlight);
+
+        view.findViewById(R.id.my_tickets_called_here).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (spotlight == null) {
+                    return;
+                }
+                ActiveTicketStore.markServed(spotlight.getId());
+                startActivity(ActiveTicketActivity.intent(requireContext(), spotlight.getId()));
             }
         });
 
@@ -86,11 +128,24 @@ public class MyTicketsFragment extends Fragment {
     }
 
     @Override
+    public void onPause() {
+        super.onPause();
+        cancelGraceTimer();
+    }
+
+    @Override
     public void onHiddenChanged(boolean hidden) {
         super.onHiddenChanged(hidden);
-        if (!hidden) {
+        if (hidden) {
+            cancelGraceTimer();
+        } else {
             bind();
         }
+    }
+
+    @Override
+    public void onTicketClick(Ticket ticket) {
+        startActivity(ActiveTicketActivity.intent(requireContext(), ticket.getId()));
     }
 
     /** Espresso ticket with its holes top and bottom, centred on the tear line. */
@@ -105,71 +160,105 @@ public class MyTicketsFragment extends Fragment {
     }
 
     private void bind() {
-        Ticket ticket = ActiveTicketStore.getTicket();
-        boolean hasTicket = ticket != null;
+        cancelGraceTimer();
+        List<Ticket> tickets = ActiveTicketStore.tickets();
+        boolean any = !tickets.isEmpty();
+        spotlight = any ? tickets.get(0) : null;
 
-        count.setText(getResources().getQuantityString(R.plurals.my_tickets_count,
-                hasTicket ? 1 : 0, hasTicket ? 1 : 0));
-        section.setVisibility(hasTicket ? View.VISIBLE : View.GONE);
-        ticketView.setVisibility(hasTicket ? View.VISIBLE : View.GONE);
-        empty.setVisibility(hasTicket ? View.GONE : View.VISIBLE);
-        if (!hasTicket) {
+        bindCount(tickets);
+        section.setVisibility(any ? View.VISIBLE : View.GONE);
+        ruleNote.setVisibility(any ? View.VISIBLE : View.GONE);
+        empty.setVisibility(any ? View.GONE : View.VISIBLE);
+        // The first ticket is the spotlight; the list holds the rest.
+        adapter.submitTickets(any ? tickets.subList(1, tickets.size()) : tickets);
+        if (!any) {
+            ticketView.setVisibility(View.GONE);
+            called.setVisibility(View.GONE);
             return;
         }
 
-        number.setText(getString(R.string.my_tickets_number, ticket.getTicketNumber()));
-        queue.setText(ticket.getVenue() == null ? ticket.getQueueName()
-                : ticket.getQueueName() + " · " + ticket.getVenue());
-        ticketView.setContentDescription(getString(R.string.my_tickets_open_description,
-                ticket.getQueueName(), ticket.getTicketNumber()));
-
-        // Marigold only for a number being called (DESIGN.md: signal only on the spotlight).
-        boolean called = ticket.getStatus() == Ticket.Status.CALLED;
-        number.setTextColor(ContextCompat.getColor(requireContext(),
-                called ? R.color.signal : R.color.on_spotlight));
-
-        switch (ticket.getStatus()) {
-            case CALLED:
-                section.setText(R.string.my_tickets_section_needs_you);
-                label.setText(R.string.my_tickets_label_called);
-                headline.setVisibility(View.GONE);
-                headlineSuffix.setText(R.string.my_tickets_called);
-                detail.setText(R.string.my_tickets_called_hint);
-                break;
-            case SERVED:
-            case NO_SHOW:
-            case QUEUE_CLOSED:
-            case REMOVED:
-                section.setText(R.string.my_tickets_section_done);
-                label.setText(doneLabel(ticket.getStatus()));
-                headline.setVisibility(View.GONE);
-                headlineSuffix.setText(null);
-                detail.setText(null);
-                break;
-            case WAITING:
-            default:
-                section.setText(R.string.my_tickets_section_in_line);
-                label.setText(R.string.my_tickets_label_in_line);
-                headline.setVisibility(View.VISIBLE);
-                // Position counts the queuer too, so the people ahead are one fewer.
-                headline.setText(String.valueOf(Math.max(0, ticket.getPosition() - 1)));
-                headlineSuffix.setText(R.string.my_tickets_ahead);
-                detail.setText(getString(R.string.my_tickets_wait, ticket.getEstimatedWaitMinutes()));
-                break;
+        section.setText(MyTicketsAdapter.sectionFor(spotlight));
+        boolean isCalled = spotlight.getStatus() == Ticket.Status.CALLED;
+        called.setVisibility(isCalled ? View.VISIBLE : View.GONE);
+        ticketView.setVisibility(isCalled ? View.GONE : View.VISIBLE);
+        if (isCalled) {
+            bindCalled(spotlight);
+        } else {
+            bindTicket(spotlight);
+        }
+        // The tab badge follows the tickets, so it's refreshed whenever this list is.
+        if (getActivity() instanceof QueuerHomeActivity) {
+            ((QueuerHomeActivity) getActivity()).bindTicketBadge();
         }
     }
 
-    private static int doneLabel(Ticket.Status status) {
-        switch (status) {
-            case SERVED:
-                return R.string.my_tickets_served;
-            case QUEUE_CLOSED:
-                return R.string.my_tickets_queue_closed;
-            case REMOVED:
-                return R.string.my_tickets_removed;
-            case NO_SHOW:
-            default:
-                return R.string.my_tickets_no_show;
+    /** "2 tickets", or "2 tickets · 1 needs you now" while one is being called. */
+    private void bindCount(List<Ticket> tickets) {
+        String text = getResources().getQuantityString(R.plurals.my_tickets_count,
+                tickets.size(), tickets.size());
+        if (!tickets.isEmpty() && tickets.get(0).getStatus() == Ticket.Status.CALLED) {
+            text = getString(R.string.my_tickets_count_called_format, text);
+        }
+        count.setText(text);
+    }
+
+    /** Canvas 12: the number in marigold, the grace timer and I'm here. */
+    private void bindCalled(Ticket ticket) {
+        ((TextView) called.findViewById(R.id.my_tickets_called_number)).setText(
+                getString(R.string.ticket_number_format, ticket.getTicketNumber()));
+        ((TextView) called.findViewById(R.id.my_tickets_called_queue)).setText(getString(
+                R.string.my_tickets_row_finished_format, ticket.getQueueName(), ticket.getVenue()));
+        called.setContentDescription(getString(R.string.my_tickets_open_description,
+                ticket.getQueueName(), ticket.getTicketNumber()));
+
+        graceTimer = new CountDownTimer(ActiveTicketStore.graceRemainingMs(ticket), 1_000L) {
+            @Override
+            public void onTick(long millisUntilFinished) {
+                long seconds = millisUntilFinished / 1000L;
+                calledCountdown.setText(String.format(Locale.US, "%d:%02d", seconds / 60L, seconds % 60L));
+                calledRing.setProgressCompat((int) (millisUntilFinished * calledRing.getMax()
+                        / CalledActivity.GRACE_PERIOD_MS), false);
+            }
+
+            @Override
+            public void onFinish() {
+                // The store releases an overdue ticket as soon as it's read.
+                bind();
+            }
+        };
+        graceTimer.start();
+    }
+
+    /** Canvas 12b: the stub ticket, waiting or just finished. */
+    private void bindTicket(Ticket ticket) {
+        number.setText(getString(R.string.my_tickets_number, ticket.getTicketNumber()));
+        number.setTextColor(ContextCompat.getColor(requireContext(), R.color.on_spotlight));
+        queue.setText(getString(R.string.my_tickets_row_finished_format,
+                ticket.getQueueName(), ticket.getVenue()));
+        ticketView.setContentDescription(getString(R.string.my_tickets_open_description,
+                ticket.getQueueName(), ticket.getTicketNumber()));
+
+        if (ticket.getStatus() == Ticket.Status.WAITING) {
+            label.setText(R.string.my_tickets_label_in_line);
+            headline.setVisibility(View.VISIBLE);
+            // Position counts the queuer too, so the people ahead are one fewer.
+            headline.setText(String.valueOf(Math.max(0, ticket.getPosition() - 1)));
+            headlineSuffix.setText(R.string.my_tickets_ahead);
+            detail.setText(MyTicketsAdapter.isUpcoming(ticket)
+                    ? MyTicketsAdapter.detail(requireContext(), ticket)
+                    : getString(R.string.my_tickets_wait, ticket.getEstimatedWaitMinutes()));
+        } else {
+            label.setText(MyTicketsAdapter.doneLabel(ticket.getStatus()));
+            headline.setVisibility(View.GONE);
+            headlineSuffix.setText(null);
+            detail.setText(null);
+        }
+    }
+
+    private void cancelGraceTimer() {
+        if (graceTimer != null) {
+            graceTimer.cancel();
+            graceTimer = null;
         }
     }
 }

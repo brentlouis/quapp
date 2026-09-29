@@ -23,6 +23,9 @@ public class WaitingTicketAdapter
     public interface OnTicketActionListener {
         void onServeTicket(Ticket ticket);
         void onNoShowTicket(Ticket ticket);
+
+        /** Remove from line, with a reason (canvas 57). */
+        void onRemoveTicket(Ticket ticket);
     }
 
     private final List<Ticket> tickets = new ArrayList<>();
@@ -116,6 +119,10 @@ public class WaitingTicketAdapter
                     }
                     if (item.getItemId() == R.id.waiting_action_no_show) {
                         actionListener.onNoShowTicket(ticket);
+                        return true;
+                    }
+                    if (item.getItemId() == R.id.waiting_action_remove) {
+                        actionListener.onRemoveTicket(ticket);
                         return true;
                     }
                     return false;

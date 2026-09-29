@@ -203,7 +203,79 @@
                 android:textAppearance="?attr/textAppearanceBodySmall"
                 android:textColor="?attr/colorOnSurface"
                 android:visibility="gone"
-                tools:text="You missed your slot too many times. Queues with a no-show cooldown open to you again in 28 min."
+                tools:text="You're in line for Barangay Relief Distribution, and its hours overlap with this queue's."
+                tools:visibility="visible" />
+
+            <!-- On a cooldown (canvas 27): how long, in the big mono count -->
+            <LinearLayout
+                android:id="@+id/detail_cooldown"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/space_md"
+                android:background="@drawable/bg_card"
+                android:orientation="vertical"
+                android:padding="@dimen/space_md"
+                android:visibility="gone"
+                tools:visibility="visible">
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:drawablePadding="@dimen/space_ms"
+                    android:gravity="center_vertical"
+                    android:text="@string/detail_cooldown_title"
+                    android:textAppearance="?attr/textAppearanceTitleSmall"
+                    app:drawableStartCompat="@drawable/ic_hourglass"
+                    app:drawableTint="?attr/colorOnSurface" />
+
+                <TextView
+                    android:id="@+id/detail_cooldown_body"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="@dimen/space_sm"
+                    android:textAppearance="?attr/textAppearanceBodySmall"
+                    tools:text="You missed 2 slots. Queues with a no-show cooldown open to you again in:" />
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="@dimen/space_ms"
+                    android:baselineAligned="true"
+                    android:orientation="horizontal">
+
+                    <TextView
+                        android:id="@+id/detail_cooldown_minutes"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:textAppearance="?attr/textAppearanceStatHero"
+                        tools:text="28" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="@dimen/space_sm"
+                        android:text="@string/detail_cooldown_unit"
+                        android:textAppearance="?attr/textAppearanceTitleSmall" />
+
+                    <TextView
+                        android:id="@+id/detail_cooldown_at"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:gravity="end"
+                        android:textAppearance="?attr/textAppearanceBodySmall"
+                        tools:text="at 10:36 AM" />
+                </LinearLayout>
+            </LinearLayout>
+
+            <TextView
+                android:id="@+id/detail_cooldown_others"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/space_ms"
+                android:text="@string/detail_cooldown_others"
+                android:textAppearance="?attr/textAppearanceBodySmall"
+                android:visibility="gone"
                 tools:visibility="visible" />
 
             <!-- Verification checks, in their fixed order -->
@@ -261,38 +333,54 @@
             style="@style/Widget.Quapp.Dock.Stub"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:gravity="center_vertical"
-            android:orientation="horizontal">
+            android:orientation="vertical">
 
             <LinearLayout
-                android:id="@+id/detail_you_will_be"
-                android:layout_width="0dp"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginEnd="@dimen/space_ms"
-                android:layout_weight="1"
-                android:orientation="vertical">
+                android:gravity="center_vertical"
+                android:orientation="horizontal">
 
-                <TextView
-                    android:layout_width="wrap_content"
+                <LinearLayout
+                    android:id="@+id/detail_you_will_be"
+                    android:layout_width="0dp"
                     android:layout_height="wrap_content"
-                    android:text="@string/detail_you_will_be"
-                    android:textAppearance="?attr/textAppearanceLabelSmall"
-                    android:textColor="?attr/colorOnSurfaceVariant" />
+                    android:layout_marginEnd="@dimen/space_ms"
+                    android:layout_weight="1"
+                    android:orientation="vertical">
 
-                <TextView
-                    android:id="@+id/detail_next_number"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:textAppearance="?attr/textAppearanceHeadlineMedium"
-                    tools:text="#43" />
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/detail_you_will_be"
+                        android:textAppearance="?attr/textAppearanceLabelSmall"
+                        android:textColor="?attr/colorOnSurfaceVariant" />
+
+                    <TextView
+                        android:id="@+id/detail_next_number"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:textAppearance="?attr/textAppearanceHeadlineMedium"
+                        tools:text="#43" />
+                </LinearLayout>
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/detail_join_button"
+                    android:layout_width="0dp"
+                    android:layout_height="@dimen/button_height_lg"
+                    android:layout_weight="2"
+                    android:text="@string/detail_join_action" />
             </LinearLayout>
 
+            <!-- On a cooldown the button can't help, so offer somewhere else to go -->
             <com.google.android.material.button.MaterialButton
-                android:id="@+id/detail_join_button"
-                android:layout_width="0dp"
-                android:layout_height="@dimen/button_height_lg"
-                android:layout_weight="2"
-                android:text="@string/detail_join_action" />
+                android:id="@+id/detail_browse_button"
+                style="@style/Widget.Quapp.Button.Text"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/space_xs"
+                android:text="@string/detail_browse_others"
+                android:visibility="gone" />
         </LinearLayout>
     </LinearLayout>
 

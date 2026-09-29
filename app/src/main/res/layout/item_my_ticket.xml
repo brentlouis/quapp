@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- A ticket that isn't the screen's spotlight (canvas 12, "Later today"): a card you tap to open
+     it, with the number printed in serif like the ticket itself. -->
+<com.google.android.material.card.MaterialCardView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/my_ticket_card"
+    style="@style/Widget.Quapp.Card"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginBottom="@dimen/space_ms"
+    android:clickable="true"
+    android:focusable="true">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center_vertical"
+        android:minHeight="@dimen/list_row_min_height"
+        android:orientation="horizontal"
+        android:paddingStart="@dimen/space_ms"
+        android:paddingTop="@dimen/space_sm"
+        android:paddingEnd="@dimen/space_sm"
+        android:paddingBottom="@dimen/space_sm">
+
+        <TextView
+            android:id="@+id/my_ticket_number"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:importantForAccessibility="no"
+            android:textAppearance="?attr/textAppearanceTicketNumberSmall"
+            android:textColor="?attr/colorOnSurface"
+            tools:text="#7" />
+
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="@dimen/space_ms"
+            android:layout_weight="1"
+            android:orientation="vertical">
+
+            <TextView
+                android:id="@+id/my_ticket_queue"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:ellipsize="end"
+                android:maxLines="2"
+                android:textAppearance="?attr/textAppearanceTitleSmall"
+                tools:text="PESO Job Fair" />
+
+            <TextView
+                android:id="@+id/my_ticket_detail"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:fontFeatureSettings="tnum"
+                android:textAppearance="?attr/textAppearanceBodySmall"
+                tools:text="Island City Mall · opens 1:00 PM · 6 ahead of you" />
+        </LinearLayout>
+
+        <ImageView
+            android:layout_width="@dimen/icon_small"
+            android:layout_height="@dimen/icon_small"
+            android:layout_marginStart="@dimen/space_sm"
+            android:importantForAccessibility="no"
+            android:src="@drawable/ic_chevron_right"
+            app:tint="?attr/colorOnSurfaceVariant" />
+    </LinearLayout>
+</com.google.android.material.card.MaterialCardView>

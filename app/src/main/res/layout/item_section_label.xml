@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- A list's section label in mono caps ("COMING UP"), the same as the screen's other labels. -->
+<TextView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/section_label"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:accessibilityHeading="true"
+    android:paddingTop="@dimen/space_md"
+    android:paddingBottom="@dimen/space_sm"
+    android:textAppearance="?attr/textAppearanceLabelSmall"
+    android:textColor="?attr/colorOnSurfaceVariant"
+    tools:text="Coming up" />

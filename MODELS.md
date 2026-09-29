@@ -112,7 +112,7 @@ One person's place in one queue.
 | removalReason | `removal_reason` | RemovalReason? | Only when status is REMOVED |
 
 Rules the server enforces:
-- **Several tickets, hours can't overlap.** A queuer can hold live tickets (WAITING or CALLED) in more than one queue, as long as no two of those queues' opening hours overlap on the same day.
+- **Several tickets, hours can't overlap.** A queuer can hold live tickets (WAITING or CALLED) in more than one queue, as long as no two of those queues' opening hours overlap on the same day. A ticket is for one day: today once the queue has started, otherwise its first day, and each queue is compared on that day (DECISIONS.md "A ticket is for one day").
 - **Closed by the owner is not a no-show.** Closing a queue turns every WAITING or CALLED ticket into QUEUE_CLOSED and never counts toward the cooldown.
 - **Removal.** PRANK counts as a no-show and goes to the admin; DUPLICATE and ASKED_TO_LEAVE don't count.
 

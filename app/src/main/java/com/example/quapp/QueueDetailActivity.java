@@ -17,6 +17,8 @@ import androidx.core.view.ViewCompat;
 
 import com.google.android.material.button.MaterialButton;
 
+import java.time.Instant;
+
 public class QueueDetailActivity extends AppCompatActivity {
 
     public static final String EXTRA_QUEUE_ID = "com.example.quapp.EXTRA_QUEUE_ID";
@@ -51,6 +53,15 @@ public class QueueDetailActivity extends AppCompatActivity {
             }
         });
 
+        findViewById(R.id.detail_browse_button).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                startActivity(QueuerHomeActivity.intent(QueueDetailActivity.this,
+                        QueuerHomeActivity.TAB_BROWSE));
+                finish();
+            }
+        });
+
         // Tear-off stub: raised paper with its top corners bitten out.
         findViewById(R.id.detail_dock).setBackground(TicketShapes.stubDockBackground(this));
     }
@@ -72,27 +83,28 @@ public class QueueDetailActivity extends AppCompatActivity {
 
     /**
      * Checked in priority order — the first one that applies decides the button:
-     * already holding this queue's ticket, queue not open, holding another
-     * queue's ticket, on cooldown, or free to join.
+     * already holding this queue's ticket, queue not open, holding a ticket for a queue
+     * whose hours overlap this one, on cooldown, or free to join.
      */
     private void bindJoinButton(final Queue queue) {
         MaterialButton joinButton = findViewById(R.id.detail_join_button);
         TextView notice = findViewById(R.id.detail_notice);
         View youWillBe = findViewById(R.id.detail_you_will_be);
-        Ticket ticket = ActiveTicketStore.getTicket();
+        final Ticket ticket = ActiveTicketStore.ticketForQueue(queue.getId());
 
         notice.setVisibility(View.GONE);
         youWillBe.setVisibility(View.GONE);
+        showCooldown(false);
         joinButton.setEnabled(false);
         joinButton.setOnClickListener(null);
 
-        if (ticket != null && ticket.getQueueId().equals(queue.getId())) {
+        if (ticket != null) {
             joinButton.setEnabled(true);
             joinButton.setText(R.string.detail_view_ticket_action);
             joinButton.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View view) {
-                    startActivity(new Intent(QueueDetailActivity.this, ActiveTicketActivity.class));
+                    startActivity(ActiveTicketActivity.intent(QueueDetailActivity.this, ticket.getId()));
                 }
             });
             return;
@@ -111,15 +123,17 @@ public class QueueDetailActivity extends AppCompatActivity {
             return;
         }
 
-        if (ActiveTicketStore.hasLiveTicket()) {
-            joinButton.setText(R.string.detail_busy_action);
-            showNotice(notice, getString(R.string.detail_busy_notice, ticket.getQueueName()));
+        // Several tickets are fine, as long as no two queues are open at the same time.
+        Ticket clash = ActiveTicketStore.overlapping(queue);
+        if (clash != null) {
+            joinButton.setText(R.string.detail_overlap_action);
+            showNotice(notice, getString(R.string.detail_overlap_notice, clash.getQueueName()));
             return;
         }
 
         if (queue.isNoShowCooldownEnabled() && Cooldown.isActive()) {
-            joinButton.setText(R.string.detail_cooldown_action);
-            showNotice(notice, getString(R.string.detail_cooldown_notice,
+            bindCooldown();
+            joinButton.setText(getString(R.string.detail_cooldown_join_format,
                     Cooldown.remainingMinutes()));
             return;
         }
@@ -127,7 +141,7 @@ public class QueueDetailActivity extends AppCompatActivity {
         // Free to join: the stub shows the number you'd be handed.
         youWillBe.setVisibility(View.VISIBLE);
         ((TextView) findViewById(R.id.detail_next_number)).setText(
-                getString(R.string.ticket_number_format, queue.getPeopleWaiting() + 1));
+                getString(R.string.ticket_number_format, FakeData.nextTicketNumber(queue.getId())));
         joinButton.setEnabled(true);
         // Upcoming queues take joins too: you hold a number before it opens.
         joinButton.setText(queue.getStatus() == Queue.Status.UPCOMING
@@ -140,6 +154,28 @@ public class QueueDetailActivity extends AppCompatActivity {
                 startActivity(intent);
             }
         });
+    }
+
+    /**
+     * Canvas 27: how many slots were missed, the minutes left in the big count and the time it
+     * ends. The dock offers other queues, since Join can't help yet.
+     */
+    private void bindCooldown() {
+        showCooldown(true);
+        ((TextView) findViewById(R.id.detail_cooldown_body)).setText(getResources().getQuantityString(
+                R.plurals.detail_cooldown_body, Cooldown.NO_SHOW_LIMIT, Cooldown.NO_SHOW_LIMIT));
+        ((TextView) findViewById(R.id.detail_cooldown_minutes)).setText(
+                String.valueOf(Cooldown.remainingMinutes()));
+        ((TextView) findViewById(R.id.detail_cooldown_at)).setText(getString(
+                R.string.detail_cooldown_at_format,
+                Format.time(this, Instant.now().plusMillis(Cooldown.remainingMs()))));
+    }
+
+    private void showCooldown(boolean show) {
+        int visibility = show ? View.VISIBLE : View.GONE;
+        findViewById(R.id.detail_cooldown).setVisibility(visibility);
+        findViewById(R.id.detail_cooldown_others).setVisibility(visibility);
+        findViewById(R.id.detail_browse_button).setVisibility(visibility);
     }
 
     private void showNotice(TextView notice, String text) {

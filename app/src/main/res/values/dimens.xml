@@ -49,7 +49,7 @@
     <dimen name="grace_ring_thickness">4dp</dimen>
     <dimen name="console_lead_width">52dp</dimen>     <!-- the #24 tile in the console list -->
     <dimen name="console_lead_height">40dp</dimen>
-    <dimen name="my_tickets_stub_width">104dp</dimen> <!-- where the tear line and punches sit on a compact ticket -->
+    <dimen name="my_tickets_stub_width">118dp</dimen> <!-- where the tear line and punches sit on a compact ticket -->
     <dimen name="brand_mark_width">34dp</dimen>   <!-- the ticket mark next to the wordmark; 4:5 -->
     <dimen name="brand_mark_height">42.5dp</dimen>
     <dimen name="tile_size">40dp</dimen>          <!-- icon tile in a list row or card -->

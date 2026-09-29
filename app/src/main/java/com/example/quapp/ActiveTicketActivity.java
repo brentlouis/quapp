@@ -1,5 +1,6 @@
 package com.example.quapp;
 
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.res.ColorStateList;
@@ -15,7 +16,9 @@ import androidx.core.content.ContextCompat;
 import androidx.core.view.ViewCompat;
 
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
+import com.google.android.material.button.MaterialButton;
 import com.google.android.material.shape.ShapeAppearanceModel;
+import com.google.android.material.snackbar.Snackbar;
 
 import java.util.Date;
 import java.util.Locale;
@@ -27,18 +30,25 @@ import java.util.Locale;
  */
 public class ActiveTicketActivity extends AppCompatActivity {
 
-    /** "Be there by" is the estimated call time minus this (DECISIONS.md "Arrival info"). */
-    private static final int ARRIVAL_BUFFER_MINUTES = 10;
+    public static final String EXTRA_TICKET_ID = "com.example.quapp.EXTRA_TICKET_ID";
 
+    private String ticketId;
     private TextView statusPill;
     private View ticketCard;
     private View ticketRows;
     private View outcome;
     private View leaveButton;
+    private MaterialButton moreTimeButton;
     private View doneButton;
     private View doneOutlinedButton;
     private View joinAgainButton;
     private View browseButton;
+
+    public static Intent intent(Context context, String ticketId) {
+        Intent intent = new Intent(context, ActiveTicketActivity.class);
+        intent.putExtra(EXTRA_TICKET_ID, ticketId);
+        return intent;
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -46,11 +56,14 @@ public class ActiveTicketActivity extends AppCompatActivity {
         setContentView(R.layout.activity_active_ticket);
         SystemBars.applyPadding(findViewById(R.id.ticket_root));
 
+        ticketId = getIntent().getStringExtra(EXTRA_TICKET_ID);
+
         statusPill = findViewById(R.id.ticket_status);
         ticketCard = findViewById(R.id.ticket_card);
         ticketRows = findViewById(R.id.ticket_rows);
         outcome = findViewById(R.id.ticket_outcome);
         leaveButton = findViewById(R.id.ticket_leave_button);
+        moreTimeButton = findViewById(R.id.ticket_more_time_button);
         doneButton = findViewById(R.id.ticket_done_button);
         doneOutlinedButton = findViewById(R.id.ticket_done_outlined_button);
         joinAgainButton = findViewById(R.id.ticket_join_again_button);
@@ -58,7 +71,7 @@ public class ActiveTicketActivity extends AppCompatActivity {
         browseButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                ActiveTicketStore.finishTicket();
+                ActiveTicketStore.finishTicket(ticketId);
                 startActivity(QueuerHomeActivity.intent(ActiveTicketActivity.this,
                         QueuerHomeActivity.TAB_BROWSE));
                 finish();
@@ -79,10 +92,28 @@ public class ActiveTicketActivity extends AppCompatActivity {
             }
         });
 
+        moreTimeButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                MoreTimeSheet.show(ActiveTicketActivity.this, ticketId,
+                        new MoreTimeSheet.OnMovedListener() {
+                            @Override
+                            public void onMoved(Ticket moved, int places) {
+                                render();
+                                Snackbar.make(ticketCard, getResources().getQuantityString(
+                                        R.plurals.more_time_moved, places, places,
+                                        moved.getTicketNumber()), Snackbar.LENGTH_LONG)
+                                        .setAnchorView(R.id.ticket_tear)
+                                        .show();
+                            }
+                        });
+            }
+        });
+
         View.OnClickListener done = new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                ActiveTicketStore.finishTicket();
+                ActiveTicketStore.finishTicket(ticketId);
                 finish();
             }
         };
@@ -93,8 +124,8 @@ public class ActiveTicketActivity extends AppCompatActivity {
         joinAgainButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                Ticket ticket = ActiveTicketStore.getTicket();
-                ActiveTicketStore.finishTicket();
+                Ticket ticket = ActiveTicketStore.ticket(ticketId);
+                ActiveTicketStore.finishTicket(ticketId);
                 if (ticket != null) {
                     Intent intent = new Intent(ActiveTicketActivity.this, QueueDetailActivity.class);
                     intent.putExtra(QueueDetailActivity.EXTRA_QUEUE_ID, ticket.getQueueId());
@@ -127,7 +158,7 @@ public class ActiveTicketActivity extends AppCompatActivity {
         ticketCard.setOnLongClickListener(new View.OnLongClickListener() {
             @Override
             public boolean onLongClick(View view) {
-                ActiveTicketStore.markCalled(CalledActivity.GRACE_PERIOD_MS);
+                ActiveTicketStore.markCalled(ticketId);
                 openCalled();
                 return true;
             }
@@ -152,8 +183,11 @@ public class ActiveTicketActivity extends AppCompatActivity {
     @Override
     protected void onResume() {
         super.onResume();
+        render();
+    }
 
-        Ticket ticket = ActiveTicketStore.getTicket();
+    private void render() {
+        Ticket ticket = ActiveTicketStore.ticket(ticketId);
         if (ticket == null) {
             finish();
             return;
@@ -181,14 +215,14 @@ public class ActiveTicketActivity extends AppCompatActivity {
                 break;
             case REMOVED:
                 renderEnded(ticket, R.string.ticket_status_removed,
-                        R.string.ticket_removed_headline, R.string.ticket_removed_instruction);
+                        R.string.ticket_removed_headline, removedReason(ticket));
                 break;
         }
     }
 
     /** Called replaces this screen, so Back from Called goes to where you came from. */
     private void openCalled() {
-        startActivity(new Intent(this, CalledActivity.class));
+        startActivity(CalledActivity.intent(this, ticketId));
         finish();
     }
 
@@ -214,11 +248,12 @@ public class ActiveTicketActivity extends AppCompatActivity {
             aheadLabel.setText(R.string.ticket_next_label);
         }
 
-        // Ticks: how far the numbers being served have come towards yours.
+        // Ticks: how far the line has come towards you. Counted in people, not ticket numbers,
+        // because a moved-back ticket keeps its number but not its place.
         Ticket serving = FakeData.nowServing(ticket.getQueueId());
         ProgressTicksView ticks = findViewById(R.id.ticket_ticks);
         ticks.setProgress(serving == null ? 0f
-                : serving.getTicketNumber() / (float) ticket.getTicketNumber());
+                : serving.getTicketNumber() / (float) (serving.getTicketNumber() + ahead + 1));
         ((TextView) findViewById(R.id.ticket_now_serving)).setText(serving == null
                 ? getString(R.string.ticket_now_serving_none)
                 : getString(R.string.ticket_now_serving_format, serving.getTicketNumber()));
@@ -231,6 +266,16 @@ public class ActiveTicketActivity extends AppCompatActivity {
         bindEtaRow(ticket);
         bindArrival(ticket);
         bindBring(ticket);
+        bindMoreTime(ticket);
+    }
+
+    /** Once per ticket: after moving back, the button says when instead. */
+    private void bindMoreTime(Ticket ticket) {
+        boolean moved = ticket.isMovedBack() && ticket.getMovedBackAt() != null;
+        moreTimeButton.setEnabled(!moved);
+        moreTimeButton.setText(moved
+                ? getString(R.string.ticket_moved_back_format, Format.time(this, ticket.getMovedBackAt()))
+                : getString(R.string.ticket_more_time_action));
     }
 
     /** "Bring · Barangay ID · claim stub", only when the organizer filled it in. */
@@ -262,7 +307,7 @@ public class ActiveTicketActivity extends AppCompatActivity {
 
     /** "Be there by": the estimated call time minus a buffer, in the phone's 12/24h format. */
     private void bindArrival(Ticket ticket) {
-        int minutes = Math.max(0, ticket.getEstimatedWaitMinutes() - ARRIVAL_BUFFER_MINUTES);
+        int minutes = TicketRules.beThereInMinutes(ticket.getEstimatedWaitMinutes());
         Date beThereBy = new Date(System.currentTimeMillis() + minutes * 60_000L);
         ((TextView) findViewById(R.id.ticket_be_there)).setText(getString(
                 R.string.ticket_be_there_format, DateFormat.getTimeFormat(this).format(beThereBy)));
@@ -270,13 +315,13 @@ public class ActiveTicketActivity extends AppCompatActivity {
     }
 
     private void openDirections() {
-        Ticket ticket = ActiveTicketStore.getTicket();
+        Ticket ticket = ActiveTicketStore.ticket(ticketId);
         Directions.open(this, ticket == null ? null : FakeData.queueById(ticket.getQueueId()));
     }
 
     /** Leaving gives up the number for good, so it asks first (canvas 26). */
     private void confirmLeave() {
-        Ticket ticket = ActiveTicketStore.getTicket();
+        Ticket ticket = ActiveTicketStore.ticket(ticketId);
         if (ticket == null) {
             return;
         }
@@ -289,7 +334,7 @@ public class ActiveTicketActivity extends AppCompatActivity {
                         new DialogInterface.OnClickListener() {
                             @Override
                             public void onClick(DialogInterface dialog, int which) {
-                                ActiveTicketStore.clearTicket();
+                                ActiveTicketStore.leave(ticketId);
                                 finish();
                             }
                         })
@@ -385,6 +430,22 @@ public class ActiveTicketActivity extends AppCompatActivity {
         browseButton.setVisibility(View.VISIBLE);
     }
 
+    /** The message the organizer's reason sends (canvas 57: "a message saying why"). */
+    private static int removedReason(Ticket ticket) {
+        if (ticket.getRemovalReason() == null) {
+            return R.string.ticket_removed_instruction;
+        }
+        switch (ticket.getRemovalReason()) {
+            case PRANK:
+                return R.string.ticket_removed_prank;
+            case DUPLICATE:
+                return R.string.ticket_removed_duplicate;
+            case ASKED_TO_LEAVE:
+            default:
+                return R.string.ticket_removed_asked;
+        }
+    }
+
     /** What the no-show means for you next time. */
     private String expiredNote(boolean countsTowardCooldown) {
         if (!countsTowardCooldown) {
@@ -437,6 +498,7 @@ public class ActiveTicketActivity extends AppCompatActivity {
         ticketCard.setVisibility(waiting ? View.VISIBLE : View.GONE);
         ticketRows.setVisibility(waiting ? View.VISIBLE : View.GONE);
         leaveButton.setVisibility(waiting ? View.VISIBLE : View.GONE);
+        moreTimeButton.setVisibility(waiting ? View.VISIBLE : View.GONE);
         statusPill.setVisibility(waiting ? View.VISIBLE : View.GONE);
         outcome.setVisibility(waiting ? View.GONE : View.VISIBLE);
         doneButton.setVisibility(View.GONE);

@@ -502,7 +502,7 @@
         </LinearLayout>
     </androidx.core.widget.NestedScrollView>
 
-    <!-- ===== Dock: Leave queue while waiting, Done after ===== -->
+    <!-- ===== Dock: more time and Leave queue while waiting, Done after (canvas 08) ===== -->
 
     <com.example.quapp.TearLineView
         android:id="@+id/ticket_tear"
@@ -519,56 +519,70 @@
         style="@style/Widget.Quapp.Dock"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:orientation="horizontal"
+        android:orientation="vertical"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent">
 
-        <!-- Waiting -->
+        <!-- Waiting: running late moves you back instead of losing your place -->
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/ticket_more_time_button"
+            style="@style/Widget.Quapp.Button.Tonal"
+            android:layout_width="match_parent"
+            android:layout_height="@dimen/button_height_lg"
+            android:text="@string/ticket_more_time_action" />
+
         <com.google.android.material.button.MaterialButton
             android:id="@+id/ticket_leave_button"
             style="@style/Widget.Quapp.Button.Text"
-            android:layout_width="0dp"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_weight="1"
             android:text="@string/ticket_leave_action" />
 
-        <!-- Slot released: Done is secondary, Join again is the one filled button -->
-        <com.google.android.material.button.MaterialButton
-            android:id="@+id/ticket_done_outlined_button"
-            style="@style/Widget.Quapp.Button.Outlined"
-            android:layout_width="0dp"
-            android:layout_height="@dimen/button_height_lg"
-            android:layout_marginEnd="@dimen/space_ms"
-            android:layout_weight="1"
-            android:text="@string/ticket_done_action"
-            android:visibility="gone" />
+        <!-- Outcomes -->
+        <LinearLayout
+            android:id="@+id/ticket_outcome_actions"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
 
-        <com.google.android.material.button.MaterialButton
-            android:id="@+id/ticket_join_again_button"
-            android:layout_width="0dp"
-            android:layout_height="@dimen/button_height_lg"
-            android:layout_weight="1"
-            android:text="@string/ticket_join_again_action"
-            android:visibility="gone" />
+            <!-- Slot released: Done is secondary, Join again is the one filled button -->
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/ticket_done_outlined_button"
+                style="@style/Widget.Quapp.Button.Outlined"
+                android:layout_width="0dp"
+                android:layout_height="@dimen/button_height_lg"
+                android:layout_marginEnd="@dimen/space_ms"
+                android:layout_weight="1"
+                android:text="@string/ticket_done_action"
+                android:visibility="gone" />
 
-        <!-- Queue closed / removed -->
-        <com.google.android.material.button.MaterialButton
-            android:id="@+id/ticket_browse_button"
-            android:layout_width="0dp"
-            android:layout_height="@dimen/button_height_lg"
-            android:layout_weight="1"
-            android:text="@string/ticket_browse_action"
-            android:visibility="gone" />
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/ticket_join_again_button"
+                android:layout_width="0dp"
+                android:layout_height="@dimen/button_height_lg"
+                android:layout_weight="1"
+                android:text="@string/ticket_join_again_action"
+                android:visibility="gone" />
 
-        <!-- Served -->
-        <com.google.android.material.button.MaterialButton
-            android:id="@+id/ticket_done_button"
-            android:layout_width="0dp"
-            android:layout_height="@dimen/button_height_lg"
-            android:layout_weight="1"
-            android:text="@string/ticket_done_action"
-            android:visibility="gone" />
+            <!-- Queue closed / removed -->
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/ticket_browse_button"
+                android:layout_width="0dp"
+                android:layout_height="@dimen/button_height_lg"
+                android:layout_weight="1"
+                android:text="@string/ticket_browse_action"
+                android:visibility="gone" />
+
+            <!-- Served -->
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/ticket_done_button"
+                android:layout_width="0dp"
+                android:layout_height="@dimen/button_height_lg"
+                android:layout_weight="1"
+                android:text="@string/ticket_done_action"
+                android:visibility="gone" />
+        </LinearLayout>
     </LinearLayout>
 
 </androidx.constraintlayout.widget.ConstraintLayout>

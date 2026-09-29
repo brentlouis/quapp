@@ -2,17 +2,16 @@ package com.example.quapp;
 
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.res.ColorStateList;
 import android.os.Bundle;
 import android.os.CountDownTimer;
-import android.view.Menu;
-import android.view.MenuItem;
 import android.view.View;
 import android.widget.TextView;
 
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.appcompat.widget.PopupMenu;
 import androidx.core.content.ContextCompat;
+import androidx.core.widget.TextViewCompat;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -22,6 +21,8 @@ import com.google.android.material.snackbar.Snackbar;
 import com.google.android.material.textfield.TextInputEditText;
 import com.google.android.material.textfield.TextInputLayout;
 
+import java.time.Instant;
+import java.time.LocalTime;
 import java.util.List;
 import java.util.Locale;
 
@@ -82,7 +83,7 @@ public class LiveConsoleActivity extends AppCompatActivity
         findViewById(R.id.console_menu).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                showQueueMenu(view);
+                showQueueOptions();
             }
         });
 
@@ -170,72 +171,95 @@ public class LiveConsoleActivity extends AppCompatActivity
         render();
     }
 
-    // ---- Queue options menu -------------------------------------------------
-
-    private void showQueueMenu(View anchor) {
-        PopupMenu popup = new PopupMenu(this, anchor);
-        popup.inflate(R.menu.menu_console);
-
-        // Only offer the moves that make sense from the current status.
-        Menu menu = popup.getMenu();
-        Queue.Status status = queue.getStatus();
-        menu.findItem(R.id.console_action_pause).setVisible(status == Queue.Status.OPEN);
-        menu.findItem(R.id.console_action_resume).setVisible(status == Queue.Status.PAUSED);
-        menu.findItem(R.id.console_action_close).setVisible(status != Queue.Status.CLOSED);
-        menu.findItem(R.id.console_action_reopen).setVisible(status == Queue.Status.CLOSED);
-
-        popup.setOnMenuItemClickListener(new PopupMenu.OnMenuItemClickListener() {
+    @Override
+    public void onRemoveTicket(Ticket ticket) {
+        ConsoleSheets.showRemove(this, ticket, new ConsoleSheets.RemoveListener() {
             @Override
-            public boolean onMenuItemClick(MenuItem item) {
-                return onQueueMenuItem(item.getItemId());
+            public void onRemove(Ticket removed, Ticket.RemovalReason reason) {
+                FakeData.removeFromLine(queueId, removed.getId(), reason);
+                render();
+                announce(R.string.console_removed_format, removed);
             }
         });
-        popup.show();
     }
 
-    private boolean onQueueMenuItem(int itemId) {
-        if (itemId == R.id.console_action_insights) {
-            Intent intent = new Intent(this, QueueAnalyticsActivity.class);
-            intent.putExtra(QueueAnalyticsActivity.EXTRA_QUEUE_ID, queueId);
-            startActivity(intent);
-        } else if (itemId == R.id.console_action_edit) {
-            Intent intent = new Intent(this, CreateQueueActivity.class);
-            intent.putExtra(CreateQueueActivity.EXTRA_QUEUE_ID, queueId);
-            startActivity(intent);
-        } else if (itemId == R.id.console_action_pause) {
-            changeStatus(Queue.Status.PAUSED);
-        } else if (itemId == R.id.console_action_resume
-                || itemId == R.id.console_action_reopen) {
-            changeStatus(Queue.Status.OPEN);
-        } else if (itemId == R.id.console_action_close) {
-            confirmClose();
-        } else {
-            return false;
-        }
-        return true;
+    // ---- Queue options (canvas 18) -------------------------------------------------
+
+    private void showQueueOptions() {
+        ConsoleSheets.showOptions(this, queue, new ConsoleSheets.OptionsListener() {
+            @Override
+            public void onExtend() {
+                showExtend();
+            }
+
+            @Override
+            public void onEdit() {
+                Intent intent = new Intent(LiveConsoleActivity.this, CreateQueueActivity.class);
+                intent.putExtra(CreateQueueActivity.EXTRA_QUEUE_ID, queueId);
+                startActivity(intent);
+            }
+
+            @Override
+            public void onInsights() {
+                Intent intent = new Intent(LiveConsoleActivity.this, QueueAnalyticsActivity.class);
+                intent.putExtra(QueueAnalyticsActivity.EXTRA_QUEUE_ID, queueId);
+                startActivity(intent);
+            }
+
+            @Override
+            public void onStatus(Queue.Status status) {
+                changeStatus(status);
+            }
+
+            @Override
+            public void onClose() {
+                confirmClose();
+            }
+        });
     }
 
-    /** Closing releases everyone in line, so it asks first. Pausing is easy to undo, so it doesn't. */
+    /** Extend closing time (canvas 19). */
+    private void showExtend() {
+        ConsoleSheets.showExtend(this, queue, FakeData.waitingTickets(queueId).size(),
+                new ConsoleSheets.ExtendListener() {
+                    @Override
+                    public void onExtended(LocalTime closesAt) {
+                        FakeData.extendClosing(queueId, closesAt);
+                        render();
+                        Snackbar.make(ticketList, getString(R.string.extend_done_format,
+                                Format.time(LiveConsoleActivity.this, closesAt)), Snackbar.LENGTH_SHORT)
+                                .setAnchorView(R.id.console_tear)
+                                .show();
+                    }
+                });
+    }
+
+    /**
+     * Closing releases everyone in line, so it asks first (canvas 18b), with the number of
+     * people on the red button. Pausing is easy to undo, so it doesn't.
+     */
     private void confirmClose() {
         int waiting = FakeData.waitingTickets(queueId).size();
 
-        MaterialAlertDialogBuilder builder = new MaterialAlertDialogBuilder(this)
-                .setTitle(R.string.console_close_title)
-                .setNegativeButton(R.string.console_cancel, null)
-                .setPositiveButton(R.string.console_close_confirm,
+        AlertDialog dialog = new MaterialAlertDialogBuilder(this)
+                .setTitle(getString(R.string.console_close_title_format, queue.getName()))
+                .setMessage(waiting > 0
+                        ? getResources().getQuantityString(R.plurals.console_close_release_message, waiting, waiting)
+                        : getString(R.string.console_close_empty_message))
+                .setNegativeButton(R.string.console_keep_open, null)
+                .setPositiveButton(waiting > 0
+                                ? getResources().getQuantityString(R.plurals.console_close_release_action, waiting, waiting)
+                                : getString(R.string.console_close_confirm),
                         new DialogInterface.OnClickListener() {
                             @Override
-                            public void onClick(DialogInterface dialog, int which) {
+                            public void onClick(DialogInterface d, int which) {
                                 changeStatus(Queue.Status.CLOSED);
                             }
-                        });
-
-        if (waiting > 0) {
-            builder.setMessage(getResources().getQuantityString(
-                    R.plurals.console_close_message, waiting, waiting));
-        }
-
-        builder.show();
+                        })
+                .show();
+        // The one action that can't be undone reads red.
+        dialog.getButton(AlertDialog.BUTTON_POSITIVE).setTextColor(
+                ContextCompat.getColor(this, R.color.err));
     }
 
     private void changeStatus(Queue.Status status) {
@@ -365,9 +389,19 @@ public class LiveConsoleActivity extends AppCompatActivity
         if (timedOut) {
             servingWait.setText(R.string.console_timed_out);
             servingWait.setTextColor(ContextCompat.getColor(this, R.color.err_on_spotlight));
+            setWaitIcon(R.drawable.ic_timer, R.color.err_on_spotlight);
+            return;
+        }
+        // Canvas 29: they tapped "I'm here", so the countdown stops.
+        Instant confirmed = FakeData.confirmedAt(queueId);
+        if (confirmed != null) {
+            servingWait.setText(getString(R.string.console_confirmed_format, Format.time(this, confirmed)));
+            servingWait.setTextColor(ContextCompat.getColor(this, R.color.ok_on_spotlight));
+            setWaitIcon(R.drawable.ic_circle_check, R.color.ok_on_spotlight);
             return;
         }
         servingWait.setTextColor(ContextCompat.getColor(this, R.color.on_spotlight));
+        setWaitIcon(R.drawable.ic_timer, R.color.on_spotlight_muted);
         long left = FakeData.graceDeadline(nowServing).toEpochMilli() - System.currentTimeMillis();
         graceTimer = new CountDownTimer(Math.max(left, 0), 1_000L) {
             @Override
@@ -384,6 +418,13 @@ public class LiveConsoleActivity extends AppCompatActivity
             }
         };
         graceTimer.start();
+    }
+
+    /** The grace line's icon follows its state: a timer while waiting, a check once confirmed. */
+    private void setWaitIcon(int icon, int color) {
+        TextViewCompat.setCompoundDrawablesRelativeWithIntrinsicBounds(servingWait, icon, 0, 0, 0);
+        TextViewCompat.setCompoundDrawableTintList(servingWait,
+                ColorStateList.valueOf(ContextCompat.getColor(this, color)));
     }
 
     private void cancelGraceTimer() {

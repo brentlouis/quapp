@@ -139,10 +139,11 @@ public class ProfileFragment extends Fragment {
 
     /** Warns specifically when logging out would also throw away a place in line. */
     private void confirmLogout() {
-        String message = ActiveTicketStore.hasLiveTicket()
-                ? getString(R.string.profile_logout_ticket_message,
-                        ActiveTicketStore.getTicket().getQueueName())
-                : getString(R.string.profile_logout_message);
+        List<Ticket> live = ActiveTicketStore.liveTickets();
+        String message = live.isEmpty() ? getString(R.string.profile_logout_message)
+                : live.size() == 1 ? getString(R.string.profile_logout_ticket_message,
+                        live.get(0).getQueueName())
+                : getString(R.string.profile_logout_tickets_message, live.size());
 
         new MaterialAlertDialogBuilder(requireContext())
                 .setTitle(R.string.profile_logout_title)
@@ -159,7 +160,7 @@ public class ProfileFragment extends Fragment {
     }
 
     private void logOut() {
-        ActiveTicketStore.clearTicket();
+        ActiveTicketStore.clear();
         FakeData.clearHistory();
         session.logOut();
         // homeIntent clears the back stack, so Back from Login can't return to this account.

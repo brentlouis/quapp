@@ -1,0 +1,177 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- "I need more time" (canvas 28, amended Sep 28): the queuer picks how many minutes they need
+     and the estimator works out how many places that is. The card previews the result before
+     anything changes. -->
+<androidx.core.widget.NestedScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:paddingStart="@dimen/space_md"
+        android:paddingEnd="@dimen/space_md"
+        android:paddingBottom="@dimen/space_md">
+
+        <com.google.android.material.bottomsheet.BottomSheetDragHandleView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content" />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:accessibilityHeading="true"
+            android:text="@string/more_time_title"
+            android:textAppearance="?attr/textAppearanceTitleLarge" />
+
+        <TextView
+            android:id="@+id/more_time_lead"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/space_xs"
+            android:textAppearance="?attr/textAppearanceBodyMedium"
+            android:textColor="?attr/colorOnSurfaceVariant"
+            tools:text="How much more time do you need? You keep number #43." />
+
+        <TextView
+            android:id="@+id/more_time_minutes_label"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/space_md"
+            android:labelFor="@id/more_time_group"
+            android:text="@string/more_time_minutes_label"
+            android:textAppearance="?attr/textAppearanceFieldLabel" />
+
+        <com.google.android.material.button.MaterialButtonToggleGroup
+            android:id="@+id/more_time_group"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/space_sm"
+            app:selectionRequired="true"
+            app:singleSelection="true">
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/more_time_5"
+                style="@style/Widget.Quapp.Segment.Compact"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:tag="5"
+                android:text="@string/more_time_5" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/more_time_10"
+                style="@style/Widget.Quapp.Segment.Compact"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:tag="10"
+                android:text="@string/more_time_10" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/more_time_15"
+                style="@style/Widget.Quapp.Segment.Compact"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:tag="15"
+                android:text="@string/more_time_15" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/more_time_20"
+                style="@style/Widget.Quapp.Segment.Compact"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:tag="20"
+                android:text="@string/more_time_20" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/more_time_30"
+                style="@style/Widget.Quapp.Segment.Compact"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:tag="30"
+                android:text="@string/more_time_30" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/more_time_45"
+                style="@style/Widget.Quapp.Segment.Compact"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:tag="45"
+                android:text="@string/more_time_45" />
+        </com.google.android.material.button.MaterialButtonToggleGroup>
+
+        <!-- The preview: before → after, for the three numbers that change -->
+        <com.google.android.material.card.MaterialCardView
+            style="@style/Widget.Quapp.Card"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/space_md">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:paddingStart="@dimen/space_md"
+                android:paddingEnd="@dimen/space_md">
+
+                <include
+                    android:id="@+id/more_time_row_ahead"
+                    layout="@layout/view_preview_row" />
+
+                <View
+                    android:layout_width="match_parent"
+                    android:layout_height="@dimen/hairline"
+                    android:background="?attr/colorOutlineVariant" />
+
+                <include
+                    android:id="@+id/more_time_row_wait"
+                    layout="@layout/view_preview_row" />
+
+                <View
+                    android:layout_width="match_parent"
+                    android:layout_height="@dimen/hairline"
+                    android:background="?attr/colorOutlineVariant" />
+
+                <include
+                    android:id="@+id/more_time_row_arrive"
+                    layout="@layout/view_preview_row" />
+            </LinearLayout>
+        </com.google.android.material.card.MaterialCardView>
+
+        <!-- Where the number of places comes from: the estimator, said plainly -->
+        <TextView
+            android:id="@+id/more_time_basis"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/space_ms"
+            android:drawablePadding="@dimen/space_sm"
+            android:textAppearance="?attr/textAppearanceBodySmall"
+            android:textColor="?attr/colorOnSurfaceVariant"
+            app:drawableStartCompat="@drawable/ic_info"
+            app:drawableTint="?attr/colorOnSurfaceVariant"
+            tools:text="Right now each person takes about 2.1 min, so 10 min is 5 places. Once per ticket; it doesn't count as a no-show." />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/more_time_confirm"
+            android:layout_width="match_parent"
+            android:layout_height="@dimen/button_height_lg"
+            android:layout_marginTop="@dimen/space_md"
+            tools:text="Move me back 5 places" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/more_time_keep"
+            style="@style/Widget.Quapp.Button.Text"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/space_xs"
+            android:text="@string/more_time_keep" />
+    </LinearLayout>
+</androidx.core.widget.NestedScrollView>

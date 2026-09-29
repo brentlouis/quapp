@@ -18,6 +18,8 @@ import com.google.android.material.badge.BadgeDrawable;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.android.material.navigation.NavigationBarView;
 
+import java.util.List;
+
 /**
  * The queuer's home: Browse, My tickets and Profile as tabs (DECISIONS.md, hybrid navigation).
  *
@@ -123,16 +125,23 @@ public class QueuerHomeActivity extends AppCompatActivity {
         backToBrowse.setEnabled(itemId != R.id.nav_browse);
     }
 
-    /** "#43" on the My tickets tab while you hold a ticket that isn't finished. */
+    /**
+     * On the My tickets tab: "#43" while you hold one ticket, the count ("2") with several
+     * (canvas 12). Espresso and marigold while one of them is being called.
+     */
     void bindTicketBadge() {
-        Ticket ticket = ActiveTicketStore.getTicket();
-        if (ticket == null || !ActiveTicketStore.hasLiveTicket()) {
+        List<Ticket> live = ActiveTicketStore.liveTickets();
+        if (live.isEmpty()) {
             nav.removeBadge(R.id.nav_tickets);
             return;
         }
+        // Sorted with a called ticket first, so the first one says whether anyone is calling you.
+        Ticket first = live.get(0);
         BadgeDrawable badge = nav.getOrCreateBadge(R.id.nav_tickets);
-        badge.setText(getString(R.string.nav_ticket_badge, ticket.getTicketNumber()));
-        boolean called = ticket.getStatus() == Ticket.Status.CALLED;
+        badge.setText(live.size() == 1
+                ? getString(R.string.nav_ticket_badge, first.getTicketNumber())
+                : getString(R.string.nav_ticket_count, live.size()));
+        boolean called = first.getStatus() == Ticket.Status.CALLED;
         // Called: an espresso stub with marigold text. Otherwise ink with paper text.
         badge.setBackgroundColor(ContextCompat.getColor(this, called ? R.color.spotlight : R.color.ink));
         badge.setBadgeTextColor(ContextCompat.getColor(this, called ? R.color.signal : R.color.paper_raised));

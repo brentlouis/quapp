@@ -2,7 +2,7 @@
 
 Tick boxes as things land. Commit this file with the work it tracks, so the git history shows when each item was done.
 
-Last updated: 2026-09-28
+Last updated: 2026-09-29
 
 Team: 2 people. Brent builds the remaining screens and backend, and wires them. Partner improves the UI after handoff.
 
@@ -134,14 +134,14 @@ Designed on the Claude Design canvas; none of it is built. Decisions are in DECI
 - [x] `ThemeOverlay.Quapp.Spotlight` and `Theme.Quapp.Called`
 - [ ] Punch `EdgeTreatment` (spotlight, nav tab, badge, selected chip) and the dashed tear-line drawable
 - [x] Logo: ticket mark vector, splash on paper, adaptive launcher icon, notification small icon
-- [ ] Queue cards v5 (queuer and owner): status strip, identity, one-line description, footer band; faded paused/closed
+- [x] Queue cards v5 (queuer and owner): status strip, identity, one-line description, footer band; faded paused/closed
 - [ ] Ticket details: tear-off stub dock, kept-ticket stub + stamp on outcomes, receipt slip, serial line, barcode
 - [ ] Help and support screen; location-declined state on Queue Detail
 - [ ] Trust and safety screens: Get verified, organizer verification status, badge sheet, unverified queue note, Report a queue, Account suspended, device limit at signup, remove from line, one-live-queue limit
 - [ ] Admin web page on FastAPI: verification review, reports, suspend / revoke
-- [ ] Queuer home states: first visit (town picker), town picked, in line
+- [x] Queuer home states: first visit (town picker), town picked, in line
 - [ ] Owner home: live-queue card, status chips, date / category / sort filters, Today tab
-- [ ] Create Queue: Schedule section, category sheet, verification switches
+- [x] Create Queue: Schedule section, category sheet, verification switches
 - [ ] Live Console: Now serving panel as the spotlight (awaiting, confirmed, timed out), queue options sheet, extend closing time
 - [ ] Ticket screens: called, served, slot released, queue closed, offline, leave confirmation
 - [ ] My tickets list (2+ tickets): called card (12) and still-in-line ticket (12b)

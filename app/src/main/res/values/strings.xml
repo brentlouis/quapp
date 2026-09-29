@@ -109,11 +109,7 @@
     <string name="detail_back_description">Back</string>
     <string name="detail_paused_action">Queue paused</string>
     <string name="detail_view_ticket_action">View your ticket</string>
-    <string name="detail_cooldown_action">On cooldown</string>
-    <string name="detail_busy_action">Already in a queue</string>
     <string name="detail_paused_notice">The owner has paused new joins. Check back soon.</string>
-    <string name="detail_cooldown_notice">You missed your slot too many times. Queues with a no-show cooldown open to you again in %d min.</string>
-    <string name="detail_busy_notice">You\'re already in line for %s. Leave that queue first to join this one.</string>
 
     <!-- Join -->
     <string name="join_title">Join queue</string>
@@ -267,10 +263,8 @@
     <string name="console_menu_edit">Edit details</string>
     <string name="console_menu_pause">Pause new joins</string>
     <string name="console_menu_resume">Resume joins</string>
-    <string name="console_menu_close">Close queue</string>
     <string name="console_menu_reopen">Reopen queue</string>
     <string name="console_menu_insights">Insights</string>
-    <string name="console_close_title">Close this queue?</string>
     <string name="console_close_confirm">Close queue</string>
     <string name="console_cancel">Cancel</string>
     <string name="console_walk_in_title">Add walk-in</string>
@@ -329,11 +323,6 @@
     <string name="history_empty_title">No past queues yet</string>
     <string name="history_empty_body">Queues you finish, served or missed, show up here.</string>
     <string name="history_empty_action">Browse queues</string>
-
-    <plurals name="console_close_message">
-        <item quantity="one">The %d person still waiting will be released. You can reopen the queue later.</item>
-        <item quantity="other">The %d people still waiting will be released. You can reopen the queue later.</item>
-    </plurals>
 
     <plurals name="analytics_average_basis">
         <item quantity="one">(the last person served)</item>
@@ -504,4 +493,128 @@
     <string name="owner_step_call">Call people forward</string>
     <string name="owner_step_call_body">Tap Call next. They get 3 minutes to confirm.</string>
     <string name="owner_first_footer">Your queues will show up here, with the live one on top.</string>
+
+    <!-- I need more time (sheet) -->
+    <string name="more_time_title">Running late?</string>
+    <string name="more_time_lead">How much more time do you need? You keep number #%d.</string>
+    <string name="more_time_minutes_label">Minutes</string>
+    <string name="more_time_5">5</string>
+    <string name="more_time_10">10</string>
+    <string name="more_time_15">15</string>
+    <string name="more_time_20">20</string>
+    <string name="more_time_30">30</string>
+    <string name="more_time_45">45</string>
+    <string name="more_time_ahead_label">Ahead of you</string>
+    <string name="more_time_wait_label">Est. wait</string>
+    <string name="more_time_arrive_label">Be there by</string>
+    <string name="more_time_change_format">%1$d → %2$d</string>
+    <string name="more_time_wait_change_format">%1$d → %2$d min</string>
+    <string name="more_time_arrive_change_format">%1$s → %2$s</string>
+    <string name="more_time_basis_format">Right now each person takes about %1$s min, so %2$d min is %3$s.</string>
+    <plurals name="more_time_places">
+        <item quantity="one">%d place</item>
+        <item quantity="other">%d places</item>
+    </plurals>
+    <string name="more_time_end_of_line">That\'s the end of the line.</string>
+    <string name="more_time_once">You can do this once per ticket. It doesn\'t count as a no-show.</string>
+    <string name="more_time_last">You\'re last in line, so there\'s nobody to move behind.</string>
+    <string name="more_time_nobody_behind">Nobody behind you</string>
+    <plurals name="more_time_confirm">
+        <item quantity="one">Move me back %d place</item>
+        <item quantity="other">Move me back %d places</item>
+    </plurals>
+    <string name="more_time_keep">Keep my place</string>
+    <plurals name="more_time_moved">
+        <item quantity="one">Moved back %1$d place. You keep #%2$d.</item>
+        <item quantity="other">Moved back %1$d places. You keep #%2$d.</item>
+    </plurals>
+    <string name="ticket_more_time_action">I need more time</string>
+    <string name="ticket_moved_back_format">Moved back at %s</string>
+    <string name="called_move_back_action">Move me back</string>
+    <string name="called_move_back_hint">Not there yet? Say how much time you need and you\'ll be moved back.</string>
+    <string name="called_moved_back_hint">You\'ve already moved back once with this ticket.</string>
+
+    <!-- My tickets: two or more -->
+    <string name="my_tickets_count_called_format">%s · 1 needs you now</string>
+    <string name="my_tickets_section_coming_up">Coming up</string>
+    <string name="my_tickets_row_waiting_format">%1$s · %2$d ahead · about %3$d min</string>
+    <string name="my_tickets_row_upcoming_format">%1$s · opens %2$s · %3$d ahead of you</string>
+    <string name="my_tickets_row_finished_format">%1$s · %2$s</string>
+    <string name="my_tickets_rule_note">You can hold tickets for queues whose hours don\'t overlap.</string>
+    <string name="my_tickets_timer_hint">left to confirm</string>
+    <string name="my_tickets_opens_format">%1$s %2$s</string>
+    <string name="nav_ticket_count">%d</string>
+
+    <!-- Hours overlap, confirmed arrival -->
+    <string name="detail_overlap_action">Hours overlap</string>
+    <string name="detail_overlap_notice">You\'re in line for %s, and its hours overlap with this queue\'s. You can hold tickets only for queues whose hours don\'t overlap.</string>
+    <string name="profile_logout_tickets_message">You hold %d tickets. Logging out gives up all of those places.</string>
+    <string name="console_confirmed_format">Here · confirmed at %s. Mark them served when you\'re done.</string>
+    <string name="console_moved_back_line">Moved back · asked for more time</string>
+
+    <!-- Console sheets: queue options, close, extend, remove from line -->
+    <string name="options_lead_format">%1$s · %2$s</string>
+    <string name="options_closes_today_format">closes today at %s</string>
+    <string name="options_closes_format">closes at %s</string>
+    <string name="options_extend_body_format">Keep the queue open past %s</string>
+    <string name="options_edit_body">Name, descriptions, category, hours, checks</string>
+    <string name="options_insights_body">Wait times and no-shows today</string>
+    <string name="options_pause_body">People already in line keep their spot</string>
+    <string name="options_resume_body">People can join again</string>
+    <string name="options_close_title">Close queue now</string>
+    <string name="options_close_body">Everyone still waiting is released</string>
+    <string name="options_reopen_body">Take joins again</string>
+    <string name="console_close_title_format">Close %s now?</string>
+    <plurals name="console_close_release_message">
+        <item quantity="one">The 1 person still waiting is released and notified. It won\'t count as a no-show for them. This can\'t be undone.</item>
+        <item quantity="other">The %d people still waiting are released and notified. It won\'t count as a no-show for them. This can\'t be undone.</item>
+    </plurals>
+    <string name="console_close_empty_message">Nobody is waiting. This can\'t be undone.</string>
+    <plurals name="console_close_release_action">
+        <item quantity="one">Close and release %d</item>
+        <item quantity="other">Close and release %d</item>
+    </plurals>
+    <string name="console_keep_open">Keep open</string>
+    <string name="extend_title">Extend closing time</string>
+    <string name="extend_lead_format">%s · today</string>
+    <string name="extend_now_closes">Now closes</string>
+    <string name="extend_will_close">Will close</string>
+    <string name="extend_30">+30 min</string>
+    <string name="extend_60">+1 hour</string>
+    <string name="extend_120">+2 hours</string>
+    <string name="extend_custom">Custom</string>
+    <string name="extend_custom_body">Pick a time</string>
+    <string name="extend_note_format">New joins stay open until %s.</string>
+    <plurals name="extend_note_waiting">
+        <item quantity="one">The 1 person waiting is notified of the new time.</item>
+        <item quantity="other">The %d people waiting are notified of the new time.</item>
+    </plurals>
+    <string name="extend_action_format">Extend to %s</string>
+    <string name="extend_done_format">Open until %s</string>
+    <string name="extend_too_late">That\'s not later than the current closing time.</string>
+    <string name="remove_title_format">Remove #%1$d %2$s?</string>
+    <string name="remove_lead">They lose their place and get a message saying why.</string>
+    <string name="remove_prank">Prank or fake join</string>
+    <string name="remove_prank_body">Counts as a no-show and is sent to the admin</string>
+    <string name="remove_duplicate">Duplicate ticket</string>
+    <string name="remove_duplicate_body">Same person twice. Not a no-show</string>
+    <string name="remove_asked">Asked to leave</string>
+    <string name="remove_asked_body">Not a no-show</string>
+    <string name="remove_action">Remove from line</string>
+    <string name="console_removed_format">#%1$d %2$s removed from line</string>
+    <string name="ticket_removed_prank">The organizer reported this ticket as a fake join. It counts as a no-show.</string>
+    <string name="ticket_removed_duplicate">The organizer found two tickets for you and kept the other one. It isn\'t a no-show.</string>
+    <string name="ticket_removed_asked">You asked the organizer to take you out of the line. It isn\'t a no-show.</string>
+
+    <!-- Queue detail on cooldown (canvas 27) -->
+    <string name="detail_cooldown_title">You\'re on a cooldown</string>
+    <plurals name="detail_cooldown_body">
+        <item quantity="one">You missed %d slot. Queues with a no-show cooldown open to you again in:</item>
+        <item quantity="other">You missed %d slots. Queues with a no-show cooldown open to you again in:</item>
+    </plurals>
+    <string name="detail_cooldown_unit">min</string>
+    <string name="detail_cooldown_at_format">at %s</string>
+    <string name="detail_cooldown_others">Queues without a cooldown rule are still open to you.</string>
+    <string name="detail_cooldown_join_format">Join opens in %d min</string>
+    <string name="detail_browse_others">Browse other queues</string>
 </resources>

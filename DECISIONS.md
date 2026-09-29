@@ -709,7 +709,7 @@ Queues open and close automatically from their schedule. Queuer Browse has no st
 
 **Why:** Once queues have real schedules, a morning and an afternoon queue on the same day is legitimate.
 
-**Status:** Current (design). Supersedes the current "already in a queue" rule (`detail_busy_notice`), which blocks any second ticket.
+**Status:** Current. Built Sep 29 (My tickets list, overlap check on Queue detail, the count on the tab badge); the old "already in a queue" rule is gone. Overlap is checked per day, see "A ticket is for one day".
 
 ---
 
@@ -741,7 +741,7 @@ Notification permission (explained before Android asks), the "you're being calle
 
 **Why:** It turns some no-shows into late arrivals, which is the metric the verification work is judged on. Log how often it's used for the evaluation.
 
-**Status:** Current, amended Sep 28: the queuer says how much time they need, and the estimator decides how many places that is (see "Scope after the redesign"). Fields in MODELS.md.
+**Status:** Current, amended Sep 28: the queuer says how much time they need, and the estimator decides how many places that is (see "Scope after the redesign"). Fields in MODELS.md. Built Sep 29: the sheet (5–45 min, a before → after preview, the minutes per person it used), from the ticket and from Called.
 
 ---
 
@@ -754,7 +754,7 @@ Notification permission (explained before Android asks), the "you're being calle
 
 **Why:** The review found Queue Detail showed only the venue name. Most late arrivals are about not knowing when to leave or what to bring.
 
-**Status:** Current (design). Model change: `Queue` gets `bring` (text) and venue coordinates.
+**Status:** Current. Model change: `Queue` gets `bring` (text) and venue coordinates. Amended Sep 29: "Be there by" on a short wait.
 
 ---
 
@@ -1103,6 +1103,42 @@ A crema tear line runs above every bottom button bar and along the top of the bo
 - A no-show prediction model: future work; it would double the ML and evaluation work.
 
 **Status:** Current (design). Built with the backend. Supersedes the forecasting half of "Cut the proposal down to a buildable subset".
+
+---
+
+## A ticket is for one day; overlap is checked on that day
+
+**Decision:** When checking whether two tickets' hours overlap, each queue is compared on the day you'd actually be in its line: today once the queue has started, otherwise its first day. Two queues clash only if that day is the same and their hours overlap. Touching ends (one closes at 12:00, the next opens at 12:00) don't clash. `TicketRules.hoursOverlap`, with unit tests.
+
+**Why:** Built first as "any shared day", it blocked the canvas 12 case: someone in line today for a two-day relief distribution couldn't hold a ticket for tomorrow's job fair, although they'll never be in both lines at once. A ticket holds one place on one day.
+
+**Also considered:** Comparing every day both queues run (too strict, as above). Letting the queuer pick which day of a multi-day queue they're joining for (more honest for long queues, but a new step at Join; revisit with the backend).
+
+**Status:** Current. Built Sep 29. MODELS.md "Several tickets" updated to say so.
+
+---
+
+## The queuer's tickets live in the line
+
+**Decision:** Joining puts the ticket into the queue's real line (FakeData now, the server later), and the queuer's app keeps only ticket ids (`ActiveTicketStore`), asking the line where each one stands on every read. Everything the owner does reaches the queuer: Call next and No-show, Remove from line (with the reason in the message), closing the queue, and "I'm here" shows on the console as "Here · confirmed at 10:13 AM" (canvas 29). The ticket number is the queue's next number, not people waiting + 1.
+
+To make "I need more time" demonstrable, seeded open queues simulate one new arrival a minute (up to 20 per session), standing in for other people's phones.
+
+**Why:** Brent found that joining didn't add you to the line (the card said 42 waiting while you held #43), and move-back can't work without a real line to move in. It also matches how the server will work: one line, many screens reading it.
+
+**Also considered:** Keeping a local copy of the ticket and nudging it (what it did before). It can't show the owner's actions, and every new rule would need two copies kept in step.
+
+**Status:** Current. Built Sep 29. Replaces the "Replace ActiveTicketStore static field" item's first half: the store holds ids; fetching them by id is the Retrofit step.
+
+---
+
+## "Be there by" on a short wait
+
+**Decision:** "Be there by" is the estimated call time minus 10 minutes, or minus half the wait when the wait is under 20 minutes (`TicketRules.beThereInMinutes`). The ticket and the move-back sheet use the same rule.
+
+**Why:** With a flat 10 minutes, a 10-minute wait said "be there by now", and the move-back preview showed "8:47 AM → 8:47 AM", which read as a bug.
+
+**Status:** Current. Amends "Arrival info: directions, "Bring" and "Be there by"".
 
 ---
 

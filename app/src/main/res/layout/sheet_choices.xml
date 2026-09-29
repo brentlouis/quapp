@@ -1,0 +1,153 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- A sheet of choices, shared by the console's three sheets: Queue options (canvas 18),
+     Extend closing time (19) and Remove from line (57). ConsoleSheets fills the rows and hides
+     the parts a sheet doesn't use. -->
+<androidx.core.widget.NestedScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:paddingStart="@dimen/space_md"
+        android:paddingEnd="@dimen/space_md"
+        android:paddingBottom="@dimen/space_md">
+
+        <com.google.android.material.bottomsheet.BottomSheetDragHandleView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content" />
+
+        <TextView
+            android:id="@+id/choices_title"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:accessibilityHeading="true"
+            android:textAppearance="?attr/textAppearanceTitleLarge"
+            tools:text="Extend closing time" />
+
+        <TextView
+            android:id="@+id/choices_lead"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/space_xs"
+            android:layout_marginBottom="@dimen/space_sm"
+            android:textAppearance="?attr/textAppearanceBodyMedium"
+            android:textColor="?attr/colorOnSurfaceVariant"
+            tools:text="Free Medical Mission · today" />
+
+        <!-- Before → after, as two halves split by a rule (Extend only) -->
+        <LinearLayout
+            android:id="@+id/choices_numbers"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/space_ms"
+            android:layout_marginBottom="@dimen/space_sm"
+            android:background="@drawable/bg_rules_top_bottom"
+            android:orientation="horizontal"
+            android:visibility="gone">
+
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:orientation="vertical"
+                android:paddingTop="@dimen/space_ms"
+                android:paddingBottom="@dimen/space_ms">
+
+                <TextView
+                    android:id="@+id/choices_before_label"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:textAppearance="?attr/textAppearanceBodySmall"
+                    tools:text="Now closes" />
+
+                <TextView
+                    android:id="@+id/choices_before"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:textAppearance="?attr/textAppearanceStat"
+                    android:textColor="?attr/colorOnSurfaceVariant"
+                    tools:text="4 PM" />
+            </LinearLayout>
+
+            <View
+                android:layout_width="@dimen/hairline"
+                android:layout_height="match_parent"
+                android:background="?attr/colorOutlineVariant" />
+
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:orientation="vertical"
+                android:paddingStart="@dimen/space_md"
+                android:paddingTop="@dimen/space_ms"
+                android:paddingBottom="@dimen/space_ms">
+
+                <TextView
+                    android:id="@+id/choices_after_label"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:textAppearance="?attr/textAppearanceBodySmall"
+                    tools:text="Will close" />
+
+                <TextView
+                    android:id="@+id/choices_after"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:textAppearance="?attr/textAppearanceStat"
+                    tools:text="5 PM" />
+            </LinearLayout>
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/choices_rows"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:divider="@drawable/divider_line"
+            android:orientation="vertical"
+            android:showDividers="middle" />
+
+        <TextView
+            android:id="@+id/choices_note"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/space_ms"
+            android:drawablePadding="@dimen/space_sm"
+            android:textAppearance="?attr/textAppearanceBodySmall"
+            android:textColor="?attr/colorOnSurfaceVariant"
+            android:visibility="gone"
+            app:drawableStartCompat="@drawable/ic_bell_ring"
+            app:drawableTint="?attr/colorOnSurfaceVariant"
+            tools:text="New joins stay open until 5 PM. The 8 people waiting are notified of the new time." />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/choices_primary"
+            android:layout_width="match_parent"
+            android:layout_height="@dimen/button_height_lg"
+            android:layout_marginTop="@dimen/space_md"
+            android:visibility="gone"
+            tools:text="Extend to 5 PM" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/choices_danger"
+            style="@style/Widget.Quapp.Button.Danger"
+            android:layout_width="match_parent"
+            android:layout_height="@dimen/button_height_lg"
+            android:layout_marginTop="@dimen/space_md"
+            android:visibility="gone"
+            tools:text="Remove from line" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/choices_cancel"
+            style="@style/Widget.Quapp.Button.Text"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/space_xs"
+            android:text="@string/console_cancel"
+            android:visibility="gone" />
+    </LinearLayout>
+</androidx.core.widget.NestedScrollView>

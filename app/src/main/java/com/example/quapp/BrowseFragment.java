@@ -101,7 +101,7 @@ public class BrowseFragment extends Fragment implements QueueAdapter.OnQueueClic
         banner.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                startActivity(new Intent(requireContext(), ActiveTicketActivity.class));
+                openBannerTicket();
             }
         });
 
@@ -362,10 +362,23 @@ public class BrowseFragment extends Fragment implements QueueAdapter.OnQueueClic
         }
     }
 
-    /** In line: the spotlight banner. Otherwise: the shortest open wait in town. */
+    /** One ticket opens straight to it; with several, My tickets shows them all. */
+    private void openBannerTicket() {
+        List<Ticket> live = ActiveTicketStore.liveTickets();
+        if (live.size() == 1) {
+            startActivity(ActiveTicketActivity.intent(requireContext(), live.get(0).getId()));
+        } else if (!live.isEmpty()) {
+            startActivity(QueuerHomeActivity.intent(requireContext(), QueuerHomeActivity.TAB_TICKETS));
+        }
+    }
+
+    /**
+     * In line: the spotlight banner, for the ticket that matters most (being called, else the
+     * soonest). Otherwise: the shortest open wait in town.
+     */
     private void bindBannerOrHighlight(List<Queue> all, String town) {
-        Ticket ticket = ActiveTicketStore.getTicket();
-        if (ticket != null && ticket.isLive()) {
+        Ticket ticket = ActiveTicketStore.mostUrgent();
+        if (ticket != null) {
             banner.setVisibility(View.VISIBLE);
             highlight.setVisibility(View.GONE);
             boolean called = ticket.getStatus() == Ticket.Status.CALLED;
