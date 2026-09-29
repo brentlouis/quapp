@@ -311,6 +311,8 @@ backend/
 
 ## Phase 9: The learning model
 
+> **Deferred (Sep 29).** Waits use the rolling average from phase 6 for now; training on synthetic data takes more time than there is right now (DECISIONS.md "Wait-time estimation learns online"). The steps below stay as the plan for when it's picked up. Phases 10 and 11 don't depend on it.
+
 ### Step 9.1: Simulated days
 - `simulate.py` generates days of queue traffic:
   - arrivals through the day

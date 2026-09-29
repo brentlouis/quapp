@@ -244,6 +244,9 @@ Every error has the same JSON body, so the app can pick a message by `error` wit
 | 409 | `GRACE_OVER` | "I'm here" after the 3-minute grace window | |
 | 409 | `ALREADY_MOVED_BACK` | A second "I need more time" on one ticket | |
 | 409 | `LAST_IN_LINE` | "I need more time" with nobody behind to let ahead | |
+| 409 | `ALREADY_REPORTED` | A second report on one queue from the same person | |
+| 409 | `VERIFICATION_PENDING` | Asking to be verified while a request is already waiting | |
+| 409 | `ALREADY_VERIFIED` | Asking to be verified when you already are | |
 
 Later steps add their own codes here.
 
@@ -275,8 +278,9 @@ Auth is a bearer token from `/auth/login`. "Owner" means the queue's organizer.
 | POST | `/tickets/{id}/move-back?dry_run=` | holder | `{minutes_needed}` (5, 10, 15, 20, 30 or 45) → Ticket at its new place (once). Waiting or called: a called ticket hands the counter back and rejoins the line. `dry_run=true` returns the same Ticket without saving, for the sheet's preview |
 | GET | `/tickets/{id}` | holder | one of my tickets, with its position and wait now |
 | DELETE | `/tickets/{id}` | holder | leave the queue (waiting or called) → 204. The ticket is deleted: not a no-show, not in history (FakeData.leave) |
-| POST | `/me/verification` | user | VerificationRequest |
-| POST | `/queues/{id}/reports` | user | Report |
+| POST | `/me/verification` | user | `{organization_name, organization_type, position, office_phone}` → VerificationRequest (PENDING); the user's `verification_status` becomes PENDING. After REJECTED or REVOKED you may ask again |
+| GET | `/me/verification` | user | the latest VerificationRequest (Profile's pending card), or null |
+| POST | `/queues/{id}/reports` | user | `{reason, details}` → Report. Once per person per queue; the organizer never learns who |
 | GET/POST | `/admin/...` | admin | web page: verification requests, reports, suspend and revoke |
 
 ---

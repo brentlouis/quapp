@@ -13,8 +13,10 @@ from pydantic import BaseModel, ConfigDict, Field, PlainSerializer, field_valida
 from app.enums import (
     Category,
     EstimateSource,
+    OrganizationType,
     QueueStatus,
     RemovalReason,
+    ReportReason,
     TicketStatus,
     UserStatus,
     VerificationStatus,
@@ -323,6 +325,67 @@ class WalkInIn(BaseModel):
 
 class RemoveIn(BaseModel):
     reason: RemovalReason
+
+
+class VerificationIn(BaseModel):
+    """Get verified (canvas 50). The admin calls the office number, so it has to be one that
+    can be called: 7 to 11 digits, a landline or a mobile (Validation.isValidOfficePhone)."""
+
+    organization_name: str = Field(min_length=1, max_length=120)
+    organization_type: OrganizationType
+    position: str = Field(min_length=1, max_length=80)
+    office_phone: str = Field(min_length=1, max_length=30)
+
+    @field_validator("organization_name", "position")
+    @classmethod
+    def required_text(cls, value: str) -> str:
+        value = value.strip()
+        if not value:
+            raise ValueError("Fill this in.")
+        return value
+
+    @field_validator("office_phone")
+    @classmethod
+    def callable_number(cls, phone: str) -> str:
+        digits = re.sub(r"\D", "", phone)
+        if not 7 <= len(digits) <= 11:
+            raise ValueError("Enter the office's number, like (038) 411 2345.")
+        return phone.strip()
+
+
+class VerificationOut(Out):
+    """MODELS.md "VerificationRequest". The answers are null once the admin has decided."""
+
+    id: str
+    user_id: str
+    organization_name: str | None
+    organization_type: OrganizationType | None
+    position: str | None
+    office_phone: str | None
+    status: VerificationStatus
+    admin_note: str | None
+    created_at: Moment
+    decided_at: Moment | None
+
+
+class ReportIn(BaseModel):
+    reason: ReportReason
+    details: str | None = Field(default=None, max_length=500)
+
+    @field_validator("details")
+    @classmethod
+    def optional_text(cls, value: str | None) -> str | None:
+        return _stripped(value)
+
+
+class ReportOut(Out):
+    """MODELS.md "Report". Who reported isn't in it: reporter_id never leaves the server."""
+
+    id: str
+    queue_id: str
+    reason: ReportReason
+    details: str | None
+    created_at: Moment
 
 
 class TicketRemovalOut(Out):

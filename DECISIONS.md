@@ -1102,7 +1102,7 @@ A crema tear line runs above every bottom button bar and along the top of the bo
 - On-device TensorFlow Lite: not needed, Quapp is an online service.
 - A no-show prediction model: future work; it would double the ML and evaluation work.
 
-**Status:** Current (design). Built with the backend. Supersedes the forecasting half of "Cut the proposal down to a buildable subset".
+**Status:** Deferred (Sep 29). The backend ships with the rolling average only (BACKEND.md phase 6), since training on synthetic data takes more time than the rest of the backend needs. The estimator already reports `estimate_source` and `model_samples`, so adding the model later changes nothing the app sees. Supersedes the forecasting half of "Cut the proposal down to a buildable subset".
 
 ---
 
