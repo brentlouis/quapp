@@ -12,6 +12,7 @@
     android:layout_marginBottom="@dimen/space_md"
     android:background="@drawable/bg_index_card"
     android:clickable="true"
+    android:clipChildren="false"
     android:elevation="@dimen/card_elevation"
     android:focusable="true"
     android:foreground="?attr/selectableItemBackground"
@@ -22,9 +23,11 @@
     android:paddingBottom="@dimen/space_sm">
 
     <!-- 1. Category and number, the status stamped at the end -->
+    <!-- clipChildren off: the tilted stamp's corners reach past its own box -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:clipChildren="false"
         android:gravity="center_vertical"
         android:orientation="horizontal">
 
@@ -45,6 +48,8 @@
             style="@style/Widget.Quapp.Stamp.Small"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/space_xs"
+            android:layout_marginEnd="@dimen/space_xs"
             tools:text="Open"
             tools:textColor="@color/ok" />
     </LinearLayout>

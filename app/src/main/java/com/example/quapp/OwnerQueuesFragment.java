@@ -64,6 +64,7 @@ public class OwnerQueuesFragment extends Fragment implements QueueAdapter.OnQueu
             selectedStatus = Queue.Status.valueOf(savedInstanceState.getString(STATE_STATUS));
         }
 
+        Grain.groundBehind(view.findViewById(R.id.owner_app_bar));
         list = view.findViewById(R.id.owner_list);
         live = view.findViewById(R.id.owner_live);
         filters = view.findViewById(R.id.owner_filters);

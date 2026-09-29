@@ -8,7 +8,7 @@ The one visual reference for building Quapp's screens. It describes **what thing
 
 Content, flows, states and copy on the canvas are final. Where this file and the canvas disagree, the canvas wins; fix this file.
 
-Last updated: 2026-09-29 (catalogue cards, vintage ground).
+Last updated: 2026-09-29 (catalogue cards, aged ground, notched nav).
 
 ---
 
@@ -172,7 +172,7 @@ These details are what make Civic Paper read as a ticket. Each has one job. Apar
 |---|---|---|
 | **Spotlight** | Espresso card with half-circle **punches** (9dp radius) cut into its sides. The punches are real holes, so the paper and grain show through. | One per screen (section 6) |
 | **Tear line** | 1.5dp dashed `crema` line, 4dp on, 4dp off | Down the ticket stub; across the top of the bottom nav; above **every** bottom button bar (dock) |
-| **Tear-off stub** | Dock on `paper_raised` with a tear line and notched top corners | Where you're handed a number: the "You'll be #43" join bar (06, 38, 44, 52, 53), Confirm and join (07, 43) |
+| **Tear-off stub** | Dock on `paper_raised` with a tear line and notched top corners | Where you're handed a number: the "You'll be #43" join bar (06, 38, 44, 52, 53), Confirm and join (07, 43). Also the bottom nav, so the app's frame reads as one stub. |
 | **Kept ticket** | Small paper ticket, perforated down the middle with holes top and bottom | Outcomes: Served, Slot released, Queue closed (22, 23, 24) |
 | **Rubber stamp** | Tilted (−6°), double-ruled outline, mono caps | One headline status on an outcome only: SERVED (ok), SLOT RELEASED (err), QUEUE CLOSED (ink_muted) |
 | **Receipt slip** | `LABEL ······ value` rows with dotted leaders | Stats on queue detail screens, Insights (16), Queue history (11) |
@@ -205,17 +205,19 @@ At most one per screen:
 
 ## 7. Texture
 
-**Everything is paper, so everything has texture.** The ground is soft vintage paper, and each component with a fill has the texture of what it's made of.
+**Everything is paper, so everything has texture.** The ground is aged paper, and each component with a fill has the texture of what it's made of.
 
 | Tile (`res/drawable-nodpi/`) | Looks like | On |
 |---|---|---|
-| `paper_vintage.png` | Large soft warm blotches, fibres, small age spots and a few faint stains, `#744F2D`, about 5% | The screen ground (`bg_paper`, the window background, and the pinned headers) |
+| `paper_aged.png` | Soft uneven warm blotches, fibres and a few tiny age spots, `#6B4A2F`, about 4% | The screen ground (`bg_paper`, the window background, and the pinned headers) |
 | `grain_stock.png` | Short dark fibres and fine tooth, about 3.5% | Light fills: queue cards, other cards, the receipt slip, fields, notes, chips, tonal buttons, tiles, the nav bar, sheets, the stub dock |
 | `grain_ink.png` | Pale specks and an uneven lay-down, about 5.5% | Dark fills: filled buttons, the selected chip, the FAB, Danger |
 | `grain_ticket.png` | Pale fibres, soft mottle, a few specks, about 6% | The espresso spotlight, and the Called screen's ground (`bg_spotlight`) |
 
 - All four are seamless PNGs, mostly transparent, drawn at one texture pixel per screen pixel: 512×512 for the ground (so its blotches don't visibly repeat), 256×256 for the rest. `tools/make_grain.py` draws them; its `STRENGTH` (2.4) sets how loud the component tiles are.
 - No darkened edges on the ground: the pinned headers on Browse and Your queues draw the same ground, and a vignette would show as bands where they meet.
+- Those headers are opaque (cards scroll under them), so they draw the ground themselves with `Grain.groundBehind`, the tile lined up with the window's: no seam at the status bar.
+- The system bars are transparent and the nav bar has no contrast veil (`enforceNavigationBarContrast` off), so the texture runs under the status bar and the gesture/button bar on every Android version.
 - The tile follows the fill (`Grain.tileFor`): no fill gets none (the ground shows through text and outlined buttons), `spotlight` gets ticket, a dark fill gets ink, and a light fill gets stock. It's read every frame, so a chip that becomes selected changes texture by itself.
 - The texture is painted inside the component's own shape, so rounded corners, pills and punches stay clean.
 - `QuappViewInflater` (the theme's `viewInflaterClass`) attaches it as layouts inflate: to buttons, cards, chips, fields, the FAB and the nav bar, and to any layout, TextView or ImageView whose background is a paper shape (`bg_card`, `bg_note`, `bg_tile` and the rest listed there). Backgrounds built in code go through `TicketShapes.background`, which adds it. Bottom sheets call `Grain.attach(sheet)`.
@@ -265,7 +267,7 @@ Never in marigold or teal, never outlined, no shadow, no bold Q.
 - **Town dropdown:** stays a `paper_sunk` pill and is sticky.
 
 **Queue card (v6): a catalogue card.** Like an old library catalogue card, laid on the table by hand. Same card on Browse and on the organizer's Queues tab.
-- **Card:** `index_card` (whiter than `paper_raised`, so it lifts off the vintage ground), a 1dp `index_card_edge`, `radius_index_card` (3dp), 2dp elevation, 16dp between cards. The card stock texture on top. Each card is turned a fraction of a degree (−0.5°, 0.4°, −0.3°, 0.5° in turn; `QueueAdapter`).
+- **Card:** `index_card` (whiter than `paper_raised`, so it lifts off the aged ground), a 1dp `index_card_edge`, `radius_index_card` (3dp), 2dp elevation, 16dp between cards. The card stock texture on top. Each card is turned a fraction of a degree (−0.5°, 0.4°, −0.3°, 0.5° in turn; `QueueAdapter`).
 - **Top line:** the category and the queue's number in `Label`, `ink_faint` ("RELIEF · NO. 001"). At the end, the status as a small rubber stamp (`Widget.Quapp.Stamp.Small`, tilted −5°, double-ruled outline): OPEN `ok`, PAUSED `warn` (with the time, for organizers), UPCOMING and CLOSED `ink_muted`.
 - **Name:** `Title` (DM Serif 22), `ink_muted` when paused or closed, with the verified badge after it. Under it a thin double `crema` rule (`bg_double_rule`).
 - **Details, one per ruled line** (`view_card_row`: the label in `ink_muted` on the left, the value on the right, a faint roast hairline under it):
@@ -286,7 +288,7 @@ Never in marigold or teal, never outlined, no shadow, no bold Q.
 
 **Search.** 48dp pill, `paper_raised`, 1dp `line`.
 
-**Bottom nav.** 80dp, `paper_raised`, a tear line along the top.
+**Bottom nav.** 80dp, a tear-off stub: `paper_raised` with its top corners notched (`TicketShapes.stubDockBackground`, set in the home Activities) and the tear line along the top, inset 16dp like the join dock's. It runs down under the system nav bar.
 - **Active tab:** a 64×32 `paper_sunk` punched ticket, with the label in `ink` 700.
 - **Inactive tabs:** labels in `ink_muted` 12.5.
 - **Badge:** an `ink` stub with mono `paper_raised` text. When a ticket is being called, it becomes a `spotlight` stub with `signal` text.

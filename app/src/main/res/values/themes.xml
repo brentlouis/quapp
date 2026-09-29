@@ -84,10 +84,13 @@
         <!-- Paper with its printed grain, behind every screen -->
         <item name="android:windowBackground">@drawable/bg_paper</item>
 
-        <!-- Dark status and nav bar icons on paper. statusBarColor only matters below Android 15. -->
-        <item name="android:statusBarColor">@color/paper</item>
+        <!-- Clear bars, so the textured window background shows under them on every Android version
+             (15 and up ignore the colours anyway), with dark icons on the paper. No grey veil over
+             the nav bar either. -->
+        <item name="android:statusBarColor">@android:color/transparent</item>
         <item name="android:windowLightStatusBar">true</item>
-        <item name="android:navigationBarColor">@color/paper</item>
+        <item name="android:navigationBarColor">@android:color/transparent</item>
+        <item name="android:enforceNavigationBarContrast" tools:targetApi="29">false</item>
         <item name="android:windowLightNavigationBar" tools:targetApi="27">true</item>
     </style>
 
@@ -139,9 +142,9 @@
         <item name="colorOutline">@color/on_spotlight_muted</item>
         <item name="colorOutlineVariant">@color/spotlight_line</item>
         <item name="colorError">@color/err_on_spotlight</item>
-        <item name="android:statusBarColor">@color/spotlight</item>
+        <item name="android:statusBarColor">@android:color/transparent</item>
         <item name="android:windowLightStatusBar">false</item>
-        <item name="android:navigationBarColor">@color/spotlight</item>
+        <item name="android:navigationBarColor">@android:color/transparent</item>
         <item name="android:windowLightNavigationBar" tools:targetApi="27">false</item>
     </style>
 </resources>

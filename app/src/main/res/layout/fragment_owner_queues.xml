@@ -12,12 +12,13 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
-    <!-- Paper with grain, flat: the pinned chips cover the cards scrolling under them -->
+    <!-- Opaque paper: the pinned chips cover the cards scrolling under them. The textured ground,
+         lined up with the window's, is set in code (Grain.groundBehind) -->
     <com.google.android.material.appbar.AppBarLayout
         android:id="@+id/owner_app_bar"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:background="@drawable/bg_paper"
+        android:background="?android:attr/colorBackground"
         app:elevation="0dp"
         app:liftOnScroll="false">
 

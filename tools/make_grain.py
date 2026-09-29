@@ -4,8 +4,8 @@
 
 The screen ground, tiled by bg_paper.xml as the window background:
 
-  paper_vintage.png soft vintage paper: large warm blotches, fibres, small age spots and a few
-                    faint stains (512 x 512, so the blotches don't visibly repeat)
+  paper_aged.png    aged paper: soft uneven warm blotches, fibres and a few tiny age spots
+                    (512 x 512, so the blotches don't visibly repeat)
 
 The component tiles, 256 x 256, tiled by Grain.java over a component's fill:
 
@@ -28,7 +28,7 @@ SIZE = 256
 STRENGTH = 2.4
 OUT = os.path.join(os.path.dirname(__file__), '..', 'app', 'src', 'main', 'res', 'drawable-nodpi')
 INK_MUTED = (0x4F, 0x4A, 0x40)
-AGED_BROWN = (0x74, 0x4F, 0x2D)
+AGED_BROWN = (0x6B, 0x4A, 0x2F)
 ON_SPOTLIGHT = (0xF6, 0xEF, 0xE6)
 
 
@@ -91,16 +91,15 @@ def save(name, rgb, alpha):
 def main():
     rng = np.random.default_rng(7)
 
-    # The ground: soft vintage paper
+    # The ground: aged paper (Brent picked it over vintage, which had stains and was too much)
     big = 512
-    rng_ground = np.random.default_rng(23)
+    rng_ground = np.random.default_rng(11)
     tooth = np.clip(blurred_noise(rng_ground, 0.7, big) - 0.45, 0, None) * 24
-    blotches = blurred_noise(rng_ground, 32, big) ** 1.8 * 26
-    mottle = blurred_noise(rng_ground, 10, big) * 7
-    save('paper_vintage.png', AGED_BROWN,
-         blotches + mottle + tooth + fibres(rng_ground, 420, (10, 24), (10, 24), big)
-         + spots(rng_ground, 28, (1, 3), (22, 45), 1.2, big)
-         + spots(rng_ground, 3, (10, 18), (6, 11), 3, big))
+    blotches = blurred_noise(rng_ground, 28, big) ** 2 * 20
+    mottle = blurred_noise(rng_ground, 9, big) * 6
+    save('paper_aged.png', AGED_BROWN,
+         blotches + mottle + tooth + fibres(rng_ground, 380, (10, 24), (10, 24), big)
+         + spots(rng_ground, 18, (1, 2.5), (25, 45), 1.2, big))
 
     # Card stock: fine tooth everywhere, then fibres on top
     tooth = np.clip(blurred_noise(rng, 0.8) - 0.45, 0, None) * 30

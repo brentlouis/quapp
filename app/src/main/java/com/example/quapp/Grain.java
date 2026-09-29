@@ -7,6 +7,7 @@ import android.graphics.BitmapFactory;
 import android.graphics.BitmapShader;
 import android.graphics.Canvas;
 import android.graphics.Color;
+import android.graphics.Matrix;
 import android.graphics.ColorFilter;
 import android.graphics.Paint;
 import android.graphics.Path;
@@ -24,6 +25,7 @@ import androidx.annotation.Nullable;
 import androidx.core.content.ContextCompat;
 import androidx.core.graphics.ColorUtils;
 
+import com.google.android.material.appbar.AppBarLayout;
 import com.google.android.material.bottomsheet.BottomSheetDialog;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.card.MaterialCardView;
@@ -98,6 +100,16 @@ public final class Grain {
         return new LayerDrawable(new Drawable[]{shape, new Background(context, shape)});
     }
 
+    /**
+     * An opaque header over a scrolling list (Browse, Your queues) with the same ground as the
+     * window, its texture lined up with the window's so there's no seam where the header starts.
+     * It follows the header as it collapses, since the header moves without redrawing.
+     */
+    public static void groundBehind(@NonNull AppBarLayout bar) {
+        bar.setBackground(new Ground(bar));
+        bar.addOnOffsetChangedListener((appBar, offset) -> appBar.invalidate());
+    }
+
     /** The tile for a fill colour, or null when the fill is (nearly) see-through. */
     @Nullable
     static Bitmap tileFor(@NonNull Context context, int fill) {
@@ -125,6 +137,17 @@ public final class Grain {
 
     private static int colorFor(@Nullable ColorStateList list, int[] state) {
         return list == null ? Color.TRANSPARENT : list.getColorForState(state, list.getDefaultColor());
+    }
+
+    /** True when a background was built by {@link #over} and so already carries a texture. */
+    private static boolean hasTexture(@Nullable Drawable drawable) {
+        if (drawable instanceof LayerDrawable) {
+            LayerDrawable layers = (LayerDrawable) drawable;
+            for (int i = 0; i < layers.getNumberOfLayers(); i++) {
+                if (layers.getDrawable(i) instanceof Background) return true;
+            }
+        }
+        return false;
     }
 
     /** The XML {@code <shape>} in a background, looking inside a {@code <selector>}. */
@@ -209,6 +232,9 @@ public final class Grain {
 
         @Override
         public void draw(@NonNull Canvas canvas) {
+            if (hasTexture(view.getBackground())) {
+                return;
+            }
             int[] state = view.getDrawableState();
             RectF area = area();
             area.set(0, 0, view.getWidth(), view.getHeight());
@@ -250,6 +276,50 @@ public final class Grain {
                 paint(canvas, view.getContext(), colorFor(shape.getFillColor(), state),
                         shape.getShapeAppearanceModel());
             }
+        }
+    }
+
+    /** The window's ground (paper plus the aged tile), positioned as if drawn from the window's corner. */
+    private static final class Ground extends Drawable {
+        private final View view;
+        private final Paint paint = new Paint();
+        private final Matrix shift = new Matrix();
+        private final int[] where = new int[2];
+        private final int paper;
+        private final BitmapShader shader;
+
+        Ground(View view) {
+            this.view = view;
+            Context context = view.getContext();
+            paper = ContextCompat.getColor(context, R.color.paper);
+            shader = new BitmapShader(load(context, R.drawable.paper_aged),
+                    Shader.TileMode.REPEAT, Shader.TileMode.REPEAT);
+            paint.setShader(shader);
+        }
+
+        @Override
+        public void draw(@NonNull Canvas canvas) {
+            canvas.drawColor(paper);
+            // The window tiles its background from its top-left corner; start the tile there too
+            view.getLocationInWindow(where);
+            shift.setTranslate(-where[0], -where[1]);
+            shader.setLocalMatrix(shift);
+            canvas.drawRect(getBounds(), paint);
+        }
+
+        @Override
+        public void setAlpha(int alpha) {
+            paint.setAlpha(alpha);
+        }
+
+        @Override
+        public void setColorFilter(@Nullable ColorFilter colorFilter) {
+            paint.setColorFilter(colorFilter);
+        }
+
+        @Override
+        public int getOpacity() {
+            return PixelFormat.OPAQUE;
         }
     }
 

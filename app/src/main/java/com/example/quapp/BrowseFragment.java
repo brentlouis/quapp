@@ -78,6 +78,7 @@ public class BrowseFragment extends Fragment implements QueueAdapter.OnQueueClic
             selectedCategory = saved == null ? null : Category.valueOf(saved);
         }
 
+        Grain.groundBehind(view.findViewById(R.id.browse_app_bar));
         list = view.findViewById(R.id.browse_list);
         emptyState = view.findViewById(R.id.browse_empty);
         banner = view.findViewById(R.id.browse_banner);

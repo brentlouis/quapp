@@ -11,20 +11,10 @@
         android:id="@+id/queuer_home_container"
         android:layout_width="0dp"
         android:layout_height="0dp"
-        app:layout_constraintBottom_toTopOf="@id/queuer_home_tear"
+        app:layout_constraintBottom_toTopOf="@id/queuer_home_nav"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
-
-    <!-- The crema tear line along the top of the nav -->
-    <com.example.quapp.TearLineView
-        android:id="@+id/queuer_home_tear"
-        android:layout_width="0dp"
-        android:layout_height="2dp"
-        android:background="?attr/colorSurfaceContainer"
-        app:layout_constraintBottom_toTopOf="@id/queuer_home_nav"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent" />
 
     <com.google.android.material.bottomnavigation.BottomNavigationView
         android:id="@+id/queuer_home_nav"
@@ -35,5 +25,17 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:menu="@menu/menu_queuer_home" />
+
+    <!-- The crema tear line along the top of the nav, inset like the stub dock's, between the
+         nav's notched corners (the nav's background is set in code: TicketShapes.stubDockBackground) -->
+    <com.example.quapp.TearLineView
+        android:id="@+id/queuer_home_tear"
+        android:layout_width="0dp"
+        android:layout_height="@dimen/tear_line_width"
+        android:layout_marginStart="@dimen/space_md"
+        android:layout_marginEnd="@dimen/space_md"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="@id/queuer_home_nav" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

@@ -37,6 +37,8 @@ public class OwnerHomeActivity extends AppCompatActivity {
         nav = findViewById(R.id.owner_home_nav);
         nav.setItemActiveIndicatorShapeAppearance(
                 TicketShapes.selection(this, R.dimen.radius_selection));
+        // The nav is a tear-off stub like the join dock: raised paper, top corners bitten out
+        nav.setBackground(TicketShapes.stubDockBackground(this));
 
         nav.setOnItemSelectedListener(new NavigationBarView.OnItemSelectedListener() {
             @Override
