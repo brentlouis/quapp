@@ -19,6 +19,7 @@ from app.enums import (
     VerificationStatus,
 )
 from app.security import MAX_PASSWORD_BYTES
+from app.services.tickets import MORE_TIME_CHOICES
 from app.timeutil import MANILA
 
 # A moment in time, sent in Manila time: "2026-09-27T10:05:00+08:00" (MODELS.md conventions).
@@ -268,3 +269,54 @@ class TicketOut(BaseModel):
     moved_back: bool
     moved_back_at: Moment | None
     removal_reason: RemovalReason | None
+
+
+class MoveBackIn(BaseModel):
+    """"I need more time": how many minutes, from the sheet's choices."""
+
+    minutes_needed: int
+
+    @field_validator("minutes_needed")
+    @classmethod
+    def one_of_the_choices(cls, minutes: int) -> int:
+        if minutes not in MORE_TIME_CHOICES:
+            raise ValueError("Pick 5, 10, 15, 20, 30 or 45 minutes.")
+        return minutes
+
+
+# ---- The console --------------------------------------------------------------
+
+class LineOut(BaseModel):
+    """MODELS.md "Line": what the Live console shows."""
+
+    now_serving: TicketOut | None
+    now_serving_here_at: Moment | None
+    now_serving_timed_out: bool
+    waiting: list[TicketOut]
+
+
+class WalkInIn(BaseModel):
+    name: str = Field(min_length=1, max_length=80)
+
+    @field_validator("name")
+    @classmethod
+    def not_blank(cls, name: str) -> str:
+        name = name.strip()
+        if not name:
+            raise ValueError("Enter their name.")
+        return name
+
+
+class RemoveIn(BaseModel):
+    reason: RemovalReason
+
+
+class TicketRemovalOut(Out):
+    """MODELS.md "TicketRemoval"."""
+
+    id: str
+    ticket_id: str
+    queue_id: str
+    reason: RemovalReason
+    removed_by: str
+    created_at: Moment

@@ -183,6 +183,17 @@ Anyone reporting a queue. The organizer never sees who reported.
 
 Server only: `reporter_id` (to stop one person flooding reports).
 
+## Line
+
+What the Live console shows: `GET /queues/{id}/line` and the calling endpoints return it. Holder phones are masked (`0917 ••• 0002`).
+
+| Field | JSON | Type | Notes |
+|---|---|---|---|
+| nowServing | `now_serving` | Ticket? | The CALLED ticket; null when nobody is at the counter |
+| nowServingHereAt | `now_serving_here_at` | Instant? | When they tapped "I'm here" (the console's confirmed state) |
+| nowServingTimedOut | `now_serving_timed_out` | boolean | Grace period on, 3 minutes since the call, no "I'm here". The organizer decides: no-show, or serve anyway. The server never marks it by itself |
+| waiting | `waiting` | Ticket[] | Today's WAITING tickets in call order |
+
 ## TicketRemoval
 
 An organizer taking someone out of the line, with a reason.
@@ -228,8 +239,13 @@ Every error has the same JSON body, so the app can pick a message by `error` wit
 | 422 | `LOCATION_NEEDED` | Joining a queue with the proximity check without `latitude`/`longitude` | |
 | 409 | `TOO_FAR` | Joining from farther than the queue's radius | `distance_meters`, `join_radius_meters` |
 | 404 | `TICKET_NOT_FOUND` | No such ticket, or not yours | |
+| 409 | `NOBODY_CALLED` | No-show with nobody at the counter | |
+| 409 | `NOT_CALLED` | "I'm here" on a ticket that isn't being called | |
+| 409 | `GRACE_OVER` | "I'm here" after the 3-minute grace window | |
+| 409 | `ALREADY_MOVED_BACK` | A second "I need more time" on one ticket | |
+| 409 | `LAST_IN_LINE` | "I need more time" with nobody behind to let ahead | |
 
-Later steps add their own codes here (join rules, the one-live-queue limit, …).
+Later steps add their own codes here.
 
 ## Endpoints
 
@@ -248,15 +264,15 @@ Auth is a bearer token from `/auth/login`. "Owner" means the queue's organizer.
 | PATCH | `/queues/{id}` | owner | edit details, schedule, checks |
 | POST | `/queues/{id}/pause` · `/resume` · `/close` · `/extend` | owner | status changes, each returning the Queue; extend takes a later `closes_at` |
 | GET | `/queues/{id}/stats` | owner | QueueStats |
-| GET | `/queues/{id}/line` | owner | now serving + waiting Tickets (phones masked) |
-| POST | `/queues/{id}/call-next` | owner | marks the current one served, calls the next |
-| POST | `/queues/{id}/no-show` | owner | marks the current one no-show, calls the next |
-| POST | `/queues/{id}/walk-ins` | owner | name → Ticket |
-| POST | `/tickets/{id}/remove` | owner | reason → TicketRemoval |
+| GET | `/queues/{id}/line` | owner | Line (below): who's at the counter and who's waiting, phones masked |
+| POST | `/queues/{id}/call-next` | owner | marks the one at the counter SERVED (if any), calls the first waiting for today → Line. Open or paused queues only (a paused queue still serves its line) |
+| POST | `/queues/{id}/no-show` | owner | marks the one at the counter NO_SHOW, calls the next → Line. 409 `NOBODY_CALLED` if nobody is at the counter |
+| POST | `/queues/{id}/walk-ins` | owner | `{name}` → Ticket: numbered like a join, no account, no phone, at the back of today's line |
+| POST | `/tickets/{id}/remove` | owner | `{reason}` → TicketRemoval; the ticket becomes REMOVED. Waiting or called tickets only |
 | POST | `/queues/{id}/tickets` | user | join; body `{latitude, longitude}` (needed only when the queue checks proximity) → Ticket. Checks, in order: the queue takes joins now, not already in it, cooldown, overlap, radius |
 | GET | `/me/tickets?live=true` | user | My tickets; `live=false` for History |
-| POST | `/tickets/{id}/here` | holder | "I'm here" within the grace window |
-| POST | `/tickets/{id}/move-back` | holder | minutes_needed → Ticket (once) |
+| POST | `/tickets/{id}/here` | holder | "I'm here" while CALLED, within 3 minutes of `called_at` when the queue has the grace period → Ticket |
+| POST | `/tickets/{id}/move-back?dry_run=` | holder | `{minutes_needed}` (5, 10, 15, 20, 30 or 45) → Ticket at its new place (once). Waiting or called: a called ticket hands the counter back and rejoins the line. `dry_run=true` returns the same Ticket without saving, for the sheet's preview |
 | GET | `/tickets/{id}` | holder | one of my tickets, with its position and wait now |
 | DELETE | `/tickets/{id}` | holder | leave the queue (waiting or called) → 204. The ticket is deleted: not a no-show, not in history (FakeData.leave) |
 | POST | `/me/verification` | user | VerificationRequest |

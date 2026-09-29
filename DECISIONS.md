@@ -1280,6 +1280,20 @@ The organizer line on Queue detail opens the badge sheet (52) for both verified 
 
 ---
 
+## "You've been called" reaches the phone by polling
+
+**Decision:** The app asks the server again every few seconds while a screen that can change is open: Active ticket and My tickets every 10 seconds (`GET /tickets/{id}`, `GET /me/tickets`), the Live console every 5 (`GET /queues/{id}/line`). The called notification fires when a poll sees the ticket turn CALLED. Nothing new on the server: those endpoints already exist.
+
+**Why:** It's the simplest thing that works for a demo with two phones, and there's nothing new to explain at the defense: a timer and a request. The 3-minute grace window is long compared with a 10-second poll, so nobody loses their slot to the delay.
+
+**Also considered:** FCM push, which reaches a phone even when the app is closed. It needs a Firebase project, `google-services.json` and a server key, and it's worth adding if time allows. A WebSocket or server-sent events: instant, but more moving parts on both ends than polling, for no gain a demo would show.
+
+**Known limit:** With the app closed, nothing polls, so the call only shows when the app is opened again. Say so in the demo, or add FCM.
+
+**Status:** Current (BACKEND.md step 5.4).
+
+---
+
 ## Known compromises
 
 Deliberate shortcuts, not oversights. Each has a planned fix.

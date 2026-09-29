@@ -1,4 +1,5 @@
-"""The queuer's side: joining, my tickets, one ticket, leaving (BACKEND.md phase 4).
+"""The queuer's side: joining, my tickets, one ticket, leaving, "I'm here" and "I need more
+time" (BACKEND.md phases 4 and 5).
 
 The rules are in services/tickets.py; this file turns requests into calls to it, and tickets
 into JSON.
@@ -14,19 +15,32 @@ from app.deps import current_user
 from app.enums import TicketStatus
 from app.errors import ApiError, documented
 from app.models import Ticket, User
-from app.schemas import JoinIn, TicketOut
+from app.schemas import JoinIn, MoveBackIn, TicketOut
 from app.services import schedule
 from app.services import tickets as rules
 
 router = APIRouter()
 
 
-def to_out(db: Session, tickets: list[Ticket]) -> list[TicketOut]:
-    places = rules.positions(db, tickets)
+def mask_phone(phone: str | None) -> str | None:
+    """"09171234567" → "0917 ••• 4567": enough for an organizer to tell two Marias apart,
+    not enough to call them (MODELS.md "Ticket", holder_phone)."""
+    if not phone:
+        return phone
+    return f"{phone[:4]} ••• {phone[-4:]}"
+
+
+def tickets_out(db: Session, tickets: list[Ticket], positions: dict[str, int] | None = None,
+                masked: bool = False) -> list[TicketOut]:
+    """Ticket rows → TicketOut. Positions are counted unless the caller already knows them
+    (the console's line is in order already). `masked` hides phones, for organizers."""
+    places = positions if positions is not None else rules.positions(db, tickets)
     out = []
     for ticket in tickets:
         position = places[ticket.id]
         columns = {column.key: getattr(ticket, column.key) for column in Ticket.__table__.columns}
+        if masked:
+            columns["holder_phone"] = mask_phone(ticket.holder_phone)
         out.append(TicketOut(
             **columns,
             # Copied from the queue, so lists don't need the queue (MODELS.md)
@@ -36,6 +50,10 @@ def to_out(db: Session, tickets: list[Ticket]) -> list[TicketOut]:
             estimated_wait_minutes=rules.wait_for(ticket, position),
         ))
     return out
+
+
+def one_out(db: Session, ticket: Ticket) -> TicketOut:
+    return tickets_out(db, [ticket])[0]
 
 
 def my_ticket(db: Session, ticket_id: str, user: User) -> Ticket:
@@ -53,7 +71,7 @@ def join(queue_id: str, body: JoinIn | None = None, user: User = Depends(current
          db: Session = Depends(get_db)) -> TicketOut:
     body = body or JoinIn()
     ticket = rules.join(db, queue_id, user, body.latitude, body.longitude, timeutil.now())
-    return to_out(db, [ticket])[0]
+    return one_out(db, ticket)
 
 
 @router.get("/me/tickets", response_model=list[TicketOut], responses=documented(401, 403))
@@ -75,7 +93,7 @@ def my_tickets(live: bool = True, user: User = Depends(current_user),
     else:
         query = mine.where(Ticket.status.not_in(rules.LIVE)).order_by(
             Ticket.finished_at.desc().nulls_last(), Ticket.joined_at.desc())
-    return to_out(db, list(db.scalars(query)))
+    return tickets_out(db, list(db.scalars(query)))
 
 
 @router.get("/tickets/{ticket_id}", response_model=TicketOut, responses=documented(401, 403, 404))
@@ -85,7 +103,7 @@ def one_ticket(ticket_id: str, user: User = Depends(current_user),
     ticket = my_ticket(db, ticket_id, user)
     schedule.refresh(db, ticket.queue, timeutil.now())
     db.commit()
-    return to_out(db, [ticket])[0]
+    return one_out(db, ticket)
 
 
 @router.delete("/tickets/{ticket_id}", status_code=204,
@@ -100,3 +118,31 @@ def leave(ticket_id: str, user: User = Depends(current_user),
     db.delete(ticket)
     db.commit()
     return Response(status_code=204)
+
+
+@router.post("/tickets/{ticket_id}/here", response_model=TicketOut,
+             responses=documented(401, 403, 404, 409))
+def im_here(ticket_id: str, user: User = Depends(current_user),
+            db: Session = Depends(get_db)) -> TicketOut:
+    ticket = rules.here(db, my_ticket(db, ticket_id, user), timeutil.now())
+    return one_out(db, ticket)
+
+
+@router.post("/tickets/{ticket_id}/move-back", response_model=TicketOut,
+             responses=documented(401, 403, 404, 409, 422))
+def move_back(ticket_id: str, body: MoveBackIn, dry_run: bool = False,
+              user: User = Depends(current_user), db: Session = Depends(get_db)) -> TicketOut:
+    """"I need more time". dry_run=true answers with where the ticket would land, without
+    saving: the sheet's preview before the queuer confirms."""
+    ticket = my_ticket(db, ticket_id, user)
+    if dry_run:
+        # A savepoint: make the move, read the result, undo it. The queue's lock goes when
+        # the request's session closes (database.get_db).
+        savepoint = db.begin_nested()
+        rules.move_back(db, ticket, body.minutes_needed, timeutil.now())
+        preview = one_out(db, ticket)
+        savepoint.rollback()
+        return preview
+    rules.move_back(db, ticket, body.minutes_needed, timeutil.now())
+    db.commit()
+    return one_out(db, ticket)
