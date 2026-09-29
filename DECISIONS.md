@@ -1210,6 +1210,18 @@ The organizer line on Queue detail opens the badge sheet (52) for both verified 
 
 ---
 
+## Browse: the header scrolls away, search and chips stay
+
+**Decision:** Browse is a `CoordinatorLayout` with an `AppBarLayout`. The title, greeting and the state card (shortest wait, in-line banner or town question) scroll away with the list and come back at its top; search, the town and category chips and the count stay pinned on paper. The list and the empty state use `appbar_scrolling_view_behavior`.
+
+**Why:** Brent (Sep 29): only one and a half queue cards were visible. The fixed header took about 45% of a Pixel 8 screen for good, and more on the Xiaomi. Now a small scroll shows about three cards, and filtering is still one tap away. The cards keep their stat footer, which is the reason to look at Browse.
+
+**Also considered:** Smaller cards (loses the wait / in line / now serving numbers); the whole header scrolling away (then changing the filter means scrolling back up); `enterAlways` so the header returns on any upward scroll (a tall block jumping back in steals the space again).
+
+**Status:** Current. Sep 29.
+
+---
+
 ## Suspension and the device limit, locally
 
 **Decision:** Login checks `FakeData.suspendedAccount(phone)` and shows Account suspended (55) instead of logging in; 0918 000 0000 is the seeded suspended account. Create account counts the phones registered on this install in a separate SharedPreferences file that logging out doesn't clear; at 2 it shows the device limit (56) and its one button goes back to Log in.
