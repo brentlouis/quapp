@@ -1196,7 +1196,7 @@ The organizer line on Queue detail opens the badge sheet (52) for both verified 
 
 **Why:** It follows "Unverified organizers can post, with limits" without building the admin page first. Starting verified keeps the seeded queues looking like the canvas.
 
-**Status:** Current. Built Sep 29. Demo hooks are listed under Known compromises.
+**Status:** Superseded Sep 30 by the server: the status lives on the account (`GET /me`), the admin decides on the admin page, and the long-press demo hook is gone. The one-live-queue rule is the server's (`ONE_LIVE_QUEUE`); reopening a closed queue no longer exists (see "A closed queue stays closed").
 
 ---
 
@@ -1318,11 +1318,47 @@ The organizer line on Queue detail opens the badge sheet (52) for both verified 
 
 ---
 
+## A new queue's pin is its town's centre
+
+**Decision:** Create Queue has no map, so a new queue's latitude and longitude are its town's centre (`Towns.java`, the ten towns on the Bohol list). Editing keeps the pin unless the town changes. The server needs a pin for Directions and the proximity check.
+
+**Why:** A map picker is a screen of its own (Maps SDK, an API key, a draggable pin), and the demo's queues are in towns people know. A 500 m to 5 km radius around the town hall is close enough for the proximity check to show what it does.
+
+**Also considered:** The organizer's current location when they create the queue (they're often not at the venue yet, and it needs the location permission on the organizer's side too). A pin picker with the Maps SDK (the proper fix, later).
+
+**Status:** Current. Known compromise 9.
+
+---
+
+## A closed queue stays closed
+
+**Decision:** Closing a queue is for good: the options sheet has no Reopen any more, and a closed queue's next run is a new queue. Serving and no-shows happen only on the Now Serving card; a waiting row's menu has only Remove. After a time-out, Call next records the one at the counter as a no-show (`POST /no-show`), since "Call next" alone would mark them served.
+
+**Why:** The server's `/close` releases everyone still waiting as QUEUE_CLOSED, which can't be undone, so reopening would bring back an empty queue with the same name, more confusing than a new one. The server has no endpoint for serving someone who wasn't called, and the console card is where the grace period shows (DECISIONS.md, Live console).
+
+**Also considered:** A `/reopen` endpoint (more states to explain for little use); keeping Serve and No-show on the rows (they'd skip the grace period entirely).
+
+**Status:** Current.
+
+---
+
+## The organizer side on the server
+
+**Decision:** Your queues and Today load `GET /me/queues`, then each queue's `GET /queues/{id}/stats`, through `MyQueues`, which keeps the last copy for both tabs. The Live console asks for its line every 5 seconds while open (and the counter display does too). The verification status and organization name live in `Session`, refreshed from `GET /me` each time Profile shows. `ONE_LIVE_QUEUE` names the queue already running, so the limit sheet can say which one.
+
+**Why:** A handful of queues makes one stats request each cheap, and a new combined endpoint would only move the loop to the server. The badge can change while the app is closed (the admin approves it), so it's read again rather than kept from login.
+
+**Also considered:** Stats inside `/me/queues` (a second shape of Queue in the contract); asking `/me/queues` again when the limit error arrives (an extra request for a name the server already knows).
+
+**Status:** Current (BACKEND.md phase 10).
+
+---
+
 ## Known compromises
 
 Deliberate shortcuts, not oversights. Each has a planned fix.
 
-1. **`ActiveTicketStore` is a static field holding app state.** If Android kills the process in the background it's null while the Activity comes back expecting a ticket — a real crash path. Accepted because the backend replaces it with a fetch by ticket id. `Parcelable` would be the proper local fix, but that's boilerplate for something being deleted anyway.
+1. ~~**`ActiveTicketStore` is a static field holding app state.**~~ Now a copy of the server's tickets, synced every 10 seconds and on every screen that needs it; a process restart starts empty and the first sync fills it.
 
 2. ~~**`servedToday` is hardcoded to 18** in `OwnedQueueAdapter`.~~ Fixed — comes from `FakeData.stats()` now.
 
@@ -1332,19 +1368,19 @@ Deliberate shortcuts, not oversights. Each has a planned fix.
 
 5. ~~**No validation anywhere.**~~ Login, Register, Join, Create/Edit Queue and Walk-in now validate. Phone must be 09 plus nine digits.
 
-6. **Active Ticket's "called" state is triggered by long-pressing the "ahead of you" count**, and long-pressing the countdown skips to the end of the grace period. Pure demo scaffolding — in the real system both arrive from the backend.
+6. ~~**Active Ticket's "called" state is triggered by long-pressing.**~~ The call comes from the organizer's console through the server; the long-press hooks are gone.
 
 7. **Ticket removal in Live Console relies on reference equality.** `List.remove(Object)` uses `.equals()`, which `Ticket` doesn't override, so it's identity comparison. Works because the adapter hands back the exact object from the list. Would break if tickets came from separate network fetches — then removal needs to be by id, or `equals` needs overriding. Fixed — `FakeData` removes by id.
 
 8. **Queue history has no dates.** `Ticket` has no `joinedAt` field, so rows show queue, ticket number and outcome only. Adding it is a model change to propose.
 
-9. **New queues get Tagbilaran City's coordinates** until Create Queue has a map picker.
+9. **A new queue's pin is its town's centre** until Create Queue has a map picker (see "A new queue's pin is its town's centre").
 
-10. **Trust and safety demo hooks.** Long-press the organizer's verification row or pending card in Profile to play the admin (verified → unverified, pending → approved). Logging in as 0918 000 0000 shows a suspended account. The device limit counts registrations in local storage. All three move to the server and the admin page.
+10. ~~**Trust and safety demo hooks.**~~ Verification, suspension and the device limit are the server's now, decided on the admin page.
 
-11. **The called notification is triggered by FakeData**, which only works while the owner and the queuer are the same app process (one phone). Real push needs Firebase Cloud Messaging and the backend.
+11. **The called notification comes from polling**, so it only arrives while the app is open (see "You've been called reaches the phone by polling"). Real push needs Firebase Cloud Messaging.
 
-**Status:** Deferred to full app.
+**Status:** Deferred to full app. FakeData is gone (Sep 30); what's left here is 3, 4, 9 and 11.
 
 ---
 

@@ -375,12 +375,16 @@ One screen at a time, in this order, each one working before the next.
 
 **Done when:** `FakeData` is gone, or holds only preview data, and the PROGRESS.md "Android integration" items are ticked.
 
+**Status (Sep 30):** built and emulator-tested in four batches: accounts (bc79bcf), the queuer side (7ad0feb), then the organizer side and verification together. `FakeData` and the app's own rolling average are deleted. The PROGRESS.md ticks wait for Brent's run on the phone.
+
 ---
 
 ## Phase 11: The demo
 
 ### Step 11.1: Running it for real
 - On the desktop: Postgres running, and `uvicorn app.main:app --host 0.0.0.0 --port 8000` without `--reload`.
+- Phones on mobile data reach it through a Cloudflare quick tunnel: `cloudflared tunnel --url http://localhost:8000` prints an `https://….trycloudflare.com` address. Put it in `local.properties` as `quapp.apiUrl=https://….trycloudflare.com/` (the trailing slash matters to Retrofit), then build and install again: the address is baked into the app at build time (`BuildConfig.API_URL`). A quick tunnel gets a new address every time `cloudflared` starts, so each restart means a rebuild; a named tunnel keeps one address. The admin page is the same address plus `/admin`.
+- The emulator and a phone on USB can skip the tunnel: leave `quapp.apiUrl` out and run `adb reverse tcp:8000 tcp:8000`.
 - Keep it running across the demo day: a start script, and switch off sleep.
 - Before each rehearsal: `pg_dump` a backup, then `python seed.py` for a clean start.
 

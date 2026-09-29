@@ -10,6 +10,7 @@ import android.view.View;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
+import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.ContextCompat;
 
@@ -45,17 +46,30 @@ public class QueueAnalyticsActivity extends AppCompatActivity {
     protected void onResume() {
         super.onResume();
 
-        Queue queue = FakeData.queueById(queueId);
+        Queue queue = Queues.get(queueId);  // opened from the console or Today, which loaded it
         if (queue == null) {
             finish();
             return;
         }
-
-        QueueStats stats = FakeData.stats(queueId);
-
         TextView queueName = findViewById(R.id.analytics_queue_name);
         queueName.setText(getString(R.string.analytics_subtitle_format, queue.getName()));
 
+        // The last numbers Today or Your queues loaded, if any, then the latest
+        QueueStats last = MyQueues.lastStats().get(queueId);
+        if (last != null) {
+            bind(last);
+        }
+        ApiClient.api(this).stats(queueId).enqueue(new ApiCallback<QueueStats>(this) {
+            @Override
+            protected void onSuccess(@Nullable QueueStats stats) {
+                if (stats != null) {
+                    bind(stats);
+                }
+            }
+        });
+    }
+
+    private void bind(QueueStats stats) {
         bindForecast(stats);
         bindToday(stats);
     }

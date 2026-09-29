@@ -254,9 +254,9 @@
     <string name="console_call_format">Call #%d</string>
     <string name="console_served_call_format">Served · call #%d</string>
     <string name="console_up_next_format">Up next · %d waiting</string>
+    <string name="console_loading">Loading the line…</string>
     <string name="console_marked_served">#%1$d %2$s marked served</string>
     <string name="console_marked_no_show">#%1$d %2$s marked no-show</string>
-    <string name="console_masked_phone_format">%1$s ••• %2$s</string>
     <string name="console_serve_action">Served</string>
     <string name="console_no_show_action">No-show</string>
     <string name="console_ticket_format">#%d</string>
@@ -271,7 +271,6 @@
     <string name="console_menu_edit">Edit details</string>
     <string name="console_menu_pause">Pause new joins</string>
     <string name="console_menu_resume">Resume joins</string>
-    <string name="console_menu_reopen">Reopen queue</string>
     <string name="console_menu_insights">Insights</string>
     <string name="console_close_confirm">Close queue</string>
     <string name="console_cancel">Cancel</string>
@@ -358,6 +357,8 @@
     <string name="today_detail_separator">" · "</string>
     <string name="today_empty_title">Nothing to count yet</string>
     <string name="today_empty_body">Totals show up here once you create a queue.</string>
+    <string name="today_loading_title">Counting today…</string>
+    <string name="today_error_title">Couldn\'t load today\'s numbers</string>
     <!-- Forgot password -->
     <string name="forgot_back_description">Back to log in</string>
     <string name="forgot_title">Forgot your password?</string>
@@ -432,7 +433,7 @@
     <string name="ticket_browse_action">Browse other queues</string>
     <string name="ticket_bring_title">Bring</string>
     <string name="analytics_source_model">Learning model · %d people learned from</string>
-    <string name="analytics_source_rolling">Rolling average of recent people · the model takes over once this queue has more history today</string>
+    <string name="analytics_source_rolling">Rolling average of the last people served today</string>
 
     <!-- Queue cards (QueueCards) -->
     <string name="card_within_format">Within %s</string>
@@ -499,9 +500,12 @@
     <string name="owner_live_now">Live now</string>
     <string name="owner_console_action">Console</string>
     <string name="owner_live_waiting_format">%d waiting · no one called yet</string>
-    <string name="owner_live_serving_format">%1$d waiting · serving %2$s</string>
+    <string name="owner_live_serving_format">%d waiting · called last</string>
     <string name="owner_chip_count_format">%1$s %2$d</string>
     <string name="owner_filter_empty_format">No %s queues.</string>
+    <string name="create_busy">Saving…</string>
+    <string name="owner_loading">Loading your queues…</string>
+    <string name="owner_error_format">%s Tap to try again.</string>
     <string name="owner_new_queue">New queue</string>
     <string name="owner_first_title">Run your first queue</string>
     <string name="owner_first_body">People join from their phones and wait wherever they are. You call them when you\'re ready.</string>
@@ -582,7 +586,6 @@
     <string name="options_resume_body">People can join again</string>
     <string name="options_close_title">Close queue now</string>
     <string name="options_close_body">Everyone still waiting is released</string>
-    <string name="options_reopen_body">Take joins again</string>
     <string name="console_close_title_format">Close %s now?</string>
     <plurals name="console_close_release_message">
         <item quantity="one">The 1 person still waiting is released and notified. It won\'t count as a no-show for them. This can\'t be undone.</item>
@@ -814,8 +817,6 @@
     <string name="profile_get_verified_hint">A badge on your queues, and no limit on live queues</string>
     <string name="profile_get_verified_rejected">The office call didn\'t confirm it. You can apply again.</string>
     <string name="profile_get_verified_revoked">Your badge was removed. You can apply again.</string>
-    <string name="profile_demo_approved">Demo: the admin approved it</string>
-    <string name="profile_demo_reset">Demo: back to unverified</string>
 
     <!-- Account suspended (canvas 55) -->
     <string name="suspended_title">Account suspended</string>

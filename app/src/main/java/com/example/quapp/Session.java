@@ -28,6 +28,8 @@ public class Session {
     private static final String KEY_NAME = "name";
     private static final String KEY_PHONE = "phone";
     private static final String KEY_ROLE = "role";
+    private static final String KEY_VERIFICATION = "verification";
+    private static final String KEY_ORGANIZATION = "organization";
     private static final String KEY_TOWN = "town";
     private static final String KEY_NOTIFICATIONS_ASKED = "notifications_asked";
 
@@ -88,10 +90,43 @@ public class Session {
         prefs.edit()
                 .putString(KEY_TOKEN, token)
                 .putString(KEY_USER_ID, user.getId())
-                .putString(KEY_NAME, user.getName())
-                .putString(KEY_PHONE, user.getPhone())
                 .remove(KEY_ROLE)
                 .apply();
+        update(user);
+    }
+
+    /**
+     * The latest copy of the account from the server (/me): the badge can change while the
+     * app is closed, when the admin approves or revokes it.
+     */
+    public void update(User user) {
+        prefs.edit()
+                .putString(KEY_NAME, user.getName())
+                .putString(KEY_PHONE, user.getPhone())
+                .putString(KEY_VERIFICATION, user.getVerificationStatus().name())
+                .putString(KEY_ORGANIZATION, user.getOrganizationName())
+                .apply();
+    }
+
+    public VerificationStatus getVerification() {
+        String stored = prefs.getString(KEY_VERIFICATION, null);
+        return stored == null ? VerificationStatus.NONE : VerificationStatus.valueOf(stored);
+    }
+
+    public boolean isVerified() {
+        return getVerification() == VerificationStatus.VERIFIED;
+    }
+
+    /** Set once verified: the name queues are posted under. */
+    @Nullable
+    public String getOrganizationName() {
+        return prefs.getString(KEY_ORGANIZATION, null);
+    }
+
+    /** Who a new queue is posted as: the verified organization, or the account's own name. */
+    public String postingAs() {
+        String organization = getOrganizationName();
+        return isVerified() && organization != null ? organization : getName();
     }
 
     /** Forgets the token. The phone number stays, so Login can offer it again. */
@@ -100,6 +135,8 @@ public class Session {
                 .remove(KEY_TOKEN)
                 .remove(KEY_USER_ID)
                 .remove(KEY_ROLE)
+                .remove(KEY_VERIFICATION)
+                .remove(KEY_ORGANIZATION)
                 .apply();
     }
 

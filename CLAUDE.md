@@ -7,7 +7,7 @@ Before changing anything structural, read `DECISIONS.md` — it records why thin
 ## Stack — don't deviate
 - Native Android, **Java + XML views**. Min SDK 24. **No Kotlin, no Compose**, no cross-platform frameworks.
 - Material Components (`com.google.android.material`), Material 3 theme. Light theme only (no `values-night`).
-- Backend: FastAPI + Retrofit on the client. No Room/SQLite. Data currently comes from `FakeData`.
+- Backend: FastAPI + Retrofit on the client. No Room/SQLite. Data comes from the server in `backend/` (`ApiClient`, `QuappApi`); `FakeData` is gone.
 - Layouts are hand-written XML. Never produce visual-editor-style output (`tools:` leaks, absolute positioning, conflicting constraints).
 
 ## UI conventions

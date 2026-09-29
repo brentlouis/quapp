@@ -2,12 +2,6 @@
 <!-- Per-row actions in the Live Console's waiting list. -->
 <menu xmlns:android="http://schemas.android.com/apk/res/android">
     <item
-        android:id="@+id/waiting_action_serve"
-        android:title="@string/console_serve_action" />
-    <item
-        android:id="@+id/waiting_action_no_show"
-        android:title="@string/console_no_show_action" />
-    <item
         android:id="@+id/waiting_action_remove"
         android:title="@string/remove_action" />
 </menu>

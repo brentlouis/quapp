@@ -182,10 +182,14 @@ def test_no_proximity_check_means_no_radius(client, db):
 
 def test_an_unverified_organizer_gets_one_live_queue(client, db):
     organizer = make_user(db)
-    make_queue(db, organizer)
+    running = make_queue(db, organizer)
     response = client.post("/queues", json=queue_body(), headers=sign_in(db, organizer))
     assert response.status_code == 409
     assert response.json()["error"] == "ONE_LIVE_QUEUE"
+    # It names the one running, for the app's sheet
+    assert response.json()["live_queue_id"] == running.id
+    assert response.json()["live_queue_name"] == running.name
+    assert response.json()["live_queue_status"] == "OPEN"
 
 
 def test_an_unverified_organizer_can_still_plan_an_upcoming_one(client, db):

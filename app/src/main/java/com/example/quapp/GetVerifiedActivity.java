@@ -6,13 +6,14 @@ import android.view.View;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.google.android.material.textfield.TextInputEditText;
+import com.google.android.material.textfield.TextInputLayout;
 
-import java.time.Instant;
 
 /**
  * Get verified (canvas 50). The organizer names the organization, its type, their position and
@@ -40,7 +41,7 @@ public class GetVerifiedActivity extends AppCompatActivity {
         // Most organizers post under the name they already use.
         TextInputEditText org = findViewById(R.id.verify_org_input);
         if (savedInstanceState == null) {
-            org.setText(FakeData.MY_ORGANIZER_NAME);
+            org.setText(new Session(this).postingAs());
         }
 
         findViewById(R.id.verify_back).setOnClickListener(new View.OnClickListener() {
@@ -117,10 +118,27 @@ public class GetVerifiedActivity extends AppCompatActivity {
             return;
         }
 
-        Session session = new Session(this);
-        FakeData.submitVerification(new VerificationRequest("v1", session.getPhone(), organization,
-                type, position, phone, VerificationStatus.PENDING, null, Instant.now(), null));
-        Toast.makeText(this, R.string.verify_sent, Toast.LENGTH_LONG).show();
-        finish();
+        final View button = findViewById(R.id.verify_submit);
+        button.setEnabled(false);
+        ApiClient.api(this).askToBeVerified(new QuappApi.VerificationBody(organization, type,
+                position, phone)).enqueue(new ApiCallback<VerificationRequest>(this) {
+            @Override
+            protected void onSuccess(@Nullable VerificationRequest request) {
+                // The account is PENDING now; Profile asks for it again when it shows
+                Toast.makeText(GetVerifiedActivity.this, R.string.verify_sent, Toast.LENGTH_LONG).show();
+                finish();
+            }
+
+            @Override
+            protected void onError(@NonNull ApiError error) {
+                button.setEnabled(true);
+                if (error.is("INVALID_INPUT") && error.fieldMessage("office_phone") != null) {
+                    ((TextInputLayout) findViewById(R.id.verify_phone_layout))
+                            .setError(error.fieldMessage("office_phone"));
+                    return;
+                }
+                super.onError(error);  // the Snackbar
+            }
+        });
     }
 }

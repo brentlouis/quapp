@@ -8,6 +8,8 @@ import android.os.Looper;
 import android.widget.ImageView;
 import android.widget.TextView;
 
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.ContextCompat;
 import androidx.core.view.WindowCompat;
@@ -25,7 +27,7 @@ public class CounterDisplayActivity extends AppCompatActivity {
 
     public static final String EXTRA_QUEUE_ID = "com.example.quapp.EXTRA_COUNTER_QUEUE_ID";
 
-    private static final long REFRESH_MS = 3_000L;
+    private static final long REFRESH_MS = 5_000L;
     private static final int UP_NEXT = 3;
 
     private String queueId;
@@ -33,7 +35,7 @@ public class CounterDisplayActivity extends AppCompatActivity {
     private final Runnable refresh = new Runnable() {
         @Override
         public void run() {
-            render();
+            load();
             handler.postDelayed(this, REFRESH_MS);
         }
     };
@@ -51,7 +53,7 @@ public class CounterDisplayActivity extends AppCompatActivity {
         SystemBars.applyPadding(findViewById(R.id.counter_root));
 
         queueId = getIntent().getStringExtra(EXTRA_QUEUE_ID);
-        Queue queue = FakeData.queueById(queueId);
+        Queue queue = Queues.get(queueId);  // opened from Share, which had it
         if (queue == null) {
             finish();
             return;
@@ -83,15 +85,28 @@ public class CounterDisplayActivity extends AppCompatActivity {
         handler.removeCallbacks(refresh);
     }
 
-    private void render() {
-        Queue queue = FakeData.queueById(queueId);
-        if (queue == null) {
-            finish();
-            return;
-        }
-        // The console releases a timed-out slot when it next looks; so does the display.
-        boolean timedOut = FakeData.checkGraceExpired(queueId);
-        Ticket serving = FakeData.nowServing(queueId);
+    /** Asks the server for the line; the owner's phone shows it on the counter screen. */
+    private void load() {
+        ApiClient.api(this).line(queueId).enqueue(new ApiCallback<Line>(this) {
+            @Override
+            protected void onSuccess(@Nullable Line line) {
+                if (line != null) {
+                    render(line);
+                }
+            }
+
+            @Override
+            protected void onError(@NonNull ApiError error) {
+                // A public screen: keep the last numbers rather than show an error to the room
+            }
+        });
+    }
+
+    private void render(Line line) {
+        Queue queue = Queues.get(queueId);
+        // A slot that ran out of time isn't anyone's turn any more.
+        boolean timedOut = line.isNowServingTimedOut();
+        Ticket serving = line.getNowServing();
         TextView number = findViewById(R.id.counter_number);
         TextView instruction = findViewById(R.id.counter_instruction);
         if (serving == null || timedOut) {
@@ -102,7 +117,7 @@ public class CounterDisplayActivity extends AppCompatActivity {
             instruction.setText(R.string.counter_come_up);
         }
 
-        List<Ticket> waiting = FakeData.waitingTickets(queueId);
+        List<Ticket> waiting = line.getWaiting();
         StringBuilder next = new StringBuilder();
         for (int i = 0; i < Math.min(UP_NEXT, waiting.size()); i++) {
             if (i > 0) {

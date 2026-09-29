@@ -59,16 +59,16 @@ final class TrustSheets {
      * Canvas 58: an unverified organizer already has a queue running. They can still set up an
      * upcoming one, or get verified to lift the limit.
      */
-    static void showOneLiveQueue(final Activity activity, Queue running) {
+    static void showOneLiveQueue(final Activity activity, String runningName, boolean paused) {
         final Notice notice = new Notice(activity);
         notice.icon(R.drawable.ic_info, R.color.warn);
         notice.title.setText(R.string.limit_title);
-        notice.body.setText(activity.getString(running.getStatus() == Queue.Status.PAUSED
-                ? R.string.limit_body_paused : R.string.limit_body, running.getName()));
+        notice.body.setText(activity.getString(paused
+                ? R.string.limit_body_paused : R.string.limit_body, runningName));
         notice.note.setVisibility(View.GONE);
 
         // Already asked: nothing to do but wait for the call.
-        boolean pending = FakeData.myVerification() == VerificationStatus.PENDING;
+        boolean pending = new Session(activity).getVerification() == VerificationStatus.PENDING;
         notice.primary.setText(pending ? R.string.limit_pending : R.string.limit_get_verified);
         notice.primary.setEnabled(!pending);
         notice.primary.setOnClickListener(new View.OnClickListener() {

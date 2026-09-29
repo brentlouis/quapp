@@ -134,7 +134,7 @@ public class OwnerQueuesFragment extends Fragment implements QueueAdapter.OnQueu
                     return;
                 }
                 selectedStatus = (Queue.Status) group.findViewById(checkedIds.get(0)).getTag();
-                refresh();
+                render(null);
             }
         });
     }
@@ -177,12 +177,55 @@ public class OwnerQueuesFragment extends Fragment implements QueueAdapter.OnQueu
 
     // ---- Rendering ----------------------------------------------------------
 
+    /** Shows the last copy straight away, then asks the server for the latest. */
     private void refresh() {
+        render(null);
+        MyQueues.load(requireContext(), new MyQueues.Loaded() {
+            @Override
+            public void onLoaded(List<Queue> queues, Map<String, QueueStats> stats) {
+                if (isAdded()) {
+                    render(null);
+                }
+            }
+
+            @Override
+            public void onFailed(ApiError error) {
+                if (isAdded()) {
+                    render(error);
+                }
+            }
+        });
+    }
+
+    /**
+     * Before the first answer the line under the filters says it's loading; if that first
+     * request failed, it says why and retries when tapped. After that, the last copy stays.
+     */
+    private void render(@Nullable ApiError error) {
         View view = getView();
         if (view == null) {
             return;
         }
-        List<Queue> owned = FakeData.ownedQueues();
+        List<Queue> owned = MyQueues.last();
+        if (owned == null) {
+            firstVisit.setVisibility(View.GONE);
+            live.setVisibility(View.GONE);
+            list.setVisibility(View.GONE);
+            filters.setVisibility(View.GONE);
+            createFab.hide();
+            filterEmpty.setVisibility(View.VISIBLE);
+            filterEmpty.setText(error == null ? getString(R.string.owner_loading)
+                    : getString(R.string.owner_error_format, error.is(ApiError.OFFLINE)
+                            ? getString(R.string.api_offline) : error.message));
+            filterEmpty.setOnClickListener(error == null ? null : new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    refresh();
+                }
+            });
+            return;
+        }
+        filterEmpty.setOnClickListener(null);
         boolean first = owned.isEmpty();
         bindGreeting(view, first);
 
@@ -202,14 +245,12 @@ public class OwnerQueuesFragment extends Fragment implements QueueAdapter.OnQueu
         bindCounts(owned);
 
         List<Queue> shown = new ArrayList<>();
-        Map<String, QueueStats> stats = new HashMap<>();
         for (Queue queue : owned) {
             if (selectedStatus == null || queue.getStatus() == selectedStatus) {
                 shown.add(queue);
-                stats.put(queue.getId(), FakeData.stats(queue.getId()));
             }
         }
-        adapter.submitQueues(shown, stats);
+        adapter.submitQueues(shown, MyQueues.lastStats());
         boolean none = shown.isEmpty() && selectedStatus != null;
         filterEmpty.setVisibility(none ? View.VISIBLE : View.GONE);
         if (none) {
@@ -245,15 +286,15 @@ public class OwnerQueuesFragment extends Fragment implements QueueAdapter.OnQueu
             return;
         }
         final Queue queue = current;
-        Ticket serving = FakeData.nowServing(queue.getId());
+        // The number called last today, as on the counter display
+        Integer serving = queue.getNowServing();
         ((TextView) live.findViewById(R.id.owner_live_number)).setText(serving == null
                 ? getString(R.string.browse_eta_none)
-                : getString(R.string.ticket_number_format, serving.getTicketNumber()));
+                : getString(R.string.ticket_number_format, serving));
         ((TextView) live.findViewById(R.id.owner_live_name)).setText(queue.getName());
         ((TextView) live.findViewById(R.id.owner_live_detail)).setText(serving == null
                 ? getString(R.string.owner_live_waiting_format, queue.getPeopleWaiting())
-                : getString(R.string.owner_live_serving_format, queue.getPeopleWaiting(),
-                        serving.getHolderName()));
+                : getString(R.string.owner_live_serving_format, queue.getPeopleWaiting()));
 
         View.OnClickListener openConsole = new View.OnClickListener() {
             @Override

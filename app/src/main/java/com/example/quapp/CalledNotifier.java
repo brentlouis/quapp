@@ -17,8 +17,8 @@ import androidx.core.content.ContextCompat;
  * "I'm here" button, so a queuer with the phone in a pocket can confirm without opening the app.
  * It's what makes the 3-minute grace period fair (DECISIONS.md "Notifications aren't optional").
  *
- * Today FakeData tells QuappApplication when a ticket is called; with the backend, a push
- * message from the server does, and this class stays the same.
+ * ActiveTicketStore shows it when a sync with the server finds a ticket newly called
+ * (DECISIONS.md "You've been called reaches the phone by polling").
  */
 final class CalledNotifier {
 

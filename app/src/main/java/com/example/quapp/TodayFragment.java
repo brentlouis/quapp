@@ -15,7 +15,6 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.google.android.material.divider.MaterialDividerItemDecoration;
 
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -83,25 +82,64 @@ public class TodayFragment extends Fragment implements TodayQueueAdapter.OnToday
         }
     }
 
+    /** Shows the last copy straight away (shared with Your queues), then the latest. */
     private void refresh() {
-        List<Queue> queues = FakeData.ownedQueues();
+        render(null);
+        MyQueues.load(requireContext(), new MyQueues.Loaded() {
+            @Override
+            public void onLoaded(List<Queue> queues, Map<String, QueueStats> stats) {
+                if (isAdded()) {
+                    render(null);
+                }
+            }
 
-        boolean empty = queues.isEmpty();
+            @Override
+            public void onFailed(ApiError error) {
+                if (isAdded()) {
+                    render(error);
+                }
+            }
+        });
+    }
+
+    /** Loading, couldn't load, no queues yet (all in the empty block), or the numbers. */
+    private void render(@Nullable ApiError error) {
+        View view = getView();
+        if (view == null) {
+            return;
+        }
+        List<Queue> queues = MyQueues.last();
+        boolean empty = queues == null || queues.isEmpty();
         for (View v : populatedViews) {
             v.setVisibility(empty ? View.GONE : View.VISIBLE);
         }
         emptyState.setVisibility(empty ? View.VISIBLE : View.GONE);
         if (empty) {
+            TextView title = view.findViewById(R.id.today_empty_title);
+            TextView body = view.findViewById(R.id.today_empty_body);
+            if (queues != null) {
+                title.setText(R.string.today_empty_title);
+                body.setText(R.string.today_empty_body);
+            } else if (error == null) {
+                title.setText(R.string.today_loading_title);
+                body.setText(null);
+            } else {
+                title.setText(R.string.today_error_title);
+                body.setText(error.is(ApiError.OFFLINE)
+                        ? getString(R.string.api_offline) : error.message);
+            }
             return;
         }
 
         int served = 0;
         int noShows = 0;
         int waiting = 0;
-        Map<String, QueueStats> statsById = new HashMap<>();
+        Map<String, QueueStats> statsById = MyQueues.lastStats();
         for (Queue queue : queues) {
-            QueueStats stats = FakeData.stats(queue.getId());
-            statsById.put(queue.getId(), stats);
+            QueueStats stats = statsById.get(queue.getId());
+            if (stats == null) {
+                continue;
+            }
             served += stats.getServedToday();
             noShows += stats.getNoShowsToday();
             waiting += stats.getWaitingNow();

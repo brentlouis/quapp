@@ -63,6 +63,7 @@ public class ProfileFragment extends Fragment {
         super.onResume();
         bindRecord();
         bindVerification();
+        refreshAccount();
     }
 
     @Override
@@ -81,18 +82,40 @@ public class ProfileFragment extends Fragment {
         ((TextView) view.findViewById(R.id.profile_initials)).setText(Format.initials(name));
         String phone = Format.spacedPhone(session.getPhone());
         // Organizers: "0918 222 3141 · City Health Office" (canvas 51).
+        String organization = session.getOrganizationName();
         ((TextView) view.findViewById(R.id.profile_phone)).setText(
-                session.getRole() == Session.Role.OWNER
-                        ? getString(R.string.profile_phone_org_format, phone, FakeData.MY_ORGANIZER_NAME)
+                session.getRole() == Session.Role.OWNER && organization != null
+                        ? getString(R.string.profile_phone_org_format, phone, organization)
                         : phone);
     }
 
     /**
+     * The badge can change while the app is closed (the admin approves or revokes it), so the
+     * account is asked for again each time Profile shows.
+     */
+    private void refreshAccount() {
+        ApiClient.api(requireContext()).me().enqueue(new ApiCallback<User>(requireContext()) {
+            @Override
+            protected void onSuccess(@Nullable User user) {
+                if (user == null || !isAdded()) {
+                    return;
+                }
+                session.update(user);
+                bindUser(requireView());
+                bindVerification();
+            }
+
+            @Override
+            protected void onError(@NonNull ApiError error) {
+                // Offline: the last copy stays on screen
+            }
+        });
+    }
+
+    /**
      * Organizers only. Not asked (or turned down): a Get verified row. Asked: the pending card
-     * with the number the admin will call. Verified: the badge, no chevron.
-     *
-     * Demo hook until the admin page exists: long-press the row or the card to play the admin.
-     * Verified → back to unverified, pending → approved.
+     * with the number the admin will call. Verified: the badge, no chevron. The admin decides
+     * on the server's admin page.
      */
     private void bindVerification() {
         View view = getView();
@@ -103,7 +126,7 @@ public class ProfileFragment extends Fragment {
         View divider = view.findViewById(R.id.profile_verify_divider);
         View pending = view.findViewById(R.id.profile_pending);
         boolean isOwner = session.getRole() == Session.Role.OWNER;
-        VerificationStatus status = FakeData.myVerification();
+        VerificationStatus status = session.getVerification();
 
         pending.setVisibility(isOwner && status == VerificationStatus.PENDING ? View.VISIBLE : View.GONE);
         boolean showRow = isOwner && status != VerificationStatus.PENDING;
@@ -113,20 +136,15 @@ public class ProfileFragment extends Fragment {
             return;
         }
 
-        VerificationRequest request = FakeData.myVerificationRequest();
-        if (status == VerificationStatus.PENDING && request != null) {
-            ((TextView) view.findViewById(R.id.profile_pending_body)).setText(getString(
-                    R.string.profile_verification_pending_body,
-                    request.getCreatedAt().atZone(Format.MANILA).format(
-                            DateTimeFormatter.ofPattern("MMM d", Locale.getDefault())),
-                    request.getOfficePhone()));
+        if (status == VerificationStatus.PENDING) {
+            bindPendingRequest();
         }
 
         View chevron = row.findViewById(R.id.row_chevron);
         ImageView icon = row.findViewById(R.id.row_icon);
         if (status == VerificationStatus.VERIFIED) {
             ListRow.bind(row, R.drawable.ic_badge_check, getString(R.string.profile_verified),
-                    FakeData.MY_ORGANIZER_NAME);
+                    session.getOrganizationName());
             icon.setColorFilter(ContextCompat.getColor(requireContext(), R.color.ok));
             chevron.setVisibility(View.GONE);
             row.setOnClickListener(null);
@@ -147,20 +165,30 @@ public class ProfileFragment extends Fragment {
                 }
             });
         }
+    }
 
-        View.OnLongClickListener playAdmin = new View.OnLongClickListener() {
-            @Override
-            public boolean onLongClick(View v) {
-                boolean approve = FakeData.myVerification() == VerificationStatus.PENDING;
-                FakeData.setMyVerification(approve ? VerificationStatus.VERIFIED : VerificationStatus.NONE);
-                bindVerification();
-                Snackbar.make(v, approve ? R.string.profile_demo_approved : R.string.profile_demo_reset,
-                        Snackbar.LENGTH_SHORT).show();
-                return true;
-            }
-        };
-        row.setOnLongClickListener(playAdmin);
-        pending.setOnLongClickListener(playAdmin);
+    /** The pending card: when they asked and the number the admin will call. */
+    private void bindPendingRequest() {
+        ApiClient.api(requireContext()).myVerification().enqueue(
+                new ApiCallback<VerificationRequest>(requireContext()) {
+                    @Override
+                    protected void onSuccess(@Nullable VerificationRequest request) {
+                        View view = getView();
+                        if (request == null || view == null) {
+                            return;
+                        }
+                        ((TextView) view.findViewById(R.id.profile_pending_body)).setText(getString(
+                                R.string.profile_verification_pending_body,
+                                request.getCreatedAt().atZone(Format.MANILA).format(
+                                        DateTimeFormatter.ofPattern("MMM d", Locale.getDefault())),
+                                request.getOfficePhone()));
+                    }
+
+                    @Override
+                    protected void onError(@NonNull ApiError error) {
+                        // The card's heading still says it's pending
+                    }
+                });
     }
 
     /**

@@ -73,14 +73,17 @@ public final class QueueCards {
         }
     }
 
-    /** "Relief · No. 001": the category and the queue's number, like a catalogue card's corner. */
+    /**
+     * "Relief · No. 001": the category and a number, like a catalogue card's corner. It's
+     * decoration, not an id: the demo's short ids ("q3") give their own number; the server's
+     * random ids (uuids) give a steady one from 0 to 999, the same every time for that queue.
+     */
     private static String serial(Context context, Queue queue) {
         String category = context.getString(queue.getCategory().label);
         String digits = queue.getId().replaceAll("\\D", "");
-        if (digits.isEmpty()) {
-            return category;
-        }
-        return context.getString(R.string.card_serial_format, category, Integer.parseInt(digits));
+        int number = !digits.isEmpty() && digits.length() <= 3
+                ? Integer.parseInt(digits) : Math.floorMod(queue.getId().hashCode(), 1000);
+        return context.getString(R.string.card_serial_format, category, number);
     }
 
     /** One ruled line: its label and value. Returns the value, for the lines that restyle it. */

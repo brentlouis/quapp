@@ -7,6 +7,7 @@ import android.view.View;
 import android.widget.CompoundButton;
 import android.widget.TextView;
 
+import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
@@ -21,6 +22,7 @@ import com.google.android.material.datepicker.MaterialDatePicker;
 import com.google.android.material.datepicker.MaterialPickerOnPositiveButtonClickListener;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.google.android.material.materialswitch.MaterialSwitch;
+import com.google.android.material.snackbar.Snackbar;
 import com.google.android.material.textfield.TextInputEditText;
 import com.google.android.material.textfield.TextInputLayout;
 import com.google.android.material.timepicker.MaterialTimePicker;
@@ -32,6 +34,8 @@ import java.time.LocalTime;
 import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
+import java.util.Arrays;
+import java.util.List;
 import java.util.Locale;
 
 /**
@@ -91,7 +95,7 @@ public class CreateQueueActivity extends AppCompatActivity {
 
         String queueId = getIntent().getStringExtra(EXTRA_QUEUE_ID);
         if (queueId != null) {
-            existingQueue = FakeData.queueById(queueId);
+            existingQueue = Queues.get(queueId);  // the console had it on screen
             if (existingQueue == null) {
                 finish();
                 return;
@@ -248,10 +252,11 @@ public class CreateQueueActivity extends AppCompatActivity {
 
     /** "Posting as Brgy. Poblacion Council", with the badge if the account is verified. */
     private void bindPostingAs() {
+        Session session = new Session(this);
         ((TextView) findViewById(R.id.create_posting_as)).setText(
-                getString(R.string.create_posting_as, FakeData.MY_ORGANIZER_NAME));
+                getString(R.string.create_posting_as, session.postingAs()));
         findViewById(R.id.create_posting_verified).setVisibility(
-                FakeData.isMyOrganizerVerified() ? View.VISIBLE : View.GONE);
+                session.isVerified() ? View.VISIBLE : View.GONE);
     }
 
     // ---- Pickers --------------------------------------------------------------
@@ -516,26 +521,20 @@ public class CreateQueueActivity extends AppCompatActivity {
             return;
         }
 
-        // Unverified organizers run one queue at a time (canvas 58). One that opens later is fine.
-        if (existingQueue == null && !startsLater() && !FakeData.isMyOrganizerVerified()) {
-            Queue running = FakeData.myLiveQueue(null);
-            if (running != null) {
-                TrustSheets.showOneLiveQueue(this, running);
-                return;
-            }
-        }
+        // The pin: the town's centre, unless an edit keeps the town and so its pin (Towns.java)
+        boolean sameTown = existingQueue != null
+                && existingQueue.getMunicipality().equals(municipality);
+        double[] pin = sameTown
+                ? new double[]{existingQueue.getLatitude(), existingQueue.getLongitude()}
+                : Towns.centre(municipality);
 
-        // Editing keeps id, organizer, location and status; creating starts fresh.
+        // Only what the form holds goes to the server (QueueBody), which decides the id,
+        // organizer and status. A new queue's builder still needs an id, so it gets a
+        // placeholder that is never sent.
         Queue.Builder builder = existingQueue != null
-                ? existingQueue.toBuilder()
-                : new Queue.Builder()
-                        .setId(FakeData.newQueueId())
-                        .setOrganizer(FakeData.MY_ORGANIZER_ID, FakeData.MY_ORGANIZER_NAME,
-                                FakeData.isMyOrganizerVerified())
-                        .setLocation(FakeData.defaultLatitude(), FakeData.defaultLongitude())
-                        .setStatus(startsLater() ? Queue.Status.UPCOMING : Queue.Status.OPEN);
-
+                ? existingQueue.toBuilder() : new Queue.Builder().setId("new");
         Queue queue = builder
+                .setLocation(pin[0], pin[1])
                 .setName(name)
                 .setVenue(venue)
                 .setMunicipality(municipality)
@@ -549,15 +548,91 @@ public class CreateQueueActivity extends AppCompatActivity {
                 .setProximity(proximitySwitch.isChecked(), checkedRadius())
                 .build();
 
-        FakeData.saveQueue(queue);
-        finish();
+        QuappApi.QueueBody body = new QuappApi.QueueBody(queue);
+        QuappApi api = ApiClient.api(this);
+        setBusy(true);
+        (existingQueue == null ? api.createQueue(body) : api.editQueue(existingQueue.getId(), body))
+                .enqueue(new ApiCallback<Queue>(this) {
+                    @Override
+                    protected void onSuccess(@Nullable Queue saved) {
+                        if (saved != null) {
+                            Queues.put(saved);
+                        }
+                        finish();
+                    }
+
+                    @Override
+                    protected void onError(@NonNull ApiError error) {
+                        setBusy(false);
+                        refused(error);
+                    }
+                });
     }
 
-    /** A new queue whose first day or opening time is still ahead starts as Upcoming. */
-    private boolean startsLater() {
-        LocalDate today = Format.today();
-        return startDate.isAfter(today)
-                || (startDate.equals(today) && LocalTime.now(Format.MANILA).isBefore(opensAt));
+    /**
+     * Why the server said no. Unverified organizers run one live queue at a time (canvas 58);
+     * a field the server didn't accept gets the message on the field; anything else a Snackbar.
+     */
+    private void refused(ApiError error) {
+        if (error.is("ONE_LIVE_QUEUE")) {
+            TrustSheets.showOneLiveQueue(this, error.extraString("live_queue_name"),
+                    Queue.Status.PAUSED.name().equals(error.extraString("live_queue_status")));
+            return;
+        }
+        String field = error.is("INVALID_INPUT") ? firstField(error) : null;
+        TextInputLayout layout = field == null ? null : layoutFor(field);
+        if (layout != null) {
+            layout.setError(error.fieldMessage(field));
+            return;
+        }
+        if (field != null && SCHEDULE_FIELDS.contains(field)) {
+            TextView scheduleError = findViewById(R.id.create_schedule_error);
+            scheduleError.setText(error.fieldMessage(field));
+            scheduleError.setVisibility(View.VISIBLE);
+            return;
+        }
+        Snackbar.make(findViewById(R.id.create_root), error.is(ApiError.OFFLINE)
+                ? getString(R.string.api_offline) : error.message, Snackbar.LENGTH_LONG).show();
+    }
+
+    private static final List<String> SCHEDULE_FIELDS =
+            Arrays.asList("start_date", "end_date", "opens_at", "closes_at");
+
+    @Nullable
+    private static String firstField(ApiError error) {
+        for (String field : new String[]{"name", "venue", "short_description", "details",
+                "bring", "start_date", "end_date", "opens_at", "closes_at"}) {
+            if (error.fieldMessage(field) != null) {
+                return field;
+            }
+        }
+        return null;
+    }
+
+    @Nullable
+    private TextInputLayout layoutFor(String field) {
+        switch (field) {
+            case "name":
+                return findViewById(R.id.create_name_layout);
+            case "venue":
+                return findViewById(R.id.create_venue_layout);
+            case "short_description":
+                return findViewById(R.id.create_short_layout);
+            case "details":
+                return findViewById(R.id.create_details_layout);
+            case "bring":
+                return findViewById(R.id.create_bring_layout);
+            default:
+                return null;
+        }
+    }
+
+    /** While the server answers: the button says so and can't be tapped twice. */
+    private void setBusy(boolean busy) {
+        MaterialButton submit = findViewById(R.id.create_submit_button);
+        submit.setEnabled(!busy);
+        submit.setText(busy ? R.string.create_busy
+                : existingQueue != null ? R.string.create_save_action : R.string.create_action);
     }
 
     private boolean scheduleValid() {

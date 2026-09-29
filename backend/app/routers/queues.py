@@ -95,20 +95,21 @@ def check_not_past(values: dict, now: datetime) -> None:
         raise invalid("closes_at", "That closing time has already passed.")
 
 
-def has_live_queue(db: Session, user: User, except_id: str | None = None) -> bool:
-    """Live means open or paused; an upcoming queue doesn't count (DECISIONS.md "Organizer
-    verification lives on the organizer")."""
-    query = select(Queue.id).where(Queue.organizer_id == user.id,
-                                   Queue.status.in_((QueueStatus.OPEN, QueueStatus.PAUSED)))
-    if except_id:
-        query = query.where(Queue.id != except_id)
-    return db.scalar(query.limit(1)) is not None
+def live_queue(db: Session, user: User) -> Queue | None:
+    """The organizer's live queue, if any. Live means open or paused; an upcoming queue
+    doesn't count (DECISIONS.md "Organizer verification lives on the organizer")."""
+    return db.scalar(select(Queue).where(
+        Queue.organizer_id == user.id,
+        Queue.status.in_((QueueStatus.OPEN, QueueStatus.PAUSED))).limit(1))
 
 
-def one_live_queue_error() -> ApiError:
+def one_live_queue_error(running: Queue) -> ApiError:
+    """Names the queue that's running, so the app can say which one (canvas 58)."""
     return ApiError(409, "ONE_LIVE_QUEUE",
                     "Unverified organizers can run one live queue at a time. "
-                    "Close or finish the other one first, or get verified.")
+                    "Close or finish the other one first, or get verified.",
+                    live_queue_id=running.id, live_queue_name=running.name,
+                    live_queue_status=running.status)
 
 
 # ---- Reading --------------------------------------------------------------------
@@ -196,9 +197,9 @@ def create(body: QueueIn, user: User = Depends(current_user),
     check_not_past(values, now)
 
     opens_now = now >= datetime.combine(values["start_date"], values["opens_at"], timeutil.MANILA)
-    if (opens_now and user.verification_status != VerificationStatus.VERIFIED
-            and has_live_queue(db, user)):
-        raise one_live_queue_error()
+    running = live_queue(db, user) if opens_now else None
+    if running is not None and user.verification_status != VerificationStatus.VERIFIED:
+        raise one_live_queue_error(running)
 
     queue = Queue(**values, organizer_id=user.id,
                   status=QueueStatus.OPEN if opens_now else QueueStatus.UPCOMING)
