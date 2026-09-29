@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- The thin double rule under a catalogue card's title: two crema hairlines -->
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <item
+        android:height="@dimen/hairline"
+        android:drawable="@color/crema"
+        android:gravity="top" />
+    <item
+        android:height="@dimen/hairline"
+        android:drawable="@color/crema"
+        android:gravity="bottom" />
+</layer-list>

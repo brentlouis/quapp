@@ -7,6 +7,12 @@
     <color name="paper">#F2EDE3</color>
     <color name="paper_raised">#FBF8F2</color>
     <color name="paper_sunk">#E9E2D4</color>
+    <!-- Queue cards: catalogue card stock, whiter than paper_raised so it lifts off the ground -->
+    <color name="index_card">#FEFCF8</color>
+    <color name="index_card_edge">#E6DCCB</color>
+    <!-- The ruled lines on a card: roast at 16% -->
+    <color name="index_card_rule">#296B4A2F</color>
+    <color name="index_card_hole_rim">#C9BCA6</color>
     <color name="line">#D8CFBE</color>
     <color name="outline">#8C8474</color>
 

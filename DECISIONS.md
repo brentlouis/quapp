@@ -1254,6 +1254,18 @@ The organizer line on Queue detail opens the badge sheet (52) for both verified 
 
 ---
 
+## Queue cards are catalogue cards on vintage paper
+
+**Decision:** Queue cards (Browse and the organizer's Queues tab) are old library catalogue cards: the category and the queue's number in the corner, the status as a rubber stamp, the name in serif over a double rule, then Where / What / When / Wait written on ruled lines, and a punched hole at the bottom. They're whiter than the paper, with a 2dp shadow and a slight tilt each. The screen ground changes from fine grain to soft vintage paper (`paper_vintage.png`: blotches, fibres, age spots), and the component textures go to the loudest strength from the texture canvas (2.4 times the first version).
+
+**Why:** Brent wanted the queue cards to read as notes, and picked this over classic sticky notes, taped paper notes, plain index cards and a two-column sticky wall on the "Quapp textures and sticky notes" canvas. The ruled Where / What / When / Wait lines were his pick over running text. The card is whiter than the paper because on the vintage ground a cream card blended in. Serving stays on the Wait line so the three numbers read together.
+
+**Also considered:** Keeping the v5 card with its status strip and number footer (fine, but it looked like a table on the textured ground). A vignette on the ground (it showed as bands at the pinned headers, so it came out). "Louder" (1.7×) textures (Brent chose loudest).
+
+**Status:** Built, awaiting Brent's device test. Supersedes the "no stains" and "no shadows on cards" rules in DESIGN.md for the ground and the queue cards only.
+
+---
+
 ## Known compromises
 
 Deliberate shortcuts, not oversights. Each has a planned fix.

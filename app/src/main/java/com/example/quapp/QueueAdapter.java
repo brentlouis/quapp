@@ -68,6 +68,9 @@ public class QueueAdapter extends RecyclerView.Adapter<QueueAdapter.QueueViewHol
 
     static class QueueViewHolder extends RecyclerView.ViewHolder {
 
+        /** Degrees; small enough that the list still reads as a straight column. */
+        private static final float[] TILTS = {-0.5f, 0.4f, -0.3f, 0.5f};
+
         QueueViewHolder(@NonNull View itemView) {
             super(itemView);
         }
@@ -75,6 +78,8 @@ public class QueueAdapter extends RecyclerView.Adapter<QueueAdapter.QueueViewHol
         void bind(final Queue queue, @Nullable QueueStats stats,
                   final OnQueueClickListener clickListener) {
             QueueCards.bind(itemView, queue, stats);
+            // Cards laid down by hand: each one a fraction of a degree off straight
+            itemView.setRotation(TILTS[getBindingAdapterPosition() % TILTS.length]);
             itemView.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View view) {

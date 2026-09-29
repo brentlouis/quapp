@@ -1,11 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- The screen ground: paper, with the printed grain tiled on top.
-     Set as android:windowBackground, so every Activity gets it. Cards and fields stay flat. -->
+<!-- The screen ground: paper with the soft vintage texture tiled on top.
+     Set as android:windowBackground, so every Activity gets it. The pinned headers on Browse and
+     Your queues use it too, so no darkened edges here: they would show as bands at the header. -->
 <layer-list xmlns:android="http://schemas.android.com/apk/res/android">
     <item android:drawable="@color/paper" />
     <item>
         <bitmap
-            android:src="@drawable/paper_grain"
+            android:src="@drawable/paper_vintage"
             android:tileMode="repeat" />
     </item>
 </layer-list>

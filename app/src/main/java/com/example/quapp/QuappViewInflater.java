@@ -38,7 +38,7 @@ public class QuappViewInflater extends MaterialComponentsViewInflater {
 
     /** XML backgrounds that are a piece of paper: views on them get the texture too. */
     private static final int[] PAPER_SHAPES = {
-            R.drawable.bg_card, R.drawable.bg_card_faded, R.drawable.bg_search, R.drawable.bg_field,
+            R.drawable.bg_card, R.drawable.bg_index_card, R.drawable.bg_search, R.drawable.bg_field,
             R.drawable.bg_note, R.drawable.bg_note_warn, R.drawable.bg_tile, R.drawable.bg_avatar,
             R.drawable.bg_step_number,
     };

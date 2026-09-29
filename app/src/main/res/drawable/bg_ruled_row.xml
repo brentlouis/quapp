@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- One ruled line of a catalogue card: a faint roast hairline along the bottom -->
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <item
+        android:height="@dimen/hairline"
+        android:drawable="@color/index_card_rule"
+        android:gravity="bottom" />
+</layer-list>

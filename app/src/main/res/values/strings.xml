@@ -429,19 +429,24 @@
     <string name="card_hours_format">%1$s – %2$s</string>
     <string name="card_day_of_format">Day %1$d of %2$d · %3$s</string>
     <string name="card_closes_in_format">Closes in %d min</string>
-    <string name="card_paused_line_format">No new joins since %1$s · %2$d in line</string>
+    <string name="card_paused_line_format">Paused since %1$s · %2$d in line</string>
     <string name="card_closed_at_format">Closed at %s</string>
     <string name="card_closed_served_format">Closed at %1$s · %2$d served</string>
     <string name="card_minutes_unit">min</string>
-    <string name="card_est_wait">Est. wait</string>
-    <string name="card_in_line">In line</string>
-    <string name="card_now_serving">Now serving</string>
     <string name="card_opens">Opens</string>
-    <string name="card_joined_early">Joined early</string>
-    <string name="card_waiting">Waiting</string>
-    <string name="card_served">Served</string>
-    <string name="card_no_show">No-show</string>
-    <string name="card_no_shows">No-shows</string>
+    <string name="card_label_where">Where</string>
+    <string name="card_label_what">What</string>
+    <string name="card_label_when">When</string>
+    <string name="card_label_wait">Wait</string>
+    <string name="card_label_today">Today</string>
+    <string name="card_serial_format">%1$s · No. %2$03d</string>
+    <string name="card_where_within_format">%1$s · %2$s</string>
+    <string name="card_wait_line_format">%1$d min · %2$d in line · serving %3$s</string>
+    <string name="card_opens_line_format">%1$s · %2$d joined early</string>
+    <plurals name="card_today_line">
+        <item quantity="one">%1$d waiting · %2$d served · %3$d no-show</item>
+        <item quantity="other">%1$d waiting · %2$d served · %3$d no-shows</item>
+    </plurals>
 
     <!-- Browse (queuer home) -->
     <string name="browse_title">Find a queue</string>

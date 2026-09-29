@@ -8,7 +8,7 @@ The one visual reference for building Quapp's screens. It describes **what thing
 
 Content, flows, states and copy on the canvas are final. Where this file and the canvas disagree, the canvas wins; fix this file.
 
-Last updated: 2026-09-29.
+Last updated: 2026-09-29 (catalogue cards, vintage ground).
 
 ---
 
@@ -205,16 +205,17 @@ At most one per screen:
 
 ## 7. Texture
 
-**Everything is paper, so everything has texture.** The ground has its grain, and each component with a fill has the texture of what it's made of.
+**Everything is paper, so everything has texture.** The ground is soft vintage paper, and each component with a fill has the texture of what it's made of.
 
 | Tile (`res/drawable-nodpi/`) | Looks like | On |
 |---|---|---|
-| `paper_grain.png` | Fine fractal noise, `#4F4A40`, about 5% | The screen ground (`bg_paper`, the window background) |
-| `grain_stock.png` | Short dark fibres and fine tooth, about 1.5% | Light fills: cards, the receipt slip, fields, notes, chips, tonal buttons, tiles, the nav bar, sheets, the stub dock |
-| `grain_ink.png` | Pale specks and an uneven lay-down, about 2% | Dark fills: filled buttons, the selected chip, the FAB, Danger |
-| `grain_ticket.png` | Pale fibres, soft mottle, a few specks, about 2.5% | The espresso spotlight, and the Called screen's ground (`bg_spotlight`) |
+| `paper_vintage.png` | Large soft warm blotches, fibres, small age spots and a few faint stains, `#744F2D`, about 5% | The screen ground (`bg_paper`, the window background, and the pinned headers) |
+| `grain_stock.png` | Short dark fibres and fine tooth, about 3.5% | Light fills: queue cards, other cards, the receipt slip, fields, notes, chips, tonal buttons, tiles, the nav bar, sheets, the stub dock |
+| `grain_ink.png` | Pale specks and an uneven lay-down, about 5.5% | Dark fills: filled buttons, the selected chip, the FAB, Danger |
+| `grain_ticket.png` | Pale fibres, soft mottle, a few specks, about 6% | The espresso spotlight, and the Called screen's ground (`bg_spotlight`) |
 
-- All four are seamless 256×256 PNGs, mostly transparent, drawn at one texture pixel per screen pixel. `tools/make_grain.py` draws the three component tiles.
+- All four are seamless PNGs, mostly transparent, drawn at one texture pixel per screen pixel: 512×512 for the ground (so its blotches don't visibly repeat), 256×256 for the rest. `tools/make_grain.py` draws them; its `STRENGTH` (2.4) sets how loud the component tiles are.
+- No darkened edges on the ground: the pinned headers on Browse and Your queues draw the same ground, and a vignette would show as bands where they meet.
 - The tile follows the fill (`Grain.tileFor`): no fill gets none (the ground shows through text and outlined buttons), `spotlight` gets ticket, a dark fill gets ink, and a light fill gets stock. It's read every frame, so a chip that becomes selected changes texture by itself.
 - The texture is painted inside the component's own shape, so rounded corners, pills and punches stay clean.
 - `QuappViewInflater` (the theme's `viewInflaterClass`) attaches it as layouts inflate: to buttons, cards, chips, fields, the FAB and the nav bar, and to any layout, TextView or ImageView whose background is a paper shape (`bg_card`, `bg_note`, `bg_tile` and the rest listed there). Backgrounds built in code go through `TicketShapes.background`, which adds it. Bottom sheets call `Grain.attach(sheet)`.
@@ -263,17 +264,17 @@ Never in marigold or teal, never outlined, no shadow, no bold Q.
 - **Selected:** `ink` fill, `paper_raised` text, a check, and the punched ticket shape (radius 8, 5dp side notches).
 - **Town dropdown:** stays a `paper_sunk` pill and is sticky.
 
-**Queue card (v5).** `paper_raised`, 1dp `line`, `radius_md`, 16dp padding, 12dp between cards.
-1. **Status strip:** 32dp tall. A `Label` status on the left, the schedule in mono 12.5 on the right, a 1dp line under the strip. Grounds: Open `ok_soft`, Upcoming `paper_sunk`, Paused `warn_soft`, Closed none.
-2. **Identity:** a 20dp category icon, then the title in Plex Sans 600 16. Below it the venue in `ink_muted`, plus "Within 2 km" with a navigation icon when a radius applies.
-3. **Description:** one line.
-4. **Footer:** a `paper_sunk` band with a line on top and columns split by 1dp lines. The number is mono (26 for the hero, 22 for the rest); the label is `Label` 11.
-   - Queuer card: est. wait · in line · now serving.
-   - Upcoming card: opens · joined early.
-   - Organizer card: waiting · served · no-shows.
-   - Paused card: one line, "No new joins since 10:05 AM · 12 in line", on a dashed rule.
-
-Faded cards (Paused, Closed) get a transparent fill, a 1dp dashed `outline` edge, the title in `ink_muted`, and the footer on paper with a dashed rule.
+**Queue card (v6): a catalogue card.** Like an old library catalogue card, laid on the table by hand. Same card on Browse and on the organizer's Queues tab.
+- **Card:** `index_card` (whiter than `paper_raised`, so it lifts off the vintage ground), a 1dp `index_card_edge`, `radius_index_card` (3dp), 2dp elevation, 16dp between cards. The card stock texture on top. Each card is turned a fraction of a degree (−0.5°, 0.4°, −0.3°, 0.5° in turn; `QueueAdapter`).
+- **Top line:** the category and the queue's number in `Label`, `ink_faint` ("RELIEF · NO. 001"). At the end, the status as a small rubber stamp (`Widget.Quapp.Stamp.Small`, tilted −5°, double-ruled outline): OPEN `ok`, PAUSED `warn` (with the time, for organizers), UPCOMING and CLOSED `ink_muted`.
+- **Name:** `Title` (DM Serif 22), `ink_muted` when paused or closed, with the verified badge after it. Under it a thin double `crema` rule (`bg_double_rule`).
+- **Details, one per ruled line** (`view_card_row`: the label in `ink_muted` on the left, the value on the right, a faint roast hairline under it):
+  - Where: the venue, plus "Within 1 km" when a radius applies.
+  - What: the one-line description (hidden when there's none).
+  - When: the schedule in mono ("Day 1 of 2 · 8 AM – 8 PM"), or "Closes in 40 min" in `warn`.
+  - Wait (queuers): "55 min · 42 in line · serving #21" in mono. Paused: "Paused since 10:05 AM · 12 in line". Closed: "Closed at 4 PM". Upcoming: the label is Opens, "1 PM · 5 joined early".
+  - Today (organizers): "42 waiting · 18 served · 3 no-shows". Closed: "Closed at 4 PM · 45 served".
+- **Hole:** a 10dp punched hole at the bottom centre (`bg_card_hole`).
 
 **Status pills.** 24dp, pill shape, `Label` type, with a 6dp dot or a 14dp icon. Colours as in section 2.
 
@@ -335,7 +336,7 @@ Faded cards (Paused, Closed) get a transparent fill, a 1dp dashed `outline` edge
 - Put marigold on paper, or use it for anything but called / now serving.
 - Use crema for text on paper.
 - Set DM Serif below 20sp or bold.
-- Put gradients or shadows on cards, or make a texture strong enough to notice before the content.
-- Add stains, torn edges or sepia. It's clean new ticket stock.
+- Put gradients on cards, or shadows on anything but the queue cards (they're cards laid on a table).
+- Add torn edges or sepia. The ground is old paper, but the things on it (cards, tickets, buttons) are clean new stock.
 - Give Upcoming and Paused the same colour.
 - Add a ticket detail where section 5 doesn't list one.

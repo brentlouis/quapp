@@ -215,6 +215,16 @@
         <item name="android:maxLines">1</item>
     </style>
 
+    <!-- The stamp on a queue card: smaller, and tilted about its centre -->
+    <style name="Widget.Quapp.Stamp.Small">
+        <item name="android:paddingStart">@dimen/space_sm</item>
+        <item name="android:paddingEnd">@dimen/space_sm</item>
+        <item name="android:paddingTop">@dimen/space_xs</item>
+        <item name="android:paddingBottom">@dimen/space_xs</item>
+        <item name="android:textAppearance">?attr/textAppearanceLabelSmall</item>
+        <item name="android:rotation">-5</item>
+    </style>
+
     <!-- Tear-off stub dock: raised paper with notched top corners, where you're handed a number.
          The background is set in code (TicketShapes.stubDockBackground). -->
     <style name="Widget.Quapp.Dock.Stub">
