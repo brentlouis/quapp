@@ -13,7 +13,7 @@ from sqlalchemy.orm import Session
 from app.database import get_db
 from app.enums import UserStatus
 from app.errors import ApiError
-from app.models import Token, User
+from app.models import Queue, Token, User
 from app.schemas import UserOut
 
 # Reads "Authorization: Bearer <token>". auto_error=False: a missing header gives our own
@@ -47,3 +47,20 @@ def current_user(token: Token = Depends(current_token), db: Session = Depends(ge
         db.commit()
         raise suspended_error(user)
     return user
+
+
+def queue_or_404(db: Session, queue_id: str) -> Queue:
+    queue = db.get(Queue, queue_id)
+    if queue is None:
+        raise ApiError(404, "QUEUE_NOT_FOUND", "That queue doesn't exist.")
+    return queue
+
+
+def owned_queue(queue_id: str, user: User = Depends(current_user),
+                db: Session = Depends(get_db)) -> Queue:
+    """For organizer-only endpoints: the queue in the path, if the caller runs it.
+    `queue_id` comes from the path (/queues/{queue_id}/pause)."""
+    queue = queue_or_404(db, queue_id)
+    if queue.organizer_id != user.id:
+        raise ApiError(403, "NOT_OWNER", "Only the queue's organizer can do that.")
+    return queue

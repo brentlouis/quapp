@@ -11,7 +11,7 @@ from sqlalchemy.orm import Session
 
 from app import timeutil
 from app.enums import Category, QueueStatus, TicketStatus
-from app.models import Queue, Ticket, User
+from app.models import Queue, Ticket, Token, User
 
 _phones = count(1)
 
@@ -77,3 +77,11 @@ def make_ticket(db: Session, queue: Queue, user: User | None = None, **fields) -
     db.flush()
     return ticket
 
+
+
+def sign_in(db: Session, user: User) -> dict:
+    """Headers for a request as `user`: a token row, as if they'd logged in."""
+    token = Token(token=f"token-{user.id}", user_id=user.id)
+    db.add(token)
+    db.flush()
+    return {"Authorization": f"Bearer {token.token}"}

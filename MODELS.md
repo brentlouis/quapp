@@ -55,7 +55,7 @@ What a queue is, when it runs, what checks it uses, and its live numbers.
 | endDate | `end_date` | LocalDate | |
 | opensAt | `opens_at` | LocalTime | Same hours every day of the run |
 | closesAt | `closes_at` | LocalTime | Extending closing time changes this |
-| status | `status` | Queue.Status | Server moves UPCOMING → OPEN → CLOSED on schedule |
+| status | `status` | Queue.Status | Server moves UPCOMING → OPEN → CLOSED on schedule. On a multi-day queue, each day's live tickets are released as QUEUE_CLOSED at that day's closing time; the queue stays OPEN between days |
 | pausedAt | `paused_at` | Instant? | "No new joins since 10:05 AM" |
 | closedAt | `closed_at` | Instant? | "Closed at 10:00 AM" |
 | gracePeriodEnabled | `grace_period_enabled` | boolean | Presence confirmation, 3 min |
@@ -213,7 +213,11 @@ Every error has the same JSON body, so the app can pick a message by `error` wit
 | 403 | `SUSPENDED` | Login, or any signed-in call, by a suspended user | `suspended_reason`, `suspended_at` |
 | 409 | `PHONE_TAKEN` | Register with a phone that has an account | |
 | 409 | `DEVICE_LIMIT` | Register a third account on one install | |
-| 422 | `INVALID_INPUT` | A field fails validation (bad phone, short password, missing field) | `fields`: `{"phone": "…"}` |
+| 422 | `INVALID_INPUT` | A field fails validation (bad phone, short password, missing field, a closing time before the opening time) | `fields`: `{"phone": "…"}` |
+| 404 | `QUEUE_NOT_FOUND` | No queue with that id | |
+| 403 | `NOT_OWNER` | An organizer-only call on someone else's queue | |
+| 409 | `ONE_LIVE_QUEUE` | An unverified organizer opening a second live (open or paused) queue; an upcoming one is allowed | |
+| 409 | `WRONG_STATUS` | A status change that doesn't fit ("Only an open queue can be paused"), or editing a closed queue | |
 
 Later steps add their own codes here (join rules, the one-live-queue limit, …).
 
@@ -229,9 +233,10 @@ Auth is a bearer token from `/auth/login`. "Owner" means the queue's organizer.
 | GET | `/me` | user | the User |
 | GET | `/queues?municipality=&category=&q=` | anyone | Browse: UPCOMING, OPEN, PAUSED (no CLOSED) |
 | GET | `/queues/{id}` | anyone | one Queue |
+| GET | `/me/queues` | user | the organizer's own queues, all statuses: live first, then upcoming, then closed |
 | POST | `/queues` | user | create (unverified: one live queue at a time) |
 | PATCH | `/queues/{id}` | owner | edit details, schedule, checks |
-| POST | `/queues/{id}/pause` · `/resume` · `/close` · `/extend` | owner | status changes; extend takes a new `closes_at` |
+| POST | `/queues/{id}/pause` · `/resume` · `/close` · `/extend` | owner | status changes, each returning the Queue; extend takes a later `closes_at` |
 | GET | `/queues/{id}/stats` | owner | QueueStats |
 | GET | `/queues/{id}/line` | owner | now serving + waiting Tickets (phones masked) |
 | POST | `/queues/{id}/call-next` | owner | marks the current one served, calls the next |

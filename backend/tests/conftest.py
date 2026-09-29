@@ -8,6 +8,7 @@ row the test made is gone.
 """
 
 from collections.abc import Iterator
+from datetime import date, datetime, time
 
 import pytest
 from fastapi.testclient import TestClient
@@ -15,7 +16,7 @@ from sqlalchemy import create_engine
 from sqlalchemy.engine import make_url
 from sqlalchemy.orm import Session
 
-from app import models  # noqa: F401  registers the tables on Base
+from app import models, timeutil  # noqa: F401  models registers the tables on Base
 from app.config import settings
 from app.database import Base, get_db
 from app.main import app
@@ -58,3 +59,36 @@ def client(db: Session) -> Iterator[TestClient]:
     # the real database. The test engine has already made the test tables.
     yield TestClient(app)
     app.dependency_overrides.clear()
+
+
+class Clock:
+    """The time as the server sees it during a test. Starts at 10:00 AM Manila on a fixed
+    day; `clock.set(…)` moves it. Code reads time through app.timeutil, so replacing
+    timeutil.now and timeutil.today is enough."""
+
+    DAY = date(2026, 9, 29)
+
+    def __init__(self):
+        self.moment = datetime.combine(self.DAY, time(10, 0), timeutil.MANILA)
+
+    def set(self, moment: datetime | time) -> None:
+        """A full moment, or just a time of day on the test's day."""
+        if isinstance(moment, time):
+            moment = datetime.combine(self.moment.astimezone(timeutil.MANILA).date(), moment,
+                                      timeutil.MANILA)
+        self.moment = moment
+
+    def now(self) -> datetime:
+        return self.moment
+
+    def today(self) -> date:
+        return self.moment.astimezone(timeutil.MANILA).date()
+
+
+@pytest.fixture(autouse=True)
+def clock(monkeypatch) -> Clock:
+    """Every test runs on the fixed clock, so results don't depend on when pytest runs."""
+    fixed = Clock()
+    monkeypatch.setattr(timeutil, "now", fixed.now)
+    monkeypatch.setattr(timeutil, "today", fixed.today)
+    return fixed

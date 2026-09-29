@@ -10,6 +10,29 @@ from typing import Any
 from fastapi import Request
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
+from pydantic import BaseModel
+
+
+class ErrorOut(BaseModel):
+    """The error body, for /docs. Some errors add fields (MODELS.md "Errors")."""
+
+    error: str
+    message: str
+
+
+_DESCRIPTIONS = {
+    401: "Not signed in (NOT_SIGNED_IN), or wrong number or password (WRONG_CREDENTIALS)",
+    403: "Suspended (SUSPENDED), or not the queue's organizer (NOT_OWNER)",
+    404: "No such queue (QUEUE_NOT_FOUND)",
+    409: "Conflicts with the current state; the error code says which",
+    422: "A field isn't valid (INVALID_INPUT, with fields)",
+}
+
+
+def documented(*statuses: int) -> dict:
+    """The error responses an endpoint can give, so /docs lists them:
+    @router.post(..., responses=documented(401, 409))"""
+    return {status: {"model": ErrorOut, "description": _DESCRIPTIONS[status]} for status in statuses}
 
 
 class ApiError(Exception):

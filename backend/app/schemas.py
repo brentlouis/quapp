@@ -5,12 +5,12 @@ Python field names are already snake_case, so they're the JSON names too.
 """
 
 import re
-from datetime import datetime
+from datetime import date, datetime, time
 from typing import Annotated
 
 from pydantic import BaseModel, ConfigDict, Field, PlainSerializer, field_validator
 
-from app.enums import UserStatus, VerificationStatus
+from app.enums import Category, QueueStatus, UserStatus, VerificationStatus
 from app.security import MAX_PASSWORD_BYTES
 from app.timeutil import MANILA
 
@@ -18,6 +18,9 @@ from app.timeutil import MANILA
 # Postgres hands back UTC; this converts on the way out.
 Moment = Annotated[datetime, PlainSerializer(
     lambda value: value.astimezone(MANILA).isoformat(timespec="seconds"), return_type=str)]
+
+# A time of day, sent as "08:00" (MODELS.md conventions); Pydantic's default is "08:00:00"
+ClockTime = Annotated[time, PlainSerializer(lambda value: value.strftime("%H:%M"), return_type=str)]
 
 # Philippine mobile numbers: 09 and nine more digits (Validation.java)
 PH_MOBILE = re.compile(r"^09\d{9}$")
@@ -102,3 +105,126 @@ class AuthOut(BaseModel):
 
     token: str
     user: UserOut
+
+
+# ---- Queues -------------------------------------------------------------------
+
+class QueueOut(Out):
+    """MODELS.md "Queue", in its order. The last five aren't columns: routers/queues.py fills
+    them in (organizer from the users table, the live numbers from tickets)."""
+
+    id: str
+    organizer_id: str
+    organizer_name: str
+    organizer_verified: bool
+    name: str
+    category: Category
+    short_description: str
+    details: str | None
+    bring: str | None
+    venue: str
+    municipality: str
+    latitude: float
+    longitude: float
+    start_date: date
+    end_date: date
+    opens_at: ClockTime
+    closes_at: ClockTime
+    status: QueueStatus
+    paused_at: Moment | None
+    closed_at: Moment | None
+    grace_period_enabled: bool
+    no_show_cooldown_enabled: bool
+    proximity_check_enabled: bool
+    join_radius_meters: int
+    people_waiting: int
+    now_serving: int | None
+    estimated_wait_minutes: int
+
+
+def _stripped(value: str | None) -> str | None:
+    """Trim spaces; an empty optional text becomes null."""
+    if value is None:
+        return None
+    value = value.strip()
+    return value or None
+
+
+class QueueIn(BaseModel):
+    """Create Queue. Each field on its own is checked here; how they fit together (dates in
+    order, the radius matching the check) is checked in routers/queues.py, so the error can
+    name the field to fix."""
+
+    name: str = Field(min_length=1, max_length=80)
+    category: Category
+    short_description: str = Field(min_length=1, max_length=50)
+    details: str | None = Field(default=None, max_length=1000)
+    bring: str | None = Field(default=None, max_length=200)
+    venue: str = Field(min_length=1, max_length=120)
+    municipality: str = Field(min_length=1, max_length=60)
+    latitude: float = Field(ge=-90, le=90)
+    longitude: float = Field(ge=-180, le=180)
+    start_date: date
+    end_date: date
+    opens_at: time
+    closes_at: time
+    grace_period_enabled: bool = False
+    no_show_cooldown_enabled: bool = False
+    proximity_check_enabled: bool = False
+    join_radius_meters: int = 0
+
+    @field_validator("name", "short_description", "venue", "municipality")
+    @classmethod
+    def required_text(cls, value: str) -> str:
+        value = value.strip()
+        if not value:
+            raise ValueError("Fill this in.")
+        return value
+
+    @field_validator("details", "bring")
+    @classmethod
+    def optional_text(cls, value: str | None) -> str | None:
+        return _stripped(value)
+
+
+class QueuePatch(BaseModel):
+    """Edit Queue: every field optional; only the ones sent change."""
+
+    name: str | None = Field(default=None, min_length=1, max_length=80)
+    category: Category | None = None
+    short_description: str | None = Field(default=None, min_length=1, max_length=50)
+    details: str | None = Field(default=None, max_length=1000)
+    bring: str | None = Field(default=None, max_length=200)
+    venue: str | None = Field(default=None, min_length=1, max_length=120)
+    municipality: str | None = Field(default=None, min_length=1, max_length=60)
+    latitude: float | None = Field(default=None, ge=-90, le=90)
+    longitude: float | None = Field(default=None, ge=-180, le=180)
+    start_date: date | None = None
+    end_date: date | None = None
+    opens_at: time | None = None
+    closes_at: time | None = None
+    grace_period_enabled: bool | None = None
+    no_show_cooldown_enabled: bool | None = None
+    proximity_check_enabled: bool | None = None
+    join_radius_meters: int | None = None
+
+    @field_validator("name", "short_description", "venue", "municipality")
+    @classmethod
+    def required_text(cls, value: str | None) -> str | None:
+        if value is None:
+            return None
+        value = value.strip()
+        if not value:
+            raise ValueError("Fill this in.")
+        return value
+
+    @field_validator("details", "bring")
+    @classmethod
+    def optional_text(cls, value: str | None) -> str | None:
+        return _stripped(value)
+
+
+class ExtendIn(BaseModel):
+    """Extend closing time: the new closing time for today (the queue's last day)."""
+
+    closes_at: time

@@ -8,7 +8,7 @@ from sqlalchemy.orm import Session
 from app.database import get_db
 from app.deps import current_token, current_user, suspended_error
 from app.enums import UserStatus
-from app.errors import ApiError
+from app.errors import ApiError, documented
 from app.models import Token, User
 from app.schemas import AuthOut, LoginIn, RegisterIn, UserOut
 from app.security import check_password, hash_password, new_token
@@ -27,7 +27,8 @@ def sign_in(db: Session, user: User) -> AuthOut:
     return AuthOut(token=token.token, user=UserOut.model_validate(user))
 
 
-@router.post("/auth/register", response_model=AuthOut, status_code=201)
+@router.post("/auth/register", response_model=AuthOut, status_code=201,
+             responses=documented(409, 422))
 def register(body: RegisterIn, db: Session = Depends(get_db)) -> AuthOut:
     if db.scalar(select(User.id).where(User.phone == body.phone)):
         raise ApiError(409, "PHONE_TAKEN", "That number already has an account. Log in instead.")
@@ -51,7 +52,7 @@ def register(body: RegisterIn, db: Session = Depends(get_db)) -> AuthOut:
     return sign_in(db, user)
 
 
-@router.post("/auth/login", response_model=AuthOut)
+@router.post("/auth/login", response_model=AuthOut, responses=documented(401, 403, 422))
 def login(body: LoginIn, db: Session = Depends(get_db)) -> AuthOut:
     user = db.scalar(select(User).where(User.phone == body.phone))
     # The same answer for an unknown phone and a wrong password, so login can't be used to
@@ -64,13 +65,13 @@ def login(body: LoginIn, db: Session = Depends(get_db)) -> AuthOut:
     return sign_in(db, user)
 
 
-@router.post("/auth/logout", status_code=204)
+@router.post("/auth/logout", status_code=204, responses=documented(401))
 def logout(token: Token = Depends(current_token), db: Session = Depends(get_db)) -> Response:
     db.delete(token)
     db.commit()
     return Response(status_code=204)
 
 
-@router.get("/me", response_model=UserOut)
+@router.get("/me", response_model=UserOut, responses=documented(401, 403))
 def me(user: User = Depends(current_user)) -> User:
     return user

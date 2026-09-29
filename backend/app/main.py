@@ -17,7 +17,7 @@ from sqlalchemy.orm import Session
 from app import models  # noqa: F401  imported so every table is registered on Base
 from app.database import Base, engine, get_db
 from app.errors import ApiError, api_error_handler, validation_error_handler
-from app.routers import auth
+from app.routers import auth, queues
 
 
 @asynccontextmanager
@@ -35,6 +35,7 @@ app.add_exception_handler(ApiError, api_error_handler)
 app.add_exception_handler(RequestValidationError, validation_error_handler)
 
 app.include_router(auth.router)
+app.include_router(queues.router)
 
 
 @app.get("/health")
