@@ -11,7 +11,10 @@ Before changing anything structural, read `DECISIONS.md` — it records why thin
 - Layouts are hand-written XML. Never produce visual-editor-style output (`tools:` leaks, absolute positioning, conflicting constraints).
 
 ## UI conventions
-Follow `DESIGN.md` for how things look, and `.claude/skills/android-ui-design/SKILL.md` for how layouts are built. Project-specific rules on top of both:
+Follow `DESIGN.md` for how things look. Design reviews and colour/type/layout passes use the `impeccable` skill (critique snapshots in `.impeccable/critique/`). Rules for building layouts:
+- Material components over framework widgets (`MaterialButton`, `TextInputLayout`, `MaterialCardView`, `MaterialSwitch`, `Snackbar`).
+- Every tappable thing is at least 48 × 48dp (`@dimen/touch_target_min`); every `ImageView` / `ImageButton` has a `contentDescription`, or `importantForAccessibility="no"` when decorative.
+- No raw hex, `px` or literal text in layouts; hierarchies stay under 4 levels.
 - Colors: `?attr/` roles in layouts. The spotlight (espresso ticket) gets its colours from `ThemeOverlay.Quapp.Spotlight` on the view, not per-child overrides. Exceptions that stay `@color/`: status colours (`ok`, `warn`, `err` and their `_soft` grounds), `crema` tear lines, and `signal` (marigold, only inside the spotlight).
 - Spacing: only `@dimen/space_xs|sm|ms|md|lg|xl` (4/8/12/16/24/32dp). 16dp screen edge margin and card padding, 12dp between cards.
 - Type: `?attr/textAppearance*` only, including the custom `textAppearanceTicketNumber`, `textAppearanceStat` and `textAppearanceStatHero`. No `textSize`, no text sizes in `dimens.xml`. Ticket numbers are serif; anything that counts or ticks is mono.

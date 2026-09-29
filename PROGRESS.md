@@ -36,7 +36,7 @@ Team: 2 people. Brent builds the remaining screens and backend, and wires them. 
 - [ ] Add teammate as collaborator; he clones and builds successfully
 - [ ] Agree on branch naming (`feature/<screen>`) and pull-request flow into `main`
 - [ ] Agree on string naming (prefix by screen)
-- [ ] `CLAUDE.md`, `DECISIONS.md`, `PROGRESS.md`, and `.claude/skills/android-ui-design/` committed to repo root
+- [ ] `CLAUDE.md`, `DECISIONS.md`, `PROGRESS.md` and `DESIGN.md` committed to repo root
 - [ ] Decide: `QueueRepository` interface in front of `FakeData`? (see Open questions in DECISIONS)
 - [ ] Write partner's UI-polish scope rules (what he may and may not touch)
 - [ ] Agree who owns `themes.xml`, `colors.xml`, `dimens.xml` during polish
