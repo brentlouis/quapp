@@ -25,6 +25,13 @@ from app.main import app
 TEST_DATABASE_URL = make_url(settings.database_url).set(
     database=f"{make_url(settings.database_url).database}_test")
 
+# The tests drop every table, so they only ever run on this PC's Postgres. With .env pointing
+# at a hosted database (Neon), stop before touching it.
+if TEST_DATABASE_URL.host not in ("localhost", "127.0.0.1"):
+    pytest.exit(f"The tests run on the local Postgres only, and DATABASE_URL points at "
+                f"{TEST_DATABASE_URL.host}. Point .env back at localhost to run them.",
+                returncode=2)
+
 
 @pytest.fixture(scope="session")
 def engine():
