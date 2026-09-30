@@ -13,8 +13,8 @@ services:
     # proxy in front of it speaks plain http to it), so the admin cookie can be Secure.
     startCommand: uvicorn app.main:app --host 0.0.0.0 --port $PORT --proxy-headers --forwarded-allow-ips "*"
     healthCheckPath: /health
-    # Redeploy on every push to this branch
-    branch: master
+    # Redeploy on every push to this branch (switch to master once the feature branch is merged)
+    branch: feature/civic-paper-foundations
     autoDeploy: true
     envVars:
       # Neon's connection string. sync: false means Render asks for it when the Blueprint is

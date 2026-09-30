@@ -389,7 +389,7 @@ One screen at a time, in this order, each one working before the next.
 3. **Render:** sign up at render.com with GitHub, then New > Blueprint and pick the `quapp` repo. Render reads `render.yaml` and asks for `DATABASE_URL`: paste the Neon string. The first build takes a few minutes; then `https://quapp-api.onrender.com/health` answers `{"status": "ok"}` (the name may differ if it's taken).
 4. **The app:** `quapp.apiUrl=https://quapp-api.onrender.com/` in `local.properties`, then build the release APK.
 5. **The admin page:** the same address plus `/admin`, signed in as the seeded admin account.
-- Render deploys `master`. Merge the feature branch first, or change `branch:` in `render.yaml`.
+- Render deploys the branch named in `render.yaml` (`feature/civic-paper-foundations` for now); change it to `master` after merging.
 - Reseeding later is step 2 again. `seed.py` wipes the demo data, so don't run it once real people are using it.
 
 **On the PC** (for development, or a demo without internet on the server side):
