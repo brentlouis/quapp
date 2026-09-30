@@ -1,0 +1,23 @@
+# Render Blueprint: how Render builds and runs the Quapp API (DECISIONS.md "Hosting: Render
+# and Neon"). On render.com: New > Blueprint, pick this repo, and Render reads this file.
+services:
+  - type: web
+    name: quapp-api
+    runtime: python
+    plan: free
+    # Only backend/ is the server; the Android app next to it is ignored
+    rootDir: backend
+    buildCommand: pip install -r requirements.txt
+    # $PORT is the port Render tells the server to use. --proxy-headers with
+    # --forwarded-allow-ips lets the server see that the phone connected over https (Render's
+    # proxy in front of it speaks plain http to it), so the admin cookie can be Secure.
+    startCommand: uvicorn app.main:app --host 0.0.0.0 --port $PORT --proxy-headers --forwarded-allow-ips "*"
+    healthCheckPath: /health
+    # Redeploy on every push to this branch
+    branch: master
+    autoDeploy: true
+    envVars:
+      # Neon's connection string. sync: false means Render asks for it when the Blueprint is
+      # created; it's a secret, so it's typed into Render, never committed here.
+      - key: DATABASE_URL
+        sync: false

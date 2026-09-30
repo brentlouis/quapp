@@ -1,12 +1,24 @@
 """The server's settings, read from backend/.env (and from real environment variables,
 which win over the file). Anything secret or machine-specific lives here, never in code."""
 
+from pydantic import field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
 class Settings(BaseSettings):
     # e.g. postgresql+psycopg://postgres:secret@localhost:5432/quapp
     database_url: str
+
+    @field_validator("database_url")
+    @classmethod
+    def use_psycopg(cls, url: str) -> str:
+        """Hosts like Neon hand out "postgresql://…", which SQLAlchemy reads as "use the
+        psycopg2 driver". Quapp uses psycopg 3, so the address is pointed at it here and
+        can be pasted from the host unchanged."""
+        for prefix in ("postgresql://", "postgres://"):
+            if url.startswith(prefix):
+                return "postgresql+psycopg://" + url[len(prefix):]
+        return url
 
     # .env is found relative to where uvicorn is started: run it from backend/.
     # extra="ignore" lets .env hold settings later steps add before this class knows them.

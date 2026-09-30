@@ -1354,6 +1354,20 @@ The organizer line on Queue detail opens the badge sheet (52) for both verified 
 
 ---
 
+## Hosting: Render and Neon
+
+**Decision:** The API runs on Render's free web service, and the database on Neon's free Postgres. `render.yaml` in the repo root describes the service (build, start command, health check, the one secret); Render redeploys on every push to `master`. The database address is the only setting, pasted into Render as `DATABASE_URL`; the server points Neon's `postgresql://` address at psycopg 3 itself (`config.py`). The tables are made at startup by `create_all`, and the demo data by running `seed.py` once against Neon from the PC. The app's `quapp.apiUrl` is the Render address, so a released APK keeps working.
+
+**Why:** A permanent https address without buying a domain or keeping the PC on. Render runs Python straight from `requirements.txt`, so there's nothing new to explain (no Docker). The backend has no background jobs (the schedule refresh is lazy), so a server that sleeps loses nothing: the first request after waking brings every queue up to date. Neon wakes by itself in about a second, where Supabase's free projects pause after a week unused.
+
+**Also considered:** The PC with a tunnel (ngrok's free fixed address, Tailscale Funnel, or a named Cloudflare tunnel with a domain): free, but down whenever the PC is. Render's own Postgres (deleted about a month after it's made). Supabase for the database (fine, but pauses). A VPS (all the upkeep is ours). Docker (only needed by hosts that take images).
+
+**Known limits:** Render's free server sleeps after 15 minutes without requests, and the first request after that takes 30 to 60 seconds; open the app a minute before a demo. Anything written to the server's disk is lost on redeploy (Quapp writes nothing there). Tests never run against Neon: they drop every table.
+
+**Status:** Current. Answers BACKEND.md's hosting question (step 11.1).
+
+---
+
 ## Known compromises
 
 Deliberate shortcuts, not oversights. Each has a planned fix.

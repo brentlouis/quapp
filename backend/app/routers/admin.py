@@ -66,7 +66,8 @@ def login_page(request: Request, error: str = ""):
 
 
 @router.post("/login")
-def login(phone: str = Form(...), password: str = Form(...), db: Session = Depends(get_db)):
+def login(request: Request, phone: str = Form(...), password: str = Form(...),
+          db: Session = Depends(get_db)):
     user = db.scalar(select(User).where(User.phone == normalize_phone(phone)))
     if (user is None or not check_password(password, user.password_hash)
             or not user.is_admin or user.status != UserStatus.ACTIVE):
@@ -75,7 +76,10 @@ def login(phone: str = Form(...), password: str = Form(...), db: Session = Depen
     db.add(token)
     db.commit()
     response = back_to("/admin/verifications")
-    response.set_cookie(COOKIE, token.token, httponly=True, samesite="lax", max_age=12 * 3600)
+    # Secure: over https (Render), the browser only ever sends the cookie encrypted. On the PC
+    # (plain http) it can't be, or the browser would never send it back.
+    response.set_cookie(COOKIE, token.token, httponly=True, samesite="lax", max_age=12 * 3600,
+                        secure=request.url.scheme == "https")
     return response
 
 

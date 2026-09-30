@@ -4,6 +4,8 @@
 
 --host 0.0.0.0 listens on every network interface, so a phone can reach it, not just this PC.
 --reload restarts on every saved change; leave it off for the demo.
+
+On Render the start command is in render.yaml (repo root), with the port Render picks.
 """
 
 from collections.abc import AsyncIterator

@@ -382,6 +382,17 @@ One screen at a time, in this order, each one working before the next.
 ## Phase 11: The demo
 
 ### Step 11.1: Running it for real
+
+**Hosted (Render + Neon), the way to release** (DECISIONS.md "Hosting: Render and Neon"):
+1. **Neon:** sign up at neon.tech, create a project (region: Singapore, closest to Bohol) with a database named `quapp`. Copy the connection string from the dashboard. Use the direct one (the host without `-pooler`), with `?sslmode=require` on the end.
+2. **Fill it once from the PC:** in PowerShell, from `backend/`, `$env:DATABASE_URL = "<the Neon string>"; .venv\Scripts\python seed.py`. The environment variable wins over `.env`, so your local database is untouched. Close that terminal afterwards.
+3. **Render:** sign up at render.com with GitHub, then New > Blueprint and pick the `quapp` repo. Render reads `render.yaml` and asks for `DATABASE_URL`: paste the Neon string. The first build takes a few minutes; then `https://quapp-api.onrender.com/health` answers `{"status": "ok"}` (the name may differ if it's taken).
+4. **The app:** `quapp.apiUrl=https://quapp-api.onrender.com/` in `local.properties`, then build the release APK.
+5. **The admin page:** the same address plus `/admin`, signed in as the seeded admin account.
+- Render deploys `master`. Merge the feature branch first, or change `branch:` in `render.yaml`.
+- Reseeding later is step 2 again. `seed.py` wipes the demo data, so don't run it once real people are using it.
+
+**On the PC** (for development, or a demo without internet on the server side):
 - On the desktop: Postgres running, and `uvicorn app.main:app --host 0.0.0.0 --port 8000` without `--reload`.
 - Phones on mobile data reach it through a Cloudflare quick tunnel: `cloudflared tunnel --url http://localhost:8000` prints an `https://….trycloudflare.com` address. Put it in `local.properties` as `quapp.apiUrl=https://….trycloudflare.com/` (the trailing slash matters to Retrofit), then build and install again: the address is baked into the app at build time (`BuildConfig.API_URL`). A quick tunnel gets a new address every time `cloudflared` starts, so each restart means a rebuild; a named tunnel keeps one address. The admin page is the same address plus `/admin`.
 - The emulator and a phone on USB can skip the tunnel: leave `quapp.apiUrl` out and run `adb reverse tcp:8000 tcp:8000`.
