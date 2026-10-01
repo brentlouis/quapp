@@ -5,6 +5,10 @@ services:
     name: quapp-api
     runtime: python
     plan: free
+    # Next to the Neon database (aws ap-southeast-1, Singapore). Every request makes several
+    # database queries, and each one would otherwise cross the Pacific from Render's default
+    # region (Oregon): about 170 ms each. A region can't be changed after a service is made.
+    region: singapore
     # Only backend/ is the server; the Android app next to it is ignored
     rootDir: backend
     buildCommand: pip install -r requirements.txt
