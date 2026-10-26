@@ -7,7 +7,7 @@ Before changing anything structural, read `DECISIONS.md` — it records why thin
 ## Stack — don't deviate
 - Native Android, **Java + XML views**. Min SDK 24. **No Kotlin, no Compose**, no cross-platform frameworks.
 - Material Components (`com.google.android.material`), Material 3 theme. Light theme only (no `values-night`).
-- Backend: FastAPI + Retrofit on the client. No Room/SQLite. The server is in `backend/`. Since Oct 26 the app is the teammate's version and still reads `FakeData`; it's being reconnected to the server (DECISIONS.md "Build from the teammate's app").
+- Backend: FastAPI + Retrofit on the client. No Room/SQLite. Data comes from the server in `backend/` (`ApiClient`, `QuappApi`, `Repository`, `ActiveTicketStore`, `MyQueues`). `FakeData` remains only for the teammate's tools the server doesn't have yet (counters, announcements, lookup, handover, appointments, staff); see DECISIONS.md "Reconnecting the teammate's app".
 - Layouts are hand-written XML. Never produce visual-editor-style output (`tools:` leaks, absolute positioning, conflicting constraints).
 
 ## UI conventions

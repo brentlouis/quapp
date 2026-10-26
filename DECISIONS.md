@@ -1578,3 +1578,17 @@ Confirmed decision: future renovation scope is Browse, My Tickets and Profile, p
 **Also considered:** Restoring Civic Paper's colour, theme and type files on top of his screens.
 
 **Status:** Current. Supersedes "Civic Paper direction (Sep 28)" for colour and type; the colour names in `colors.xml` (`spotlight`, `signal`, `crema`) stay as aliases so code didn't have to change.
+
+---
+
+## Reconnecting the teammate's app (Oct 26)
+
+**Decision:** The three commits that moved our old app onto the server (`bc79bcf`, `7ad0feb`, `3cac097`) were replayed onto his screens, keeping his structure wherever it was the better one: his loading / empty / error flows (`LoadingStateHelper`), his sign-in forms, his "Arrival confirmed" Called screen (now read from the ticket's `here_at`). `Repository` gives his async screens the same callback shape they had with FakeData, backed by the server.
+
+What still runs on `FakeData` (kept for these only): counters, announcements, ticket lookup, handover, appointments, staff, "my reports", and the Profile updates page. Their console entries only appear for local queues, so on server queues they're hidden rather than broken. The debug slow-response switch in Profile only affects that local data.
+
+**Why:** It keeps everything the server already does working on his screens, without inventing server features nobody has designed. Those tools need their contracts in MODELS.md first (CLAUDE.md: change the contract there first, and propose it).
+
+**Also considered:** Deleting his FakeData-only tools until the server has them (loses his work for the demo); faking them on the server side without a contract.
+
+**Status:** Current. Compiles and unit tests pass; not yet run on a device (Brent's PC crashed Oct 26). Supersedes the line in "App on the server, batches 3 and 4" that says FakeData is deleted.
