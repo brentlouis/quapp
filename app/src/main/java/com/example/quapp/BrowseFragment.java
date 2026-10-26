@@ -67,6 +67,16 @@ public class BrowseFragment extends Fragment implements QueueAdapter.OnQueueClic
     @Nullable private Instant lastSuccessfulRefresh;
     @Nullable private Snackbar refreshErrorSnackbar;
 
+    /** The "You're in line" banner follows the tickets as they sync, from the queues already loaded. */
+    private final Runnable ticketsChanged = new Runnable() {
+        @Override
+        public void run() {
+            if (getView() != null && cachedQueues != null) {
+                renderWithData(cachedQueues);
+            }
+        }
+    };
+
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container,
                              @Nullable Bundle savedInstanceState) {
@@ -139,13 +149,20 @@ public class BrowseFragment extends Fragment implements QueueAdapter.OnQueueClic
         });
     }
 
-    /** Coming back from Queue detail, Join or the ticket screen. */
+    /** Coming back from Queue detail, Join or the ticket screen: the lines have moved since. */
     @Override
     public void onResume() {
         super.onResume();
         QuappMotion.buttons(requireView());
         QuappMotion.list(list);
+        ActiveTicketStore.addListener(ticketsChanged);
         refresh();
+    }
+
+    @Override
+    public void onPause() {
+        super.onPause();
+        ActiveTicketStore.removeListener(ticketsChanged);
     }
 
     /** Coming back from another tab. */
@@ -312,13 +329,16 @@ public class BrowseFragment extends Fragment implements QueueAdapter.OnQueueClic
         }
 
         isRequestInFlight = true;
-        FakeData.getQueuesAsync(new FakeData.Callback<List<Queue>>() {
+        // Search, town and category are applied here in the app (QueueFilter), so typing
+        // doesn't wait for the network.
+        ApiClient.api(requireContext()).queues().enqueue(new ApiCallback<List<Queue>>(requireActivity()) {
             @Override
-            public void onSuccess(List<Queue> all) {
+            protected void onSuccess(@Nullable List<Queue> all) {
                 isRequestInFlight = false;
-                if (getView() == null) {
+                if (getView() == null || all == null) {
                     return;
                 }
+                Queues.putAll(all);
                 cachedQueues = all;
                 lastSuccessfulRefresh = Instant.now();
                 dismissRefreshError();
@@ -326,13 +346,14 @@ public class BrowseFragment extends Fragment implements QueueAdapter.OnQueueClic
             }
 
             @Override
-            public void onError(Throwable error) {
+            protected void onError(@NonNull ApiError error) {
                 isRequestInFlight = false;
                 if (getView() == null) {
                     return;
                 }
                 if (cachedQueues == null) {
-                    loadingStateHelper.showError(getString(R.string.error_default_message));
+                    loadingStateHelper.showError(error.is(ApiError.OFFLINE)
+                            ? getString(R.string.api_offline) : error.message);
                     list.setVisibility(View.GONE);
                     emptyState.setVisibility(View.GONE);
                 } else {

@@ -48,7 +48,7 @@ public class SavedServicesActivity extends AppCompatActivity {
         findViewById(R.id.saved_clear).setVisibility(any ? View.VISIBLE : View.GONE);
         if (!any) { state.showEmpty(); return; }
         state.showLoading(getString(R.string.loading_queues));
-        FakeData.getQueuesAsync(new FakeData.Callback<List<Queue>>() {
+        Repository.queues(this, new Repository.Callback<List<Queue>>() {
             @Override public void onSuccess(List<Queue> queues) {
                 if (isFinishing() || isDestroyed()) return;
                 Set<String> ids = saved.ids();
@@ -57,8 +57,8 @@ public class SavedServicesActivity extends AppCompatActivity {
                 adapter.submitQueues(result);
                 if (result.isEmpty()) state.showEmpty(); else state.showContent();
             }
-            @Override public void onError(Throwable error) {
-                if (!isFinishing() && !isDestroyed()) state.showError(getString(R.string.error_default_message));
+            @Override public void onError(ApiError error) {
+                if (!isFinishing() && !isDestroyed()) state.showError(Repository.message(SavedServicesActivity.this, error));
             }
         });
     }

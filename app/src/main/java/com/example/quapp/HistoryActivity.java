@@ -4,6 +4,8 @@ import android.os.Bundle;
 import android.view.View;
 import android.widget.LinearLayout;
 
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
@@ -76,10 +78,11 @@ public class HistoryActivity extends AppCompatActivity {
             emptyView.setVisibility(View.GONE);
         }
 
-        FakeData.getHistoryAsync(new FakeData.Callback<List<Ticket>>() {
+        // The account's finished tickets (served, released, closed, removed), newest first
+        ApiClient.api(this).myTickets(false).enqueue(new ApiCallback<List<Ticket>>(this) {
             @Override
-            public void onSuccess(List<Ticket> tickets) {
-                if (isFinishing() || isDestroyed()) {
+            protected void onSuccess(@Nullable List<Ticket> tickets) {
+                if (isFinishing() || isDestroyed() || tickets == null) {
                     return;
                 }
                 cachedTickets = tickets;
@@ -94,12 +97,13 @@ public class HistoryActivity extends AppCompatActivity {
             }
 
             @Override
-            public void onError(Throwable error) {
+            protected void onError(@NonNull ApiError error) {
                 if (isFinishing() || isDestroyed()) {
                     return;
                 }
                 if (cachedTickets == null) {
-                    loadingStateHelper.showError(getString(R.string.error_default_message));
+                    loadingStateHelper.showError(error.is(ApiError.OFFLINE)
+                            ? getString(R.string.api_offline) : error.message);
                     list.setVisibility(View.GONE);
                     slipView.setVisibility(View.GONE);
                     sectionView.setVisibility(View.GONE);

@@ -55,8 +55,26 @@ public class ProfileFragment extends Fragment {
         content.addView(summary);
         ProfileSettingsActivity.row(content, R.string.saved_title, getString(R.string.profile_saved_count, new SavedServices(requireContext()).ids().size()),
                 () -> startActivity(new Intent(requireContext(), SavedServicesActivity.class))).setId(R.id.profile_saved_row);
-        ProfileSettingsActivity.row(content, R.string.profile_past_visits, getString(R.string.profile_visits_count, FakeData.history().size()),
+        final View visitsRow = ProfileSettingsActivity.row(content, R.string.profile_past_visits, null,
                 () -> startActivity(new Intent(requireContext(), HistoryActivity.class)));
+        if (session.isLoggedIn()) {
+            // The count comes from the server's history; the row works before it arrives
+            Repository.history(requireContext(), new Repository.Callback<java.util.List<Ticket>>() {
+                @Override
+                public void onSuccess(java.util.List<Ticket> history) {
+                    if (isAdded() && history != null) {
+                        ListRow.bind(visitsRow, R.drawable.ic_info, getString(R.string.profile_past_visits),
+                                getString(R.string.profile_visits_count, history.size()));
+                        visitsRow.findViewById(R.id.row_icon).setVisibility(View.GONE);
+                    }
+                }
+
+                @Override
+                public void onError(ApiError error) {
+                    // Quietly keep the row without a count: the profile works without it
+                }
+            });
+        }
         ProfileSettingsActivity.row(content, R.string.p4_appointments, getString(R.string.profile_upcoming_hint), () -> settings("appointments")).setId(R.id.profile_appointments);
         ProfileSettingsActivity.gap(content);
         boolean reduced = ProfilePreferences.get(requireContext()).getBoolean("reduced", false);
@@ -81,7 +99,7 @@ public class ProfileFragment extends Fragment {
             new MaterialAlertDialogBuilder(requireContext()).setTitle(R.string.profile_logout_title)
                     .setMessage(ActiveTicketStore.liveTickets().isEmpty() ? R.string.profile_logout_message : R.string.profile_logout_tickets_warning)
                     .setNegativeButton(R.string.profile_cancel, null).setPositiveButton(R.string.profile_logout_action, (d, w) -> {
-                        ActiveTicketStore.clear(); FakeData.clearHistory(); endServerSession(session); session.logOut(); startActivity(session.homeIntent(requireContext()));
+                        ActiveTicketStore.clear(); Queues.clear(); endServerSession(session); session.logOut(); startActivity(session.homeIntent(requireContext()));
                     }).show();
         });
     }

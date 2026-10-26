@@ -702,8 +702,6 @@ public final class FakeData {
                 .build();
         state.waiting.add(ticket);
         Ticket placed = placed(state, state.waiting.size() - 1);
-        // Registration belongs to issuance, so a destroyed Activity cannot lose the ticket.
-        ActiveTicketStore.add(placed);
         return placed;
     }
 

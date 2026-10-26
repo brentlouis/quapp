@@ -1,34 +1,42 @@
 package com.example.quapp;
 
-import android.os.SystemClock;
+import androidx.annotation.Nullable;
+
+import java.time.Instant;
 
 /**
- * The no-show penalty. Every {@link #NO_SHOW_LIMIT} no-shows on queues that have
- * the penalty turned on starts a cooldown, during which those queues refuse joins.
- * Queues without the penalty ignore it.
+ * The no-show penalty, as the server last reported it (GET /me/cooldown, MODELS.md
+ * "Cooldown"). Every {@link #NO_SHOW_LIMIT} no-shows on queues that have the penalty turned on
+ * start a cooldown, during which those queues refuse joins; queues without the penalty ignore it.
  *
- * In-memory for now — force-closing the app resets it. The backend will own this,
- * keyed by phone number, so it can't be dodged by reinstalling.
+ * The server counts and enforces it (it can't be dodged by reinstalling); this class only keeps
+ * its answer so Queue detail and the ticket outcomes can say so before a join is refused.
+ * ActiveTicketStore refreshes it with the tickets.
  */
 public final class Cooldown {
 
+    /** The server's rule (services/tickets.py STRIKES_FOR_COOLDOWN and COOLDOWN). */
     public static final int NO_SHOW_LIMIT = 2;
-    public static final long DURATION_MS = 30 * 60_000L;
-    public static final int DURATION_MINUTES = (int) (DURATION_MS / 60_000L);
+    public static final int DURATION_MINUTES = 30;
 
-    private static int noShowCount;
-    private static long endsAt; // SystemClock.elapsedRealtime(); 0 = never started
+    @Nullable
+    private static Instant until;
+    private static int strikes;
 
     private Cooldown() {
         // Utility class.
     }
 
-    public static void recordNoShow() {
-        noShowCount++;
-        if (noShowCount >= NO_SHOW_LIMIT) {
-            noShowCount = 0;
-            endsAt = SystemClock.elapsedRealtime() + DURATION_MS;
-        }
+    /** The server's latest answer. */
+    static void update(QuappApi.CooldownState state) {
+        until = state.until;
+        strikes = state.strikes;
+    }
+
+    /** Signing out forgets the last account's penalty. */
+    static void clear() {
+        until = null;
+        strikes = 0;
     }
 
     public static boolean isActive() {
@@ -36,7 +44,7 @@ public final class Cooldown {
     }
 
     public static long remainingMs() {
-        return Math.max(0, endsAt - SystemClock.elapsedRealtime());
+        return until == null ? 0 : Math.max(0, until.toEpochMilli() - System.currentTimeMillis());
     }
 
     /** Rounded up, so "0 min left" never shows while the cooldown is still on. */
@@ -46,6 +54,6 @@ public final class Cooldown {
 
     /** How many more no-shows until the next cooldown starts. */
     public static int noShowsUntilCooldown() {
-        return NO_SHOW_LIMIT - noShowCount;
+        return NO_SHOW_LIMIT - strikes;
     }
 }

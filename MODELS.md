@@ -65,6 +65,9 @@ What a queue is, when it runs, what checks it uses, and its live numbers.
 | peopleWaiting | `people_waiting` | int | Live, server-computed |
 | nowServing | `now_serving` | Integer? | Ticket number being served; null before the first call |
 | estimatedWaitMinutes | `estimated_wait_minutes` | int | For someone joining now |
+| nextTicketNumber | `next_ticket_number` | int | The number the next person to join gets ("You'll be #64") |
+| minutesPerPerson | `minutes_per_person` | double | The estimator's minutes per person today (the rolling average, or 5 before anyone is served) |
+| serviceSampleCount | `service_sample_count` | int | How many service times that average came from ("average of the last 5 served"); 0 means it's the default |
 
 Removed: `serviceHours` (replaced by the schedule), `smsOtpEnabled` (SMS confirmation is future work; the app shows it as PLANNED without a field).
 
@@ -106,6 +109,7 @@ One person's place in one queue.
 | status | `status` | Ticket.Status | |
 | joinedAt | `joined_at` | Instant | History dates, "joined 24 min ago" |
 | calledAt | `called_at` | Instant? | Grace deadline = called_at + 3 min |
+| hereAt | `here_at` | Instant? | When the holder tapped "I'm here". The ticket stays CALLED until the organizer serves it; the app shows it as done |
 | finishedAt | `finished_at` | Instant? | Served, no-show, closed or removed |
 | movedBack | `moved_back` | boolean | Once per ticket |
 | movedBackAt | `moved_back_at` | Instant? | Console: "Moved at 10:05 AM" |
@@ -181,6 +185,28 @@ Anyone reporting a queue. The organizer never sees who reported.
 
 Server only: `reporter_id` (to stop one person flooding reports).
 
+## Cooldown
+
+Where the no-show penalty stands for the signed-in user (`GET /me/cooldown`), so Queue detail and the ticket outcomes can say it before a join is refused.
+
+| Field | JSON | Type | Notes |
+|---|---|---|---|
+| until | `until` | Instant? | When the current cooldown ends; null when there isn't one |
+| strikes | `strikes` | int | Strikes counted toward the next cooldown (0 or 1) |
+| strikeLimit | `strike_limit` | int | Strikes that start a cooldown: 2 |
+| durationMinutes | `duration_minutes` | int | How long a cooldown lasts: 30 |
+
+## Line
+
+What the Live console shows: `GET /queues/{id}/line` and the calling endpoints return it. Holder phones are masked (`0917 ••• 0002`).
+
+| Field | JSON | Type | Notes |
+|---|---|---|---|
+| nowServing | `now_serving` | Ticket? | The CALLED ticket; null when nobody is at the counter |
+| nowServingHereAt | `now_serving_here_at` | Instant? | When they tapped "I'm here" (the console's confirmed state) |
+| nowServingTimedOut | `now_serving_timed_out` | boolean | Grace period on, 3 minutes since the call, no "I'm here". The organizer decides: no-show, or serve anyway. The server marks the no-show itself only when the holder joins the same queue again |
+| waiting | `waiting` | Ticket[] | Today's WAITING tickets in call order |
+
 ## TicketRemoval
 
 An organizer taking someone out of the line, with a reason.
@@ -211,18 +237,21 @@ Auth is a bearer token from `/auth/login`. "Owner" means the queue's organizer.
 | PATCH | `/queues/{id}` | owner | edit details, schedule, checks |
 | POST | `/queues/{id}/pause` · `/resume` · `/close` · `/extend` | owner | status changes; extend takes a new `closes_at` |
 | GET | `/queues/{id}/stats` | owner | QueueStats |
-| GET | `/queues/{id}/line` | owner | now serving + waiting Tickets (phones masked) |
-| POST | `/queues/{id}/call-next` | owner | marks the current one served, calls the next |
-| POST | `/queues/{id}/no-show` | owner | marks the current one no-show, calls the next |
-| POST | `/queues/{id}/walk-ins` | owner | name → Ticket |
-| POST | `/tickets/{id}/remove` | owner | reason → TicketRemoval |
-| POST | `/queues/{id}/tickets` | user | join (checks overlap, cooldown, radius with lat/lng) → Ticket |
+| GET | `/queues/{id}/line` | owner | Line (below): who's at the counter and who's waiting, phones masked |
+| POST | `/queues/{id}/call-next` | owner | marks the one at the counter SERVED (if any), calls the first waiting for today → Line. Open or paused queues only (a paused queue still serves its line) |
+| POST | `/queues/{id}/no-show` | owner | marks the one at the counter NO_SHOW, calls the next → Line. 409 `NOBODY_CALLED` if nobody is at the counter |
+| POST | `/queues/{id}/walk-ins` | owner | `{name}` → Ticket: numbered like a join, no account, no phone, at the back of today's line |
+| POST | `/tickets/{id}/remove` | owner | `{reason}` → TicketRemoval; the ticket becomes REMOVED. Waiting or called tickets only |
+| POST | `/queues/{id}/tickets` | user | join; body `{latitude, longitude, holder_name, holder_phone}`, all optional: the location is needed only when the queue checks proximity, and the holder defaults to the account (Join's Edit, e.g. joining for a parent) → Ticket. Checks, in order: the queue takes joins now, not already in it, cooldown, overlap, radius |
 | GET | `/me/tickets?live=true` | user | My tickets; `live=false` for History |
-| POST | `/tickets/{id}/here` | holder | "I'm here" within the grace window |
-| POST | `/tickets/{id}/move-back` | holder | minutes_needed → Ticket (once) |
-| DELETE | `/tickets/{id}` | holder | leave the queue |
-| POST | `/me/verification` | user | VerificationRequest |
-| POST | `/queues/{id}/reports` | user | Report |
+| GET | `/me/cooldown` | user | Cooldown (below): where the no-show penalty stands |
+| POST | `/tickets/{id}/here` | holder | "I'm here" while CALLED, within 3 minutes of `called_at` when the queue has the grace period → Ticket |
+| POST | `/tickets/{id}/move-back?dry_run=` | holder | `{minutes_needed}` (5, 10, 15, 20, 30 or 45) → Ticket at its new place (once). Waiting or called: a called ticket hands the counter back and rejoins the line. `dry_run=true` returns the same Ticket without saving, for the sheet's preview |
+| GET | `/tickets/{id}` | holder | one of my tickets, with its position and wait now |
+| DELETE | `/tickets/{id}` | holder | leave the queue (waiting or called) → 204. The ticket is deleted: not a no-show, not in history (FakeData.leave) |
+| POST | `/me/verification` | user | `{organization_name, organization_type, position, office_phone}` → VerificationRequest (PENDING); the user's `verification_status` becomes PENDING. After REJECTED or REVOKED you may ask again |
+| GET | `/me/verification` | user | the latest VerificationRequest (Profile's pending card), or null |
+| POST | `/queues/{id}/reports` | user | `{reason, details}` → Report. Once per person per queue; the organizer never learns who |
 | GET/POST | `/admin/...` | admin | web page: verification requests, reports, suspend and revoke |
 
 ---

@@ -11,6 +11,8 @@ import android.view.View;
 import android.widget.TextView;
 
 import androidx.annotation.ColorRes;
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.ContextCompat;
 import androidx.core.view.ViewCompat;
@@ -45,6 +47,16 @@ public class ActiveTicketActivity extends AppCompatActivity {
     private Instant lastSeenAt;
     private LoadingStateHelper loadingStateHelper;
     private boolean isLeaving;
+    /** The ticket wasn't in the store and a sync was asked for; see render(). */
+    private boolean askedServer;
+
+    /** Redraw when a sync brings news: moved up the line, called, served, released. */
+    private final Runnable ticketsChanged = new Runnable() {
+        @Override
+        public void run() {
+            render();
+        }
+    };
 
     public static Intent intent(Context context, String ticketId) {
         Intent intent = new Intent(context, ActiveTicketActivity.class);
@@ -192,15 +204,7 @@ public class ActiveTicketActivity extends AppCompatActivity {
             }
         });
 
-        ticketCard.setOnLongClickListener(new View.OnLongClickListener() {
-            @Override
-            public boolean onLongClick(View view) {
-                ActiveTicketStore.markCalled(ticketId);
-                openCalled();
-                return true;
-            }
-        });
-
+        // The stub's bottom punch is placed from the right edge, so the shape needs the width.
         ticketCard.addOnLayoutChangeListener(new View.OnLayoutChangeListener() {
             @Override
             public void onLayoutChange(View v, int left, int top, int right, int bottom,
@@ -215,6 +219,7 @@ public class ActiveTicketActivity extends AppCompatActivity {
     @Override
     protected void onResume() {
         super.onResume();
+        ActiveTicketStore.addListener(ticketsChanged);
         render();
         connectivity.start(new Connectivity.Listener() {
             @Override
@@ -227,32 +232,31 @@ public class ActiveTicketActivity extends AppCompatActivity {
     @Override
     protected void onPause() {
         super.onPause();
+        ActiveTicketStore.removeListener(ticketsChanged);
         connectivity.stop();
     }
 
+    /**
+     * The store keeps the tickets in step with the server, so this draws from it straight away.
+     * A ticket it doesn't have yet (opened from a notification right after the app started):
+     * loading, one sync, and if it's still not there it was left or dismissed, so the screen closes.
+     */
     private void render() {
         if (isLeaving) {
             return;
         }
+        if (ActiveTicketStore.ticket(ticketId) != null) {
+            loadingStateHelper.showContent();
+            renderInternal();
+            return;
+        }
+        if (askedServer) {
+            finish();
+            return;
+        }
+        askedServer = true;
         loadingStateHelper.showLoading(getString(R.string.loading_ticket_details));
-        FakeData.getQueueByIdAsync(ticketId, new FakeData.Callback<Queue>() {
-            @Override
-            public void onSuccess(Queue q) {
-                if (isFinishing() || isDestroyed()) {
-                    return;
-                }
-                loadingStateHelper.showContent();
-                renderInternal();
-            }
-
-            @Override
-            public void onError(Throwable error) {
-                if (isFinishing() || isDestroyed()) {
-                    return;
-                }
-                loadingStateHelper.showError(getString(R.string.error_default_message));
-            }
-        });
+        ActiveTicketStore.sync(this);  // ticketsChanged calls render again when it's in
     }
 
     private void renderInternal() {
@@ -321,19 +325,15 @@ public class ActiveTicketActivity extends AppCompatActivity {
             aheadLabel.setText(R.string.ticket_next_label);
         }
 
-        java.util.List<Ticket> servingTickets = FakeData.servingTickets(ticket.getQueueId());
-        Ticket serving = servingTickets.isEmpty() ? null : servingTickets.get(0);
+        // Ticks: how far the line has come towards you. Counted in people, not ticket numbers,
+        // because a moved-back ticket keeps its number but not its place.
+        Queue queue = Queues.get(ticket.getQueueId());
+        Integer serving = queue == null ? null : queue.getNowServing();
         ProgressTicksView ticks = findViewById(R.id.ticket_ticks);
-        ticks.setProgress(serving == null ? 0f
-                : serving.getTicketNumber() / (float) (serving.getTicketNumber() + ahead + 1));
+        ticks.setProgress(serving == null ? 0f : serving / (float) (serving + ahead + 1));
         ((TextView) findViewById(R.id.ticket_now_serving)).setText(serving == null
                 ? getString(R.string.ticket_now_serving_none)
-                : getString(R.string.ticket_now_serving_format, serving.getTicketNumber()));
-        if (servingTickets.size() > 1) {
-            java.util.List<String> numbers = new java.util.ArrayList<>();
-            for (Ticket called : servingTickets) numbers.add(getString(R.string.ticket_number_format, called.getTicketNumber()));
-            ((TextView) findViewById(R.id.ticket_now_serving)).setText(getString(R.string.counters_now_serving_format, android.text.TextUtils.join(", ", numbers)));
-        }
+                : getString(R.string.ticket_now_serving_format, serving));
 
         ticketCard.setContentDescription(getString(R.string.ticket_description,
                 ticket.getTicketNumber(), aheadText.getVisibility() == View.VISIBLE
@@ -383,7 +383,7 @@ public class ActiveTicketActivity extends AppCompatActivity {
     }
 
     private void bindBring(Ticket ticket) {
-        Queue queue = FakeData.queueById(ticket.getQueueId());
+        Queue queue = Queues.get(ticket.getQueueId());
         String bring = queue == null ? null : queue.getBring();
         View row = findViewById(R.id.ticket_bring_row);
         int visibility = bring == null ? View.GONE : View.VISIBLE;
@@ -396,11 +396,13 @@ public class ActiveTicketActivity extends AppCompatActivity {
     }
 
     private void bindEtaRow(Ticket ticket) {
-        QueueStats stats = FakeData.stats(ticket.getQueueId());
-        String basis = stats.getServiceSampleCount() == 0
+        // The server's minutes per person for this queue today, and what it's from
+        Queue queue = Queues.get(ticket.getQueueId());
+        // Locale.US keeps the decimal point a point, matching the rest of the numbers.
+        String basis = queue == null || queue.getServiceSampleCount() == 0
                 ? getString(R.string.ticket_eta_basis_none)
                 : String.format(Locale.US, getString(R.string.ticket_eta_basis_format),
-                        stats.getAverageServiceMinutes(), stats.getServiceSampleCount());
+                        queue.getMinutesPerPerson(), queue.getServiceSampleCount());
         ListRow.bind(findViewById(R.id.ticket_eta_row), R.drawable.ic_clock,
                 getString(R.string.ticket_eta_format, ticket.getEstimatedWaitMinutes()), basis);
         findViewById(R.id.ticket_eta_row).findViewById(R.id.row_chevron).setVisibility(View.GONE);
@@ -416,7 +418,7 @@ public class ActiveTicketActivity extends AppCompatActivity {
 
     private void openDirections() {
         Ticket ticket = ActiveTicketStore.ticket(ticketId);
-        Directions.open(ActiveTicketActivity.this, ticket == null ? null : FakeData.queueById(ticket.getQueueId()));
+        Directions.open(this, ticket == null ? null : Queues.get(ticket.getQueueId()));
     }
 
     private void confirmLeave() {
@@ -433,37 +435,38 @@ public class ActiveTicketActivity extends AppCompatActivity {
                         new DialogInterface.OnClickListener() {
                             @Override
                             public void onClick(DialogInterface dialog, int which) {
-                                isLeaving = true;
-                                loadingStateHelper.showLoading(getString(R.string.leaving_queue));
-                                leaveButton.setEnabled(false);
-                                moreTimeButton.setEnabled(false);
-
-                                FakeData.getQueueByIdAsync(ticket.getQueueId(), new FakeData.Callback<Queue>() {
-                                    @Override
-                                    public void onSuccess(Queue q) {
-                                        if (isFinishing() || isDestroyed()) {
-                                            return;
-                                        }
-                                        ActiveTicketStore.leave(ticketId);
-                                        finish();
-                                    }
-
-                                    @Override
-                                    public void onError(Throwable error) {
-                                        if (isFinishing() || isDestroyed()) {
-                                            return;
-                                        }
-                                        isLeaving = false;
-                                        leaveButton.setEnabled(true);
-                                        moreTimeButton.setEnabled(true);
-                                        loadingStateHelper.showContent();
-                                        render();
-                                        QuappMotion.snackbar(ticketCard, R.string.error_default_message, Snackbar.LENGTH_SHORT).show();
-                                    }
-                                });
+                                leave();
                             }
                         })
                 .show();
+    }
+
+    /** The server gives the place up; only then does the screen close. */
+    private void leave() {
+        isLeaving = true;
+        loadingStateHelper.showLoading(getString(R.string.leaving_queue));
+        leaveButton.setEnabled(false);
+        moreTimeButton.setEnabled(false);
+        ActiveTicketStore.leave(this, ticketId, new ActiveTicketStore.Done<Void>() {
+            @Override
+            public void onDone(@Nullable Void nothing) {
+                finish();
+            }
+
+            @Override
+            public void onFailed(@NonNull ApiError error) {
+                if (isFinishing() || isDestroyed()) {
+                    return;
+                }
+                isLeaving = false;
+                leaveButton.setEnabled(true);
+                moreTimeButton.setEnabled(true);
+                loadingStateHelper.showContent();
+                render();
+                QuappMotion.snackbar(ticketCard, error.is(ApiError.OFFLINE)
+                        ? getString(R.string.api_offline) : error.message, Snackbar.LENGTH_LONG).show();
+            }
+        });
     }
 
     private void renderServed(Ticket ticket) {
@@ -491,7 +494,7 @@ public class ActiveTicketActivity extends AppCompatActivity {
 
         keptNumber(ticket, true).setTextColor(ContextCompat.getColor(ActiveTicketActivity.this, R.color.ink_faint));
 
-        Queue queue = FakeData.queueById(ticket.getQueueId());
+        Queue queue = Queues.get(ticket.getQueueId());
         boolean counts = queue != null && queue.isNoShowCooldownEnabled();
         TextView noShows = findViewById(R.id.ticket_kept_no_shows);
         if (counts) {

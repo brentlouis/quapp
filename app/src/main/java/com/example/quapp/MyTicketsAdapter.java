@@ -69,7 +69,7 @@ public class MyTicketsAdapter extends RecyclerView.Adapter<RecyclerView.ViewHold
 
     /** Waiting for a queue that hasn't opened yet ("Join early"). */
     static boolean isUpcoming(Ticket ticket) {
-        Queue queue = FakeData.queueById(ticket.getQueueId());
+        Queue queue = Queues.get(ticket.getQueueId());
         return queue != null && queue.getStatus() == Queue.Status.UPCOMING;
     }
 
@@ -109,7 +109,7 @@ public class MyTicketsAdapter extends RecyclerView.Adapter<RecyclerView.ViewHold
         switch (ticket.getStatus()) {
             case WAITING:
                 if (isUpcoming(ticket)) {
-                    Queue queue = FakeData.queueById(ticket.getQueueId());
+                    Queue queue = Queues.get(ticket.getQueueId());
                     // "1 PM tomorrow", "9 AM Wed, Sep 30": today and tomorrow read lower-case mid-line.
                     String day = Format.day(context, queue.getStartDate());
                     if (!queue.getStartDate().isAfter(Format.today().plusDays(1))) {
@@ -123,7 +123,7 @@ public class MyTicketsAdapter extends RecyclerView.Adapter<RecyclerView.ViewHold
                 return context.getString(R.string.my_tickets_row_waiting_format,
                         ticket.getVenue(), ahead, ticket.getEstimatedWaitMinutes());
             case CALLED:
-                return context.getString(FakeData.arrivalConfirmed(ticket.getQueueId(), ticket.getId())
+                return context.getString(ticket.getHereAt() != null
                         ? R.string.called_waiting_completion : R.string.my_tickets_called_hint);
             default:
                 return context.getString(R.string.my_tickets_row_finished_format,

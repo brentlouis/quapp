@@ -49,7 +49,16 @@ public class MyTicketsFragment extends Fragment implements MyTicketsAdapter.OnTi
     private Ticket spotlight;
     private LoadingStateHelper loadingStateHelper;
     private List<Ticket> cachedTickets;
-    private boolean isRequestInFlight;
+
+    /** Redraw whenever a sync changes the tickets (called, served, moved). */
+    private final Runnable ticketsChanged = new Runnable() {
+        @Override
+        public void run() {
+            if (isResumed() && !isHidden()) {
+                bind();
+            }
+        }
+    };
 
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container,
@@ -105,8 +114,27 @@ public class MyTicketsFragment extends Fragment implements MyTicketsAdapter.OnTi
                 if (spotlight == null) {
                     return;
                 }
-                ActiveTicketStore.confirmArrival(spotlight.getId());
-                startActivity(ActiveTicketActivity.intent(requireContext(), spotlight.getId()));
+                final String ticketId = spotlight.getId();
+                ActiveTicketStore.here(requireContext(), ticketId, new ActiveTicketStore.Done<Ticket>() {
+                    @Override
+                    public void onDone(@Nullable Ticket ticket) {
+                        if (isAdded()) {
+                            startActivity(ActiveTicketActivity.intent(requireContext(), ticketId));
+                        }
+                    }
+
+                    @Override
+                    public void onFailed(@NonNull ApiError error) {
+                        if (!isAdded()) {
+                            return;
+                        }
+                        // Too late (GRACE_OVER), or the counter moved on: say so, show where it stands
+                        Snackbar.make(requireView(), error.is(ApiError.OFFLINE)
+                                ? getString(R.string.api_offline) : error.message,
+                                Snackbar.LENGTH_LONG).show();
+                        ActiveTicketStore.sync(requireContext());
+                    }
+                });
             }
         });
 
@@ -163,12 +191,14 @@ public class MyTicketsFragment extends Fragment implements MyTicketsAdapter.OnTi
     @Override
     public void onResume() {
         super.onResume();
+        ActiveTicketStore.addListener(ticketsChanged);
         bind();
     }
 
     @Override
     public void onPause() {
         super.onPause();
+        ActiveTicketStore.removeListener(ticketsChanged);
         cancelGraceTimer();
     }
 
@@ -199,56 +229,18 @@ public class MyTicketsFragment extends Fragment implements MyTicketsAdapter.OnTi
     }
 
     private void bind() {
-        if (getView() == null || isRequestInFlight) {
+        if (getView() == null) {
             return;
         }
 
         cancelGraceTimer();
 
-        if (cachedTickets == null) {
-            loadingStateHelper.showLoading(getString(R.string.loading_tickets));
-            section.setVisibility(View.GONE);
-            ruleNote.setVisibility(View.GONE);
-            empty.setVisibility(View.GONE);
-            ticketView.setVisibility(View.GONE);
-            called.setVisibility(View.GONE);
-        }
-
-        isRequestInFlight = true;
-        FakeData.getQueuesAsync(new FakeData.Callback<List<Queue>>() {
-            @Override
-            public void onSuccess(List<Queue> result) {
-                isRequestInFlight = false;
-                if (getView() == null) {
-                    return;
-                }
-                List<Ticket> tickets = ActiveTicketStore.tickets();
-                cachedTickets = tickets;
-                loadingStateHelper.showContent();
-                renderTickets(tickets);
-            }
-
-            @Override
-            public void onError(Throwable error) {
-                isRequestInFlight = false;
-                if (getView() == null) {
-                    return;
-                }
-                if (cachedTickets == null) {
-                    loadingStateHelper.showError(getString(R.string.error_default_message));
-                    section.setVisibility(View.GONE);
-                    ruleNote.setVisibility(View.GONE);
-                    empty.setVisibility(View.GONE);
-                    ticketView.setVisibility(View.GONE);
-                    called.setVisibility(View.GONE);
-                } else {
-                    if (getContext() != null) {
-                        QuappMotion.snackbar(requireView(), R.string.error_default_message, Snackbar.LENGTH_SHORT).show();
-                    }
-                    renderTickets(cachedTickets);
-                }
-            }
-        });
+        // The tickets are a copy the app keeps in step with the server (ActiveTicketStore.sync,
+        // every 10 seconds while the app is open); ticketsChanged redraws after each sync.
+        List<Ticket> tickets = ActiveTicketStore.tickets();
+        cachedTickets = tickets;
+        loadingStateHelper.showContent();
+        renderTickets(tickets);
     }
 
     private void renderTickets(List<Ticket> tickets) {
@@ -294,7 +286,8 @@ public class MyTicketsFragment extends Fragment implements MyTicketsAdapter.OnTi
 
     /** Canvas 12: the number in marigold, the grace timer and I'm here. */
     private void bindCalled(Ticket ticket) {
-        boolean confirmed = FakeData.arrivalConfirmed(ticket.getQueueId(), ticket.getId());
+        // Confirmed = the server has when they tapped I'm here (here_at)
+        boolean confirmed = ticket.getHereAt() != null;
         called.findViewById(R.id.my_tickets_called_here).setEnabled(!confirmed);
         ((TextView) called.findViewById(R.id.my_tickets_called_here)).setText(
                 confirmed ? R.string.called_arrival_confirmed : R.string.ticket_here_action);
@@ -308,7 +301,7 @@ public class MyTicketsFragment extends Fragment implements MyTicketsAdapter.OnTi
         called.findViewById(R.id.my_tickets_called_move_back)
                 .setVisibility(ticket.isMovedBack() || confirmed ? View.GONE : View.VISIBLE);
 
-        Queue queue = FakeData.queueById(ticket.getQueueId());
+        Queue queue = Queues.get(ticket.getQueueId());
         boolean needsTimer = !confirmed && queue != null && queue.isGracePeriodEnabled();
         ((View) calledRing.getParent()).setVisibility(needsTimer ? View.VISIBLE : View.GONE);
         if (!needsTimer) return;
@@ -324,7 +317,7 @@ public class MyTicketsFragment extends Fragment implements MyTicketsAdapter.OnTi
 
             @Override
             public void onFinish() {
-                // The store releases an overdue ticket as soon as it's read.
+                // The window closed: the store now shows the slot as released
                 bind();
             }
         };

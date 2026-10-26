@@ -9,9 +9,12 @@ import android.os.Looper;
 import android.view.View;
 import android.widget.TextView;
 
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.google.android.material.progressindicator.CircularProgressIndicator;
+import com.google.android.material.snackbar.Snackbar;
 
 import java.util.Locale;
 
@@ -42,7 +45,7 @@ public class CalledActivity extends AppCompatActivity {
                 if (ticket == null) finish(); else showOutcome();
                 return;
             }
-            if (FakeData.arrivalConfirmed(ticket.getQueueId(), ticketId)
+            if (ticket.getHereAt() != null
                     && findViewById(R.id.called_here_button).isEnabled()) bindArrival(ticket);
             handler.postDelayed(this, 1000L);
         }
@@ -74,9 +77,7 @@ public class CalledActivity extends AppCompatActivity {
         findViewById(R.id.called_here_button).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                ActiveTicketStore.confirmArrival(ticketId);
-                Ticket ticket = ActiveTicketStore.ticket(ticketId);
-                if (ticket != null) bindArrival(ticket);
+                confirmHere(view);
             }
         });
 
@@ -89,16 +90,6 @@ public class CalledActivity extends AppCompatActivity {
                         showOutcome();
                     }
                 });
-            }
-        });
-
-        // Demo hook: long-press the countdown to skip to the end of the grace period, so the
-        // slot-released flow can be shown without waiting 3 minutes.
-        countdown.setOnLongClickListener(new View.OnLongClickListener() {
-            @Override
-            public boolean onLongClick(View view) {
-                expire();
-                return true;
             }
         });
     }
@@ -144,8 +135,9 @@ public class CalledActivity extends AppCompatActivity {
     }
 
     private void bindArrival(Ticket ticket) {
-        boolean confirmed = FakeData.arrivalConfirmed(ticket.getQueueId(), ticketId);
-        Queue queue = FakeData.queueById(ticket.getQueueId());
+        // Confirmed = the server has when they tapped I'm here (here_at)
+        boolean confirmed = ticket.getHereAt() != null;
+        Queue queue = Queues.get(ticket.getQueueId());
         boolean needsTimer = !confirmed && queue != null && queue.isGracePeriodEnabled();
         findViewById(R.id.called_timer).setVisibility(needsTimer ? View.VISIBLE : View.GONE);
         findViewById(R.id.called_here_button).setEnabled(!confirmed);
@@ -187,10 +179,35 @@ public class CalledActivity extends AppCompatActivity {
         }
     }
 
+    /** The deadline passed: the ticket screen shows where it stands (the store has synced it). */
     private void expire() {
         cancelGraceTimer();
-        ActiveTicketStore.markNoShow(ticketId);
+        ActiveTicketStore.sync(this);
         showOutcome();
+    }
+
+    /** Tell the server; this screen then shows "Arrival confirmed" until the counter is done. */
+    private void confirmHere(final View button) {
+        button.setEnabled(false);
+        ActiveTicketStore.here(this, ticketId, new ActiveTicketStore.Done<Ticket>() {
+            @Override
+            public void onDone(@Nullable Ticket confirmed) {
+                Ticket ticket = ActiveTicketStore.ticket(ticketId);
+                if (ticket != null) {
+                    bindArrival(ticket);
+                }
+            }
+
+            @Override
+            public void onFailed(@NonNull ApiError error) {
+                button.setEnabled(true);
+                Snackbar.make(button, error.is(ApiError.OFFLINE)
+                        ? getString(R.string.api_offline) : error.message,
+                        Snackbar.LENGTH_LONG).show();
+                // Maybe the deadline passed or the organizer already served it: find out.
+                ActiveTicketStore.sync(CalledActivity.this);
+            }
+        });
     }
 
     /** Back to the ticket screen, which shows Served, Slot released or the moved-back ticket. */

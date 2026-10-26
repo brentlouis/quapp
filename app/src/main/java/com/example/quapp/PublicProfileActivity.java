@@ -36,7 +36,7 @@ abstract class PublicProfileActivity extends AppCompatActivity {
     private void load(){
         if(Validation.isBlank(organizerId)){states.showError(getString(R.string.public_profile_unavailable));return;}
         states.showLoading(getString(R.string.public_profile_loading));
-        FakeData.getQueuesAsync(new FakeData.Callback<List<Queue>>(){
+        Repository.queues(this,new Repository.Callback<List<Queue>>(){
             @Override public void onSuccess(List<Queue> result){
                 if(isFinishing()||isDestroyed())return;
                 Queue postingIdentity=null;List<Queue> publicQueues=new ArrayList<>();
@@ -47,7 +47,7 @@ abstract class PublicProfileActivity extends AppCompatActivity {
                 if(postingIdentity==null){states.showError(getString(R.string.public_profile_unavailable));return;}
                 identity=postingIdentity;empty=publicQueues.isEmpty();header.notifyDataSetChanged();queues.submitQueues(publicQueues);states.showContent();
             }
-            @Override public void onError(Throwable error){if(!isFinishing()&&!isDestroyed())states.showError(getString(R.string.public_profile_unavailable));}
+            @Override public void onError(ApiError error){if(!isFinishing()&&!isDestroyed())states.showError(getString(R.string.public_profile_unavailable));}
         });
     }
     private final class HeaderAdapter extends RecyclerView.Adapter<HeaderHolder>{

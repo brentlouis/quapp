@@ -38,7 +38,10 @@ public class ShareQueueActivity extends AppCompatActivity {
         SystemBars.applyPadding(findViewById(R.id.share_root));
 
         queueId = getIntent().getStringExtra(EXTRA_QUEUE_ID);
-        final Queue queue = FakeData.queueById(queueId);
+        // Queuers share a queue they loaded; owners' queues still come from FakeData until
+        // the organizer side moves to the server (BACKEND.md phase 10, batch 3).
+        Queue cached = Queues.get(queueId);
+        final Queue queue = cached != null ? cached : FakeData.queueById(queueId);
         if (queue == null) {
             finish();
             return;

@@ -13,6 +13,7 @@ import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.activity.result.ActivityResultCallback;
 import androidx.activity.result.ActivityResultLauncher;
@@ -48,6 +49,20 @@ public class QueueDetailActivity extends AppCompatActivity {
     private LocationState locationState = LocationState.UNCHECKED;
     /** How far away the last check found the queuer, for "You're 4.2 km away". */
     private float distanceMeters;
+    /** Where the check found the queuer inside the radius; Join sends it for the server's check. */
+    @Nullable
+    private Location checkedLocation;
+
+    /** A ticket for this queue may appear or end while the screen is open. */
+    private final Runnable ticketsChanged = new Runnable() {
+        @Override
+        public void run() {
+            Queue queue = Queues.get(queueId);
+            if (queue != null) {
+                bindJoinButton(queue);
+            }
+        }
+    };
 
     /**
      * Android's own permission dialog. Registered as a field because an Activity must register
@@ -95,7 +110,7 @@ public class QueueDetailActivity extends AppCompatActivity {
         findViewById(R.id.detail_directions).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                Directions.open(QueueDetailActivity.this, FakeData.queueById(queueId));
+                Directions.open(QueueDetailActivity.this, Queues.get(queueId));
             }
         });
 
@@ -125,54 +140,73 @@ public class QueueDetailActivity extends AppCompatActivity {
         });
     }
 
-    /** Re-bound on every return: the ticket or cooldown may have changed while away. */
+    /**
+     * Re-bound on every return: the ticket or cooldown may have changed while away. The copy the
+     * app already has shows at once (usually from Browse); the server's latest replaces it.
+     */
     @Override
     protected void onResume() {
         super.onResume();
+        ActiveTicketStore.addListener(ticketsChanged);
         loadQueueDetails();
     }
 
+    @Override
+    protected void onPause() {
+        super.onPause();
+        ActiveTicketStore.removeListener(ticketsChanged);
+    }
+
+    /** Puts a queue on screen, whether it came from the cache or the server. */
+    private void showQueue(Queue queue) {
+        loadingStateHelper.showContent();
+        findViewById(R.id.detail_scroll).setVisibility(View.VISIBLE);
+        if (locationState == LocationState.OFF && ProximityCheck.hasPermission(this)
+                && ProximityCheck.isLocationOn(this)) {
+            locationState = LocationState.UNCHECKED;
+        }
+        bindQueue(queue);
+        bindJoinButton(queue);
+    }
+
+    /**
+     * Shows the copy the app already has (from Browse) straight away, then asks the server for
+     * the latest. With nothing to show yet: loading, then the error state with Retry.
+     */
     private void loadQueueDetails() {
+        if (cachedQueue == null) {
+            cachedQueue = Queues.get(queueId);
+        }
         if (cachedQueue == null) {
             loadingStateHelper.showLoading(getString(R.string.loading_queue_details));
             findViewById(R.id.detail_scroll).setVisibility(View.GONE);
+        } else {
+            showQueue(cachedQueue);
         }
 
-        FakeData.getQueueByIdAsync(queueId, new FakeData.Callback<Queue>() {
+        Queues.fetch(this, queueId, new Queues.Loaded() {
             @Override
-            public void onSuccess(Queue queue) {
+            public void onLoaded(Queue queue) {
                 if (isFinishing() || isDestroyed()) {
-                    return;
-                }
-                if (queue == null) {
-                    finish();
                     return;
                 }
                 cachedQueue = queue;
-                loadingStateHelper.showContent();
-                findViewById(R.id.detail_scroll).setVisibility(View.VISIBLE);
-
-                if (locationState == LocationState.OFF && ProximityCheck.hasPermission(QueueDetailActivity.this)
-                        && ProximityCheck.isLocationOn(QueueDetailActivity.this)) {
-                    locationState = LocationState.UNCHECKED;
-                }
-
-                bindQueue(queue);
-                bindJoinButton(queue);
+                showQueue(queue);
             }
 
             @Override
-            public void onError(Throwable error) {
+            public void onFailed(ApiError error) {
                 if (isFinishing() || isDestroyed()) {
                     return;
                 }
+                String message = error.is(ApiError.OFFLINE)
+                        ? getString(R.string.api_offline) : error.message;
                 if (cachedQueue == null) {
-                    loadingStateHelper.showError(getString(R.string.error_default_message));
+                    loadingStateHelper.showError(message);
                     findViewById(R.id.detail_scroll).setVisibility(View.GONE);
                 } else {
-                    QuappMotion.snackbar(findViewById(R.id.detail_root), R.string.error_default_message, Snackbar.LENGTH_SHORT).show();
-                    bindQueue(cachedQueue);
-                    bindJoinButton(cachedQueue);
+                    // The copy on screen stays; say it couldn't be updated
+                    QuappMotion.snackbar(findViewById(R.id.detail_root), message, Snackbar.LENGTH_SHORT).show();
                 }
             }
         });
@@ -251,7 +285,7 @@ public class QueueDetailActivity extends AppCompatActivity {
         // Free to join: the stub shows the number you'd be handed.
         youWillBe.setVisibility(View.VISIBLE);
         ((TextView) findViewById(R.id.detail_next_number)).setText(
-                getString(R.string.ticket_number_format, FakeData.nextTicketNumber(queue.getId())));
+                getString(R.string.ticket_number_format, queue.getNextTicketNumber()));
         joinButton.setEnabled(true);
         joinButton.setText(R.string.detail_join_action);
         joinButton.setOnClickListener(new View.OnClickListener() {
@@ -271,6 +305,11 @@ public class QueueDetailActivity extends AppCompatActivity {
     private void openJoin() {
         Intent intent = new Intent(this, JoinQueueActivity.class);
         intent.putExtra(JoinQueueActivity.EXTRA_QUEUE_ID, queueId);
+        if (checkedLocation != null) {
+            // The server checks the radius again with the same reading (MODELS.md "Radius")
+            intent.putExtra(JoinQueueActivity.EXTRA_LATITUDE, checkedLocation.getLatitude());
+            intent.putExtra(JoinQueueActivity.EXTRA_LONGITUDE, checkedLocation.getLongitude());
+        }
         startActivity(intent);
     }
 
@@ -313,7 +352,7 @@ public class QueueDetailActivity extends AppCompatActivity {
         ProximityCheck.locate(this, new ProximityCheck.Callback() {
             @Override
             public void onLocated(@Nullable Location location) {
-                Queue queue = FakeData.queueById(queueId);
+                Queue queue = Queues.get(queueId);
                 if (isFinishing() || queue == null) {
                     return;
                 }
@@ -325,6 +364,7 @@ public class QueueDetailActivity extends AppCompatActivity {
                 }
                 distanceMeters = ProximityCheck.distanceMeters(location, queue);
                 if (distanceMeters <= queue.getJoinRadiusMeters()) {
+                    checkedLocation = location;
                     setLocationState(LocationState.UNCHECKED);
                     openJoin();
                 } else {
@@ -336,7 +376,7 @@ public class QueueDetailActivity extends AppCompatActivity {
 
     private void setLocationState(LocationState state) {
         locationState = state;
-        Queue queue = FakeData.queueById(queueId);
+        Queue queue = Queues.get(queueId);
         if (queue != null) {
             bindJoinButton(queue);
         }
