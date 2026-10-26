@@ -595,7 +595,9 @@ public class CreateQueueActivity extends AppCompatActivity {
         if (existingQueue == null) {
             name = getString(R.string.create_generated_name, getString(category.label), municipality);
             venue = municipality;
-            shortDescription = "";
+            // The server needs a one-line description (MODELS.md, 1–50 characters) and this
+            // form doesn't ask for one: the category's own line says what the queue is for.
+            shortDescription = getString(category.hint);
         }
 
         // The pin: the town's centre, unless an edit keeps the town and so its pin (Towns.java)
@@ -673,14 +675,18 @@ public class CreateQueueActivity extends AppCompatActivity {
         }
         String field = error.is("INVALID_INPUT") ? firstField(error) : null;
         TextInputLayout layout = field == null ? null : layoutFor(field);
-        if (layout != null) {
+        // A field this form hides can't show its error, so it falls through to the Snackbar
+        if (layout != null && layout.isShown()) {
             layout.setError(error.fieldMessage(field));
             return;
         }
         if (field != null && SCHEDULE_FIELDS.contains(field)) {
-            TextView scheduleError = findViewById(R.id.create_schedule_error);
+            final TextView scheduleError = findViewById(R.id.create_schedule_error);
             scheduleError.setText(error.fieldMessage(field));
             scheduleError.setVisibility(View.VISIBLE);
+            // It sits below the fold; bring it into view so the refusal doesn't look like nothing
+            scheduleError.post(() -> scheduleError.requestRectangleOnScreen(new android.graphics.Rect(
+                    0, 0, scheduleError.getWidth(), scheduleError.getHeight()), false));
             return;
         }
         Snackbar.make(findViewById(R.id.create_root), Repository.message(this, error),

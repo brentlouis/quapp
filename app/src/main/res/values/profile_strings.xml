@@ -2,7 +2,7 @@
 <resources>
     <string name="profile_guest">Guest</string>
     <string name="profile_not_verified">Not verified</string>
-    <string name="profile_account_summary">Local account · %1$s</string>
+    <string name="profile_account_summary">Quapp account · %1$s</string>
     <string name="profile_guest_summary">Browsing services · %1$s</string>
     <string name="profile_details">Details</string>
     <string name="profile_saved_count">%1$d on this device</string>
@@ -16,7 +16,7 @@
     <string name="profile_alerts_on">Local alerts enabled</string>
     <string name="profile_alerts_off">Local alerts off</string>
     <string name="profile_verification">Verification</string>
-    <string name="profile_verification_hint">Practice verification available</string>
+    <string name="profile_verification_hint">Get the verified badge for your organization</string>
     <string name="profile_help_reports">Help &amp; reports</string>
     <string name="profile_reports_count">%1$d session reports</string>
     <string name="profile_tools">Privacy &amp; organizer tools</string>
@@ -53,7 +53,7 @@ Tickets, appointment drafts, reports and account details are not cleared here.</
     <string name="profile_clear_data">Clear</string>
     <string name="profile_verification_heading">Account verification</string>
     <string name="profile_verification_body">No real identity check is performed. Existing organizer verification uses the native verification flow.</string>
-    <string name="profile_verification_action">Open practice verification</string>
+    <string name="profile_verification_action">Get verified</string>
     <string name="profile_upcoming_title">Upcoming appointments</string>
     <string name="profile_upcoming_heading">Appointments</string>
     <string name="profile_no_appointments">No upcoming appointments in this session. Local drafts are not reservations.</string>

@@ -801,7 +801,7 @@
     <!-- Organizer badge sheet (canvas 52) and the unverified note (53) -->
     <string name="badge_verified_title">Verified organizer</string>
     <string name="badge_organizer_fallback">this organizer</string>
-    <string name="badge_verified_body">In this demo, %s is marked as an organizer. Real identity checks are not connected.</string>
+    <string name="badge_verified_body">The Quapp team checked that %s runs this account, by calling its office number.</string>
     <string name="badge_verified_note">It doesn\'t check each queue\'s details. If something about this queue looks wrong, report it.</string>
     <string name="badge_unverified_title">Unverified organizer</string>
     <string name="badge_unverified_body">Quapp hasn\'t confirmed that %s runs this account.</string>
