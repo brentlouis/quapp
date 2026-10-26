@@ -39,6 +39,9 @@ android {
 
     buildTypes {
         release {
+            // Signed with Android Studio's debug key so the demo phones can install it. A Play
+            // Store release would need its own keystore instead.
+            signingConfig signingConfigs.debug
             optimization {
                 enable false
             }
