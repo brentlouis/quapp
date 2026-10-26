@@ -154,103 +154,11 @@ public final class FakeData {
         }, delay);
     }
 
-    public static void getQueuesAsync(final Callback<List<Queue>> callback) {
-        dispatchAsync(new Supplier<List<Queue>>() {
-            @Override
-            public List<Queue> get() {
-                return queues();
-            }
-        }, callback);
-    }
-
-    public static void getQueueByIdAsync(final String queueId, final Callback<Queue> callback) {
-        dispatchAsync(new Supplier<Queue>() {
-            @Override
-            public Queue get() {
-                return queueById(queueId);
-            }
-        }, callback);
-    }
-
-    public static void getOwnedQueuesAsync(final Callback<List<Queue>> callback) {
-        dispatchAsync(new Supplier<List<Queue>>() {
-            @Override
-            public List<Queue> get() {
-                return ownedQueues();
-            }
-        }, callback);
-    }
-
-    public static void getStatsAsync(final String queueId, final Callback<QueueStats> callback) {
-        dispatchAsync(new Supplier<QueueStats>() {
-            @Override
-            public QueueStats get() {
-                return stats(queueId);
-            }
-        }, callback);
-    }
-
-    public static void getHistoryAsync(final Callback<List<Ticket>> callback) {
-        dispatchAsync(new Supplier<List<Ticket>>() {
-            @Override
-            public List<Ticket> get() {
-                return history();
-            }
-        }, callback);
-    }
-
     public static void joinAsync(final String queueId, final String holderName, final String holderPhone, final Callback<Ticket> callback) {
         dispatchAsync(new Supplier<Ticket>() {
             @Override
             public Ticket get() {
                 return join(queueId, holderName, holderPhone);
-            }
-        }, callback);
-    }
-
-    public static void saveQueueAsync(final Queue queue, final Callback<Queue> callback) {
-        dispatchAsync(new Supplier<Queue>() {
-            @Override
-            public Queue get() {
-                saveQueue(queue);
-                return queue;
-            }
-        }, callback);
-    }
-
-    public static void callNextAsync(final String queueId, final Callback<Ticket> callback) {
-        dispatchAsync(new Supplier<Ticket>() {
-            @Override
-            public Ticket get() {
-                return callNext(queueId);
-            }
-        }, callback);
-    }
-
-    public static void noShowAndCallNextAsync(final String queueId, final Callback<Ticket> callback) {
-        dispatchAsync(new Supplier<Ticket>() {
-            @Override
-            public Ticket get() {
-                return noShowAndCallNext(queueId);
-            }
-        }, callback);
-    }
-
-    public static void addWalkInAsync(final String queueId, final String holderName, final Callback<Ticket> callback) {
-        dispatchAsync(new Supplier<Ticket>() {
-            @Override
-            public Ticket get() {
-                return addWalkIn(queueId, holderName);
-            }
-        }, callback);
-    }
-
-    public static void removeFromLineAsync(final String queueId, final String ticketId, final Ticket.RemovalReason reason, final Callback<Void> callback) {
-        dispatchAsync(new Supplier<Void>() {
-            @Override
-            public Void get() {
-                removeFromLine(queueId, ticketId, reason);
-                return null;
             }
         }, callback);
     }
@@ -268,16 +176,6 @@ public final class FakeData {
         }, callback);
     }
 
-    public static void submitVerificationAsync(final VerificationRequest request, final Callback<Void> callback) {
-        dispatchAsync(new Supplier<Void>() {
-            @Override
-            public Void get() {
-                submitVerification(request);
-                return null;
-            }
-        }, callback);
-    }
-
     // Trust and safety: the logged-in organizer's badge, reports sent, suspended accounts.
     // Verified to start with, so the seeded queues have their badges; see setMyVerification.
     private static VerificationStatus myVerification = VerificationStatus.VERIFIED;
@@ -287,10 +185,6 @@ public final class FakeData {
 
     private FakeData() {
         // Utility class.
-    }
-
-    public static void setCounterListener(@Nullable CounterListener listener) {
-        counterListener = listener;
     }
 
     // ---- Queues -------------------------------------------------------------
@@ -321,19 +215,6 @@ public final class FakeData {
             result.add(queueById(id));
         }
         return result;
-    }
-
-    public static String newQueueId() {
-        ensureSeeded();
-        return "q" + nextQueueNumber++;
-    }
-
-    public static double defaultLatitude() {
-        return DEFAULT_LATITUDE;
-    }
-
-    public static double defaultLongitude() {
-        return DEFAULT_LONGITUDE;
     }
 
     /** Adds a new queue (owned by the current user) or replaces one with the same id. */
@@ -551,19 +432,9 @@ public final class FakeData {
         return result;
     }
 
-    /** When the person being served tapped "I'm here", or null. */
-    public static synchronized Instant confirmedAt(String queueId) {
-        return liveState(queueId).nowServingConfirmedAt;
-    }
-
     public static synchronized boolean arrivalConfirmed(String queueId, String ticketId) {
         LiveQueue slot = ticketSlot(liveState(queueId), ticketId);
         return isAtCounter(slot, ticketId) && slot.nowServingConfirmedAt != null;
-    }
-
-    /** When the person being served must confirm by. */
-    public static Instant graceDeadline(Ticket serving) {
-        return serving.getCalledAt().plusMillis(CalledActivity.GRACE_PERIOD_MS);
     }
 
     /** The person currently being served is done; the front of the line is called. */
@@ -574,19 +445,6 @@ public final class FakeData {
         if (state.nowServing != null && !state.nowServingTimedOut) {
             recordServed(state);
             finish(state.nowServing, Ticket.Status.SERVED);
-        }
-
-        callFront(state);
-        return state.nowServing;
-    }
-
-    /** The person being served didn't come up: count a no-show and call the next number. */
-    public static synchronized Ticket noShowAndCallNext(String queueId) {
-        LiveQueue state = liveState(queueId);
-
-        if (state.nowServing != null && !state.nowServingTimedOut) {
-            state.noShows++;
-            finish(state.nowServing, Ticket.Status.NO_SHOW);
         }
 
         callFront(state);
@@ -613,36 +471,6 @@ public final class FakeData {
                 return;
             }
         }
-    }
-
-    /**
-     * Remove from line (canvas 57): the ticket ends as REMOVED with a reason. A prank counts as
-     * a no-show (and, on the server, goes to the admin); a duplicate or someone who asked to
-     * leave doesn't.
-     */
-    public static synchronized void removeFromLine(String queueId, String ticketId, Ticket.RemovalReason reason) {
-        LiveQueue state = liveState(queueId);
-        Ticket ticket = removeById(state.waiting, ticketId);
-        if (ticket == null) {
-            return;
-        }
-        if (reason == Ticket.RemovalReason.PRANK) {
-            state.noShows++;
-        }
-        finished.put(ticketId, ticket.withStatus(Ticket.Status.REMOVED).toBuilder()
-                .setRemovalReason(reason)
-                .build());
-    }
-
-    /** Extend closing time (canvas 19): the queue stays open for joins until the new time. */
-    public static void extendClosing(String queueId, LocalTime closesAt) {
-        Queue queue = queueById(queueId);
-        if (queue == null) {
-            return;
-        }
-        saveQueue(queue.toBuilder()
-                .setSchedule(queue.getStartDate(), queue.getEndDate(), queue.getOpensAt(), closesAt)
-                .build());
     }
 
     /** Someone without a phone joins at the counter. */
@@ -801,16 +629,6 @@ public final class FakeData {
         return placed(line, index);
     }
 
-    /** The estimator's minutes per person right now (in FakeData, the rolling average). */
-    public static double minutesPerPerson(String queueId) {
-        return averageServiceMs(liveState(queueId)) / 60_000d;
-    }
-
-    /** The forecast wait with this many people ahead. */
-    public static int waitMinutes(String queueId, int peopleAhead) {
-        return forecastMinutes(liveState(queueId), peopleAhead);
-    }
-
     public static synchronized QueueStats stats(String queueId) {
         LiveQueue state = liveState(queueId);
         double averageMs = averageServiceMs(state);
@@ -831,58 +649,6 @@ public final class FakeData {
 
     // ---- Trust and safety (canvas 50-58) ---------------------------------------
 
-    public static VerificationStatus myVerification() {
-        return myVerification;
-    }
-
-    public static boolean isMyOrganizerVerified() {
-        return myVerification == VerificationStatus.VERIFIED;
-    }
-
-    /** The organizer's last request, for "Submitted Sep 28. We'll call …"; null if none. */
-    @Nullable
-    public static VerificationRequest myVerificationRequest() {
-        return myRequest;
-    }
-
-    /** Get verified (canvas 50): the request waits for the admin to call. */
-    public static void submitVerification(VerificationRequest request) {
-        myRequest = request;
-        myVerification = VerificationStatus.PENDING;
-    }
-
-    /**
-     * Demo hook for the admin page, which doesn't exist yet: approve, reject or revoke. Also
-     * used to go back to unverified so the Get verified flow can be shown.
-     */
-    public static void setMyVerification(VerificationStatus status) {
-        myVerification = status;
-        if (myRequest != null && status != VerificationStatus.PENDING) {
-            myRequest = status == VerificationStatus.NONE ? null : myRequest.decided(status);
-        }
-    }
-
-    /**
-     * The organizer's queue that's running now (open or paused), or null. Unverified organizers
-     * get one at a time (canvas 58); an upcoming queue doesn't count.
-     */
-    @Nullable
-    public static Queue myLiveQueue(@Nullable String exceptQueueId) {
-        for (Queue queue : ownedQueues()) {
-            boolean live = queue.getStatus() == Queue.Status.OPEN
-                    || queue.getStatus() == Queue.Status.PAUSED;
-            if (live && !queue.getId().equals(exceptQueueId)) {
-                return queue;
-            }
-        }
-        return null;
-    }
-
-    /** Report a queue (canvas 54). On the server it goes to the admin page. */
-    public static void report(String queueId, Report.Reason reason, @Nullable String details) {
-        reports.add(new Report("r" + (reports.size() + 1), queueId, reason, details, Instant.now()));
-    }
-
     public static List<Report> reports() {
         return new ArrayList<>(reports);
     }
@@ -892,17 +658,6 @@ public final class FakeData {
     public static List<Ticket> history() {
         ensureSeeded();
         return new ArrayList<>(history);
-    }
-
-    /** Newest first. */
-    public static void addToHistory(Ticket ticket) {
-        ensureSeeded();
-        history.add(0, ticket);
-    }
-
-    public static void clearHistory() {
-        ensureSeeded();
-        history.clear();
     }
 
     // ---- Internals ----------------------------------------------------------
@@ -1377,5 +1132,15 @@ public final class FakeData {
                 .setJoinedAt(finished.minus(Duration.ofMinutes(40)))
                 .setFinishedAt(finished)
                 .build();
+    }
+
+    /** When the person being served must confirm by: called_at + 3 min. */
+    private static Instant graceDeadline(Ticket serving) {
+        return serving.getCalledAt().plusMillis(CalledActivity.GRACE_PERIOD_MS);
+    }
+
+    /** The local demo organizer's badge, for the local tools' queues. */
+    private static boolean isMyOrganizerVerified() {
+        return myVerification == VerificationStatus.VERIFIED;
     }
 }
