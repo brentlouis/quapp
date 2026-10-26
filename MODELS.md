@@ -222,6 +222,47 @@ An organizer taking someone out of the line, with a reason.
 
 ---
 
+## Errors
+
+Every error has the same JSON body, so the app can pick a message by `error` without parsing text:
+
+```json
+{"error": "DEVICE_LIMIT", "message": "This phone already has 2 accounts."}
+```
+
+`message` is plain English the app may show as-is. Some errors add fields (listed below).
+
+| HTTP | `error` | When | Extra fields |
+|---|---|---|---|
+| 401 | `NOT_SIGNED_IN` | No token, or a token that was logged out | |
+| 401 | `WRONG_CREDENTIALS` | Login with an unknown phone or a wrong password (the same answer for both) | |
+| 403 | `SUSPENDED` | Login, or any signed-in call, by a suspended user | `suspended_reason`, `suspended_at` |
+| 409 | `PHONE_TAKEN` | Register with a phone that has an account | |
+| 409 | `DEVICE_LIMIT` | Register a third account on one install | |
+| 422 | `INVALID_INPUT` | A field fails validation (bad phone, short password, missing field, a closing time before the opening time) | `fields`: `{"phone": "…"}` |
+| 404 | `QUEUE_NOT_FOUND` | No queue with that id | |
+| 403 | `NOT_OWNER` | An organizer-only call on someone else's queue | |
+| 409 | `ONE_LIVE_QUEUE` | An unverified organizer opening a second live (open or paused) queue; an upcoming one is allowed | `live_queue_id`, `live_queue_name`, `live_queue_status` (the one already running) |
+| 409 | `WRONG_STATUS` | A status change that doesn't fit ("Only an open queue can be paused"), or editing a closed queue | |
+| 409 | `QUEUE_PAUSED` | Joining a paused queue | |
+| 409 | `QUEUE_NOT_OPEN` | Joining a closed queue, or an open one after today's closing time | |
+| 409 | `ALREADY_IN_LINE` | Joining a queue you already have a live ticket in | `ticket_id` |
+| 409 | `HOURS_OVERLAP` | Joining while holding a live ticket for a queue on the same day with overlapping hours | `other_queue_id`, `other_queue_name` |
+| 409 | `COOLDOWN` | Joining a queue with the no-show penalty during a cooldown | `until` |
+| 422 | `LOCATION_NEEDED` | Joining a queue with the proximity check without `latitude`/`longitude` | |
+| 409 | `TOO_FAR` | Joining from farther than the queue's radius | `distance_meters`, `join_radius_meters` |
+| 404 | `TICKET_NOT_FOUND` | No such ticket, or not yours | |
+| 409 | `NOBODY_CALLED` | No-show with nobody at the counter | |
+| 409 | `NOT_CALLED` | "I'm here" on a ticket that isn't being called | |
+| 409 | `GRACE_OVER` | "I'm here" after the 3-minute grace window | |
+| 409 | `ALREADY_MOVED_BACK` | A second "I need more time" on one ticket | |
+| 409 | `LAST_IN_LINE` | "I need more time" with nobody behind to let ahead | |
+| 409 | `ALREADY_REPORTED` | A second report on one queue from the same person | |
+| 409 | `VERIFICATION_PENDING` | Asking to be verified while a request is already waiting | |
+| 409 | `ALREADY_VERIFIED` | Asking to be verified when you already are | |
+
+Later steps add their own codes here.
+
 ## Endpoints
 
 Auth is a bearer token from `/auth/login`. "Owner" means the queue's organizer.
@@ -248,7 +289,7 @@ Auth is a bearer token from `/auth/login`. "Owner" means the queue's organizer.
 | POST | `/tickets/{id}/here` | holder | "I'm here" while CALLED, within 3 minutes of `called_at` when the queue has the grace period → Ticket |
 | POST | `/tickets/{id}/move-back?dry_run=` | holder | `{minutes_needed}` (5, 10, 15, 20, 30 or 45) → Ticket at its new place (once). Waiting or called: a called ticket hands the counter back and rejoins the line. `dry_run=true` returns the same Ticket without saving, for the sheet's preview |
 | GET | `/tickets/{id}` | holder | one of my tickets, with its position and wait now |
-| DELETE | `/tickets/{id}` | holder | leave the queue (waiting or called) → 204. The ticket is deleted: not a no-show, not in history (FakeData.leave) |
+| DELETE | `/tickets/{id}` | holder | leave the queue (waiting or called) → 204. The ticket is deleted: not a no-show, not in history |
 | POST | `/me/verification` | user | `{organization_name, organization_type, position, office_phone}` → VerificationRequest (PENDING); the user's `verification_status` becomes PENDING. After REJECTED or REVOKED you may ask again |
 | GET | `/me/verification` | user | the latest VerificationRequest (Profile's pending card), or null |
 | POST | `/queues/{id}/reports` | user | `{reason, details}` → Report. Once per person per queue; the organizer never learns who |

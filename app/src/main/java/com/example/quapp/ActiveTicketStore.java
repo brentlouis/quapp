@@ -372,6 +372,7 @@ public final class ActiveTicketStore {
         dismissed.clear();
         Cooldown.clear();
         Queues.clear();
+        MyQueues.clear();
         changed();
     }
 

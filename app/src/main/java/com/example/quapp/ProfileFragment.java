@@ -31,7 +31,7 @@ public class ProfileFragment extends Fragment {
             nav.setSelectedItemId(owner?R.id.nav_queues:R.id.nav_browse);
         });
     }
-    @Override public void onResume() { super.onResume(); render(); }
+    @Override public void onResume() { super.onResume(); render(); refreshAccount(); }
     @Override public void onHiddenChanged(boolean hidden) { super.onHiddenChanged(hidden); if (!hidden) render(); }
     @Override public void onSaveInstanceState(@NonNull Bundle out) { super.onSaveInstanceState(out); out.putBoolean("tools_expanded", expanded); }
     private void settings(String page) { if ("account".equals(page) || "privacy".equals(page) || "appointments".equals(page)) ProfileSettingsActivity.sheet(requireContext(), page); else startActivity(ProfileSettingsActivity.intent(requireContext(), page)); }
@@ -39,7 +39,7 @@ public class ProfileFragment extends Fragment {
         if (content == null) return;
         content.removeAllViews();
         Session session = new Session(requireContext());
-        boolean verified = session.isLoggedIn() && FakeData.myVerification() == VerificationStatus.VERIFIED;
+        boolean verified = session.isLoggedIn() && session.isVerified();
         View summary = getLayoutInflater().inflate(R.layout.view_profile_summary, content, false);
         String name = session.isLoggedIn() && !Validation.isBlank(session.getName()) ? session.getName() : getString(R.string.profile_guest);
         ((TextView) summary.findViewById(R.id.profile_name)).setText(name);
@@ -119,5 +119,34 @@ public class ProfileFragment extends Fragment {
                     public void onFailure(@NonNull Call<Void> call, @NonNull Throwable failure) {
                     }
                 });
+    }
+
+    /**
+     * The badge can change while the app is closed (the admin approves or revokes it), so Profile
+     * asks the server for the account each time it shows, and redraws if it's different.
+     */
+    private void refreshAccount() {
+        final Session session = new Session(requireContext());
+        if (!session.isLoggedIn()) {
+            return;
+        }
+        final VerificationStatus before = session.getVerification();
+        ApiClient.api(requireContext()).me().enqueue(new ApiCallback<User>(requireContext()) {
+            @Override
+            protected void onSuccess(@Nullable User user) {
+                if (user == null || !isAdded()) {
+                    return;
+                }
+                session.update(user);
+                if (user.getVerificationStatus() != before) {
+                    render();
+                }
+            }
+
+            @Override
+            protected void onError(@NonNull ApiError error) {
+                // Keep what's shown; the next visit asks again
+            }
+        });
     }
 }

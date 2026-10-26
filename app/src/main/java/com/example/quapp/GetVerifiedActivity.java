@@ -6,13 +6,14 @@ import android.view.View;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.google.android.material.textfield.TextInputEditText;
+import com.google.android.material.textfield.TextInputLayout;
 
-import java.time.Instant;
 
 /**
  * Get verified (canvas 50). The organizer names the organization, its type, their position and
@@ -40,7 +41,7 @@ public class GetVerifiedActivity extends AppCompatActivity {
         // Most organizers post under the name they already use.
         TextInputEditText org = findViewById(R.id.verify_org_input);
         if (savedInstanceState == null) {
-            org.setText(FakeData.MY_ORGANIZER_NAME);
+            org.setText(new Session(this).postingAs());
         }
 
         findViewById(R.id.verify_back).setOnClickListener(new View.OnClickListener() {
@@ -121,30 +122,26 @@ public class GetVerifiedActivity extends AppCompatActivity {
         submitButton.setEnabled(false);
         submitButton.setText(R.string.submitting_verification);
 
-        Session session = new Session(this);
-        VerificationRequest request = new VerificationRequest("v1", session.getPhone(), organization,
-                type, position, phone, VerificationStatus.PENDING, null, Instant.now(), null);
-
-        FakeData.submitVerificationAsync(request, new FakeData.Callback<Void>() {
+        ApiClient.api(this).askToBeVerified(new QuappApi.VerificationBody(organization, type,
+                position, phone)).enqueue(new ApiCallback<VerificationRequest>(this) {
             @Override
-            public void onSuccess(Void result) {
-                if (isFinishing() || isDestroyed()) {
-                    return;
-                }
+            protected void onSuccess(@Nullable VerificationRequest request) {
+                // The account is PENDING now; Profile asks for it again when it shows
+                new Session(GetVerifiedActivity.this).setVerification(VerificationStatus.PENDING);
                 Toast.makeText(GetVerifiedActivity.this, R.string.verify_sent, Toast.LENGTH_LONG).show();
                 finish();
             }
 
             @Override
-            public void onError(Throwable error) {
-                if (isFinishing() || isDestroyed()) {
-                    return;
-                }
+            protected void onError(@NonNull ApiError error) {
                 submitButton.setEnabled(true);
                 submitButton.setText(R.string.verify_submit);
-                QuappMotion.snackbar(
-                        findViewById(R.id.verify_root), R.string.error_default_message,
-                        com.google.android.material.snackbar.Snackbar.LENGTH_SHORT).show();
+                if (error.is("INVALID_INPUT") && error.fieldMessage("office_phone") != null) {
+                    ((TextInputLayout) findViewById(R.id.verify_phone_layout))
+                            .setError(error.fieldMessage("office_phone"));
+                    return;
+                }
+                super.onError(error);  // the Snackbar
             }
         });
     }

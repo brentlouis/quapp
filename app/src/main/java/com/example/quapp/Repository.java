@@ -65,6 +65,11 @@ public final class Repository {
         run(context, ApiClient.api(context).myTickets(false), callback);
     }
 
+    /** Today's numbers for one of the organizer's queues (Insights). */
+    public static void stats(Context context, String queueId, Callback<QueueStats> callback) {
+        run(context, ApiClient.api(context).stats(queueId), callback);
+    }
+
     /** What a screen shows when a request failed: offline, or the server's own message. */
     public static String message(Context context, ApiError error) {
         return error.is(ApiError.OFFLINE) ? context.getString(R.string.api_offline) : error.message;

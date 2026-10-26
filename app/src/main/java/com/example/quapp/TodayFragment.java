@@ -118,9 +118,10 @@ public class TodayFragment extends Fragment implements TodayQueueAdapter.OnToday
         }
 
         isRequestInFlight = true;
-        FakeData.getOwnedQueuesAsync(new FakeData.Callback<List<Queue>>() {
+        // The organizer's queues and each one's numbers for today, from the server
+        MyQueues.load(requireContext(), new MyQueues.Loaded() {
             @Override
-            public void onSuccess(List<Queue> queues) {
+            public void onLoaded(List<Queue> queues, Map<String, QueueStats> stats) {
                 isRequestInFlight = false;
                 if (getView() == null) {
                     return;
@@ -131,13 +132,13 @@ public class TodayFragment extends Fragment implements TodayQueueAdapter.OnToday
             }
 
             @Override
-            public void onError(Throwable error) {
+            public void onFailed(ApiError error) {
                 isRequestInFlight = false;
                 if (getView() == null) {
                     return;
                 }
                 if (cachedQueues == null) {
-                    loadingStateHelper.showError(getString(R.string.error_default_message));
+                    loadingStateHelper.showError(Repository.message(requireContext(), error));
                     for (View v : populatedViews) {
                         v.setVisibility(View.GONE);
                     }
@@ -167,10 +168,12 @@ public class TodayFragment extends Fragment implements TodayQueueAdapter.OnToday
         int served = 0;
         int noShows = 0;
         int waiting = 0;
-        Map<String, QueueStats> statsById = new HashMap<>();
+        Map<String, QueueStats> statsById = MyQueues.lastStats();
         for (Queue queue : queues) {
-            QueueStats stats = FakeData.stats(queue.getId());
-            statsById.put(queue.getId(), stats);
+            QueueStats stats = statsById.get(queue.getId());
+            if (stats == null) {
+                continue;  // its numbers didn't load; the card shows it without them
+            }
             served += stats.getServedToday();
             noShows += stats.getNoShowsToday();
             waiting += stats.getWaitingNow();

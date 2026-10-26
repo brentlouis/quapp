@@ -130,16 +130,9 @@ final class ConsoleSheets {
                         }
                     }));
         }
-        // The one that can't be undone sits last, in red.
-        if (closed) {
-            sheet.iconRow(R.drawable.ic_circle_check, context.getString(R.string.console_menu_reopen),
-                    context.getString(R.string.options_reopen_body), false, sheet.dismissThen(new Runnable() {
-                        @Override
-                        public void run() {
-                            listener.onStatus(Queue.Status.OPEN);
-                        }
-                    }));
-        } else {
+        // The one that can't be undone sits last, in red. Closed is for good (the server has no
+        // reopen): a closed queue's next run is a new queue.
+        if (!closed) {
             sheet.iconRow(R.drawable.ic_circle_x, context.getString(R.string.options_close_title),
                     context.getString(R.string.options_close_body), true, sheet.dismissThen(new Runnable() {
                         @Override

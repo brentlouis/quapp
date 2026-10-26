@@ -208,9 +208,10 @@ public class OwnerQueuesFragment extends Fragment implements QueueAdapter.OnQueu
         }
 
         isRequestInFlight = true;
-        FakeData.getOwnedQueuesAsync(new FakeData.Callback<List<Queue>>() {
+        // The organizer's queues (every status) and each one's numbers for today, from the server
+        MyQueues.load(requireContext(), new MyQueues.Loaded() {
             @Override
-            public void onSuccess(List<Queue> owned) {
+            public void onLoaded(List<Queue> owned, Map<String, QueueStats> numbers) {
                 isRequestInFlight = false;
                 if (getView() == null) {
                     return;
@@ -221,13 +222,13 @@ public class OwnerQueuesFragment extends Fragment implements QueueAdapter.OnQueu
             }
 
             @Override
-            public void onError(Throwable error) {
+            public void onFailed(ApiError error) {
                 isRequestInFlight = false;
                 if (getView() == null) {
                     return;
                 }
                 if (cachedOwned == null) {
-                    loadingStateHelper.showError(getString(R.string.error_default_message));
+                    loadingStateHelper.showError(Repository.message(requireContext(), error));
                     list.setVisibility(View.GONE);
                     firstVisit.setVisibility(View.GONE);
                     filterEmpty.setVisibility(View.GONE);
@@ -273,7 +274,7 @@ public class OwnerQueuesFragment extends Fragment implements QueueAdapter.OnQueu
         for (Queue queue : owned) {
             if (selectedStatus == null || queue.getStatus() == selectedStatus) {
                 shown.add(queue);
-                stats.put(queue.getId(), FakeData.stats(queue.getId()));
+                stats.put(queue.getId(), MyQueues.lastStats().get(queue.getId()));
             }
         }
         adapter.submitQueues(shown, stats);
@@ -312,16 +313,15 @@ public class OwnerQueuesFragment extends Fragment implements QueueAdapter.OnQueu
             return;
         }
         final Queue queue = current;
-        List<Ticket> servingTickets = FakeData.servingTickets(queue.getId());
-        Ticket serving = servingTickets.isEmpty() ? null : servingTickets.get(0);
+        // The number called last today, as on the counter display
+        Integer serving = queue.getNowServing();
         ((TextView) live.findViewById(R.id.owner_live_number)).setText(serving == null
                 ? getString(R.string.browse_eta_none)
-                : getString(R.string.ticket_number_format, serving.getTicketNumber()));
+                : getString(R.string.ticket_number_format, serving));
         ((TextView) live.findViewById(R.id.owner_live_name)).setText(queue.getName());
         ((TextView) live.findViewById(R.id.owner_live_detail)).setText(serving == null
                 ? getString(R.string.owner_live_waiting_format, queue.getPeopleWaiting())
-                : getString(R.string.owner_live_serving_format, queue.getPeopleWaiting(),
-                        serving.getHolderName()));
+                : getString(R.string.owner_live_serving_format, queue.getPeopleWaiting()));
 
         View.OnClickListener openConsole = new View.OnClickListener() {
             @Override

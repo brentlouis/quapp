@@ -67,7 +67,7 @@ public class QueueAnalyticsActivity extends AppCompatActivity {
             loadingStateHelper.showLoading(getString(R.string.loading_analytics));
         }
 
-        FakeData.getQueueByIdAsync(queueId, new FakeData.Callback<Queue>() {
+        Repository.queue(this, queueId, new Repository.Callback<Queue>() {
             @Override
             public void onSuccess(final Queue queue) {
                 if (isFinishing() || isDestroyed()) {
@@ -77,7 +77,7 @@ public class QueueAnalyticsActivity extends AppCompatActivity {
                     finish();
                     return;
                 }
-                FakeData.getStatsAsync(queueId, new FakeData.Callback<QueueStats>() {
+                Repository.stats(QueueAnalyticsActivity.this, queueId, new Repository.Callback<QueueStats>() {
                     @Override
                     public void onSuccess(QueueStats stats) {
                         if (isFinishing() || isDestroyed()) {
@@ -91,15 +91,15 @@ public class QueueAnalyticsActivity extends AppCompatActivity {
                     }
 
                     @Override
-                    public void onError(Throwable error) {
-                        handleError();
+                    public void onError(ApiError error) {
+                        handleError(error);
                     }
                 });
             }
 
             @Override
-            public void onError(Throwable error) {
-                handleError();
+            public void onError(ApiError error) {
+                handleError(error);
             }
         });
     }
@@ -111,12 +111,12 @@ public class QueueAnalyticsActivity extends AppCompatActivity {
                 : getString(R.string.analytics_subtitle_format, name));
     }
 
-    private void handleError() {
+    private void handleError(ApiError error) {
         if (isFinishing() || isDestroyed()) {
             return;
         }
         if (cachedStats == null) {
-            loadingStateHelper.showError(getString(R.string.error_default_message));
+            loadingStateHelper.showError(Repository.message(this, error));
         } else {
             QuappMotion.snackbar(
                     findViewById(R.id.analytics_root), R.string.error_default_message,

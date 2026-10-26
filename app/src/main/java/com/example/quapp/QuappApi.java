@@ -3,6 +3,8 @@ package com.example.quapp;
 import androidx.annotation.Nullable;
 
 import java.time.Instant;
+import java.time.LocalDate;
+import java.time.LocalTime;
 import java.util.List;
 
 import retrofit2.Call;
@@ -10,6 +12,7 @@ import retrofit2.http.Body;
 import retrofit2.http.DELETE;
 import retrofit2.http.GET;
 import retrofit2.http.Header;
+import retrofit2.http.PATCH;
 import retrofit2.http.POST;
 import retrofit2.http.Path;
 import retrofit2.http.Query;
@@ -21,8 +24,6 @@ import retrofit2.http.Query;
  *
  * Every method returns a Call, which does nothing until .enqueue(callback): the request then
  * runs on a background thread and the answer comes back to the callback on the main thread.
- *
- * Endpoints are added as the screens move from FakeData to the server (BACKEND.md phase 10).
  */
 public interface QuappApi {
 
@@ -82,6 +83,62 @@ public interface QuappApi {
 
     @POST("queues/{id}/reports")
     Call<Void> report(@Path("id") String queueId, @Body ReportBody body);
+
+    // ---- The organizer's queues ----------------------------------------------------
+
+    /** Every status: live first, then upcoming, then closed. */
+    @GET("me/queues")
+    Call<List<Queue>> myQueues();
+
+    @POST("queues")
+    Call<Queue> createQueue(@Body QueueBody body);
+
+    /** Every field is sent, so this saves the whole Edit screen at once. */
+    @PATCH("queues/{id}")
+    Call<Queue> editQueue(@Path("id") String queueId, @Body QueueBody body);
+
+    @POST("queues/{id}/pause")
+    Call<Queue> pause(@Path("id") String queueId);
+
+    @POST("queues/{id}/resume")
+    Call<Queue> resume(@Path("id") String queueId);
+
+    @POST("queues/{id}/close")
+    Call<Queue> close(@Path("id") String queueId);
+
+    @POST("queues/{id}/extend")
+    Call<Queue> extend(@Path("id") String queueId, @Body ExtendBody body);
+
+    @GET("queues/{id}/stats")
+    Call<QueueStats> stats(@Path("id") String queueId);
+
+    // ---- The Live console ----------------------------------------------------------
+
+    @GET("queues/{id}/line")
+    Call<Line> line(@Path("id") String queueId);
+
+    /** The one at the counter is served, the first in line is called. */
+    @POST("queues/{id}/call-next")
+    Call<Line> callNext(@Path("id") String queueId);
+
+    /** The one at the counter didn't come, the first in line is called. */
+    @POST("queues/{id}/no-show")
+    Call<Line> noShow(@Path("id") String queueId);
+
+    @POST("queues/{id}/walk-ins")
+    Call<Ticket> walkIn(@Path("id") String queueId, @Body WalkInBody body);
+
+    @POST("tickets/{id}/remove")
+    Call<Void> remove(@Path("id") String ticketId, @Body RemoveBody body);
+
+    // ---- Verification --------------------------------------------------------------
+
+    /** The latest request (Profile's pending card), or an empty answer when there's none. */
+    @GET("me/verification")
+    Call<VerificationRequest> myVerification();
+
+    @POST("me/verification")
+    Call<VerificationRequest> askToBeVerified(@Body VerificationBody body);
 
     // ---- Request and response bodies -----------------------------------------------
     // Plain holders for JSON. Gson writes and reads their fields by name (deviceInstallId ↔
@@ -151,6 +208,89 @@ public interface QuappApi {
         ReportBody(Report.Reason reason, @Nullable String details) {
             this.reason = reason;
             this.details = details;
+        }
+    }
+
+    /**
+     * Create and Edit Queue. Empty optional text is sent as "" rather than left out, so an
+     * edit can clear it (the server turns "" into no value).
+     */
+    final class QueueBody {
+        final String name;
+        final Category category;
+        final String shortDescription;
+        final String details;
+        final String bring;
+        final String venue;
+        final String municipality;
+        final double latitude;
+        final double longitude;
+        final LocalDate startDate;
+        final LocalDate endDate;
+        final LocalTime opensAt;
+        final LocalTime closesAt;
+        final boolean gracePeriodEnabled;
+        final boolean noShowCooldownEnabled;
+        final boolean proximityCheckEnabled;
+        final int joinRadiusMeters;
+
+        QueueBody(Queue queue) {
+            name = queue.getName();
+            category = queue.getCategory();
+            shortDescription = queue.getShortDescription();
+            details = queue.getDetails() == null ? "" : queue.getDetails();
+            bring = queue.getBring() == null ? "" : queue.getBring();
+            venue = queue.getVenue();
+            municipality = queue.getMunicipality();
+            latitude = queue.getLatitude();
+            longitude = queue.getLongitude();
+            startDate = queue.getStartDate();
+            endDate = queue.getEndDate();
+            opensAt = queue.getOpensAt();
+            closesAt = queue.getClosesAt();
+            gracePeriodEnabled = queue.isGracePeriodEnabled();
+            noShowCooldownEnabled = queue.isNoShowCooldownEnabled();
+            proximityCheckEnabled = queue.isProximityCheckEnabled();
+            joinRadiusMeters = queue.isProximityCheckEnabled() ? queue.getJoinRadiusMeters() : 0;
+        }
+    }
+
+    final class ExtendBody {
+        final LocalTime closesAt;
+
+        ExtendBody(LocalTime closesAt) {
+            this.closesAt = closesAt;
+        }
+    }
+
+    final class WalkInBody {
+        final String name;
+
+        WalkInBody(String name) {
+            this.name = name;
+        }
+    }
+
+    final class RemoveBody {
+        final Ticket.RemovalReason reason;
+
+        RemoveBody(Ticket.RemovalReason reason) {
+            this.reason = reason;
+        }
+    }
+
+    final class VerificationBody {
+        final String organizationName;
+        final VerificationRequest.OrganizationType organizationType;
+        final String position;
+        final String officePhone;
+
+        VerificationBody(String organizationName, VerificationRequest.OrganizationType organizationType,
+                         String position, String officePhone) {
+            this.organizationName = organizationName;
+            this.organizationType = organizationType;
+            this.position = position;
+            this.officePhone = officePhone;
         }
     }
 

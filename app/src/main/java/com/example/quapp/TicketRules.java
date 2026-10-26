@@ -61,7 +61,7 @@ public final class TicketRules {
         if (minutesNeeded <= 0 || peopleBehind <= 0) {
             return 0;
         }
-        // A queue with no data yet uses the default (FakeData / MODELS.md: 5 min per person).
+        // A queue with no data yet uses the default (MODELS.md: 5 min per person).
         double perPerson = minutesPerPerson > 0 ? minutesPerPerson : 5.0;
         int places = (int) Math.ceil(minutesNeeded / perPerson);
         return Math.min(Math.max(places, 1), peopleBehind);
