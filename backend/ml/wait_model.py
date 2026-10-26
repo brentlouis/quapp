@@ -27,6 +27,18 @@ from ml.features import FEATURE_NAMES
 MIN_MINUTES = 0.5
 MAX_MINUTES = 30.0
 
+# A straight line keeps going outside the situations it learned from: a counter calling
+# someone every minute, faster than any simulated day, made it predict half a minute a person.
+# So the server keeps its prediction between half and double the queue's own rolling average:
+# the model refines what the counter is doing today, it never contradicts it.
+MODEL_BAND = 2.0
+
+
+def within_band(prediction: float, rolling_average: float) -> float:
+    """The model's minutes per person, kept within MODEL_BAND of the rolling average."""
+    low, high = rolling_average / MODEL_BAND, rolling_average * MODEL_BAND
+    return min(max(prediction, low), high)
+
 
 class WaitModel:
     def __init__(self):

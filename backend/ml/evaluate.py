@@ -10,7 +10,8 @@ Compared:
 - trained once: the warm-started model, never updated
 - learning online: the warm-started model, learning after every person (what the server does)
 - as deployed: the rolling average until a queue has served 10 people today, then the online
-  model (the server's actual rule, app/services/estimator.py)
+  model kept within half and double the rolling average (the server's actual rule,
+  app/services/estimator.py and wait_model.within_band)
 
 Plus a learning curve: a model that starts knowing nothing and learns online over all the days,
 against the rolling average, to show the error falling as it learns.
@@ -27,7 +28,7 @@ from pathlib import Path
 from ml.features import to_row
 from ml.simulate import simulate
 from ml.train import WARM_START_DAYS
-from ml.wait_model import MAX_MINUTES, MIN_MINUTES, WaitModel
+from ml.wait_model import MAX_MINUTES, MIN_MINUTES, WaitModel, within_band
 
 RESULTS = Path(__file__).parent / "results"
 TEST_DAYS = 14
@@ -58,8 +59,9 @@ def evaluate(seed: int = 7) -> dict:
             "trained_once": warm.predict(row),
             "learning_online": online.predict(row),
         }
-        guesses["as_deployed"] = (guesses["learning_online"] if seen >= MIN_SERVED_FOR_MODEL
-                                  else guesses["rolling_average"])
+        guesses["as_deployed"] = (
+            within_band(guesses["learning_online"], guesses["rolling_average"])
+            if seen >= MIN_SERVED_FOR_MODEL else guesses["rolling_average"])
         for name, guess in guesses.items():
             errors[name] += abs(guess - e.minutes)
         online.learn(row, e.minutes)          # only now does it see the answer

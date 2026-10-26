@@ -19,7 +19,7 @@ def test_the_demo_seeds(db):
 
     waiting_in_q1 = db.scalar(select(func.count()).select_from(Ticket).where(
         Ticket.queue_id == "q1", Ticket.status == TicketStatus.WAITING))
-    assert waiting_in_q1 == 42
+    assert waiting_in_q1 == 18  # 55 minutes at relief's 3 minutes a person
 
     rhea = db.scalar(select(User).where(User.phone == "09175550002"))
     assert {q.id for q in db.scalars(select(Queue).where(Queue.organizer_id == rhea.id))} \

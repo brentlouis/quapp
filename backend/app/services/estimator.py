@@ -7,7 +7,8 @@ Minutes per person comes from one of two places (MODELS.md "QueueStats.estimate_
 - the rolling average of the last 5 service times today (BACKEND.md step 6.1), while a queue has
   fewer than 10 of them today, or when there's no trained model;
 - the learning model (ml/, BACKEND.md phase 9) after that: a linear model that predicts minutes
-  per person from how the queue looks right now, and learns from every person served.
+  per person from how the queue looks right now, and learns from every person served. Its
+  prediction is kept between half and double the rolling average (ml/wait_model.within_band).
 
 A service time is the gap between one call and the next: calling Maria at 10:00 and José at
 10:04 means Maria took 4 minutes. Before anyone has been served the default 5 minutes is used.
@@ -28,7 +29,7 @@ from app.models import Queue, Ticket
 from app import timeutil
 from app.timeutil import MANILA
 from ml.features import Snapshot, to_row
-from ml.wait_model import WaitModel
+from ml.wait_model import WaitModel, within_band
 
 log = logging.getLogger(__name__)
 
@@ -204,8 +205,8 @@ def estimates(db: Session, queue_ids: list[str], day: date,
             except Exception:  # noqa: BLE001  a broken model falls back, never breaks a page
                 log.exception("The wait-time model couldn't predict; using the rolling average")
                 continue
-            result[queue.id] = Estimate(minutes, rolling.samples, EstimateSource.MODEL,
-                                        current.samples)
+            result[queue.id] = Estimate(within_band(minutes, rolling.minutes_per_person),
+                                        rolling.samples, EstimateSource.MODEL, current.samples)
     return result
 
 

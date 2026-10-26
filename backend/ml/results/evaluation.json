@@ -7,12 +7,12 @@
     "rolling_average": 1.876,
     "trained_once": 1.687,
     "learning_online": 1.673,
-    "as_deployed": 1.688
+    "as_deployed": 1.682
   },
   "improvement_over_rolling_average_percent": {
     "trained_once": 10.1,
     "learning_online": 10.8,
-    "as_deployed": 10.0
+    "as_deployed": 10.4
   },
   "weights_after_test": {
     "rolling_average": -0.37,

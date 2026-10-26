@@ -35,6 +35,7 @@ from app.enums import (
 )
 from app.models import Queue, Report, Ticket, User, VerificationRequest, new_id
 from app.security import hash_password
+from ml.simulate import BASE_MINUTES
 
 DEMO_PASSWORD = "quapp-demo"
 
@@ -48,7 +49,9 @@ WARM_UP_SERVED = 5
 
 @dataclass
 class Line:
-    """How a queue starts: people waiting, the wait to aim for, and today so far."""
+    """How a queue starts: people waiting, the wait to aim for, and today so far. The
+    number waiting is FakeData's; fill() makes the line as long as the category's pace needs
+    for the wait to come out at eta_minutes."""
     waiting: int = 0
     eta_minutes: int = 0
     served: int = 0
@@ -138,9 +141,15 @@ def seed(db: Session) -> None:
         if started and line.waiting and line.served + line.no_shows < WARM_UP_SERVED:
             served = WARM_UP_SERVED - line.no_shows
 
-        # Today so far: calls spaced by the minutes per person the wait aims for, the last
-        # one a moment ago. Every so often one of them was a no-show.
-        per_person = line.eta_minutes / line.waiting if line.waiting else 5
+        # The pace is the category's, the same as the simulated days the wait-time model
+        # learned from (ml/simulate.BASE_MINUTES: paying a bill about 2 minutes, an ID 7). A
+        # faster made-up pace would show the model counters it has never seen, and its
+        # estimates go strange (DECISIONS.md "The model stays near the rolling average").
+        per_person = BASE_MINUTES[q.category.value]
+        waiting = max(1, round(line.eta_minutes / per_person)) if line.waiting else 0
+
+        # Today so far: calls spaced by that pace, the last one a moment ago. Every so often
+        # one of them was a no-show.
         finished = served + line.no_shows
         no_show_every = finished // line.no_shows if line.no_shows else 0
         for i in range(finished):
@@ -154,12 +163,12 @@ def seed(db: Session) -> None:
 
         # The line: the first in line joined longest ago; every seventh is a walk-in, and the
         # fourth asked to move back (FakeData.seed)
-        for i in range(line.waiting):
+        for i in range(waiting):
             walk_in = i % 7 == 6
             holder = None if walk_in else crowd_member(i)
             name = holder.name if holder else crowd_name(i)
             ticket(q, holder, name, service_date=day, status=TicketStatus.WAITING,
-                   joined_at=now - timedelta(minutes=3 * (line.waiting - i)),
+                   joined_at=now - timedelta(minutes=3 * (waiting - i)),
                    moved_back=i == 3,
                    moved_back_at=now - timedelta(minutes=12) if i == 3 else None)
 

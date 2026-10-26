@@ -1602,7 +1602,7 @@ What still runs on `FakeData` (kept for these only): counters, announcements, ti
 - **Features** (`ml/features.py`): rolling average, called in the last 15 min, people in line, no-shows in the last hour, moved-backs waiting, minutes since opening, grace period, proximity, part of the day (morning, lunch, afternoon, late: one-hot, because a straight line can't learn "lunch is slower than both 10 AM and 3 PM" from an hour number), weekday and category (one-hot).
 - **Model** (`ml/wait_model.py`): `StandardScaler` + `SGDRegressor`, fixed learning rate 0.001, L2 0.0001, predictions clamped to 0.5–30 min. Warm-started once (`ml/train.py` → `ml/wait_model_warm.joblib`, committed); the server learns after every Call next and No-show (call-to-call time, breaks over 30 min skipped) and saves to `ml/wait_model.joblib` (not committed).
 - **When it's used:** the rolling average until a queue has 10 service times today, then the model. Insights shows which, with `model_samples`.
-- **Result** (`ml/evaluate.py`, predict-then-learn on the 14 held-out days): mean error per person 1.88 min for the rolling average, 1.69 trained once, **1.67 learning online (10.8% better)**, 1.69 as deployed. Chart: `ml/results/learning_curve.svg`.
+- **Result** (`ml/evaluate.py`, predict-then-learn on the 14 held-out days): mean error per person 1.88 min for the rolling average, 1.69 trained once, **1.67 learning online (10.8% better)**, 1.68 as deployed (10.4%, with the band from "The model stays near the rolling average"; 1.69 before it). Chart: `ml/results/learning_curve.svg`.
 
 **Why:** The learning rate was the one real finding. At 0.005 a model learning from scratch, one noisy person at a time, swung to errors of 17 minutes; at 0.001 it stays within about 2 minutes, with the same held-out accuracy. A shrinking learning rate did about as well, but it stops adapting over time, which is the point of learning online. Part of the remaining error can't be learned away: the simulator gives every person random variation on purpose.
 
@@ -1654,3 +1654,13 @@ What still runs on `FakeData` (kept for these only): counters, announcements, ti
 **Also considered:** Restyling the rows; no, the brief was to fix, not redesign.
 
 **Status:** Current. Emulator-checked; waiting for Brent's run on the Xiaomi. Left open: the ticket screen still says "average of the last 5 served" when the model is the source, because the queue response doesn't say which one made the estimate (needs a MODELS.md change).
+
+## The model stays near the rolling average (Oct 27)
+
+**Decision:** The server keeps the model's minutes per person between half and double the queue's own rolling average (`ml/wait_model.within_band`, used by `app/services/estimator.py` and by the evaluation's "as deployed" figure). The demo seed now moves each queue at its category's pace from the simulator (`ml/simulate.BASE_MINUTES`: relief 3 min, clearance 4.5, bills 2), and makes the line as long as that pace needs for FakeData's wait (Relief Distribution: 18 waiting instead of 42, still about 55 minutes).
+
+**Why:** The emulator pass showed Relief Distribution at 0.5 min a person. The old seed spaced calls 1.3 minutes apart, faster than any simulated day, so "called in the last 15 minutes" was far outside what the model learned from; a straight line keeps going there and the clamp caught it at its 0.5-minute floor. Real counters can do that too (a double-tapped Call next, a burst of quick no-shows), so the seed fix alone isn't enough. The band also helps on the held-out days: as deployed goes from 1.69 to 1.68 min (10.0% to 10.4% better than the rolling average).
+
+**Also considered:** Clipping each feature to the range seen in training (protects the inputs, but a combination of in-range values can still extrapolate); ignoring lessons under 15 seconds (stops tiny gaps from teaching it, but doesn't stop a strange prediction).
+
+**Status:** Current. With the new seed the model lands near each counter's own pace (Relief 3.06 against an average of 3.0, Clearance 4.72 against 4.5). 176 server tests pass. The hosted database needs reseeding with this seed.

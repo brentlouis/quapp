@@ -9,7 +9,7 @@ from app.services import estimator
 from app.timeutil import MANILA
 from ml.features import FEATURE_NAMES, Snapshot, to_row
 from ml.simulate import simulate
-from ml.wait_model import MAX_MINUTES, MIN_MINUTES, WaitModel
+from ml.wait_model import MAX_MINUTES, MIN_MINUTES, WaitModel, within_band
 from tests.conftest import Clock
 from tests.factories import make_queue, make_ticket, make_user, sign_in
 
@@ -126,7 +126,23 @@ def test_the_model_takes_over_at_ten_service_times(db):
     estimate = estimator.estimate(db, queue.id, Clock.DAY)
     assert estimate.source == EstimateSource.MODEL
     assert estimate.model_samples == model.samples
-    assert abs(estimate.minutes_per_person - 9.0) < 1.5  # what it learned, not the 4 minutes
+    # It learned 9 minutes, but the counter's own average is 4: kept to double that
+    assert estimate.minutes_per_person == 8.0
+
+
+def test_the_model_follows_its_prediction_inside_the_band(db):
+    estimator.use_model(trained(5.0), estimator._model_path)
+    queue = make_queue(db, make_user(db))
+    called(db, queue, *range(0, 44, 4))  # rolling average 4: the band is 2 to 8
+    estimate = estimator.estimate(db, queue.id, Clock.DAY)
+    assert estimate.source == EstimateSource.MODEL
+    assert 4.0 < estimate.minutes_per_person < 6.0
+
+
+def test_the_band_keeps_the_model_near_the_counter():
+    assert within_band(0.5, 3.0) == 1.5
+    assert within_band(20.0, 3.0) == 6.0
+    assert within_band(4.0, 3.0) == 4.0
 
 
 def test_an_untrained_model_leaves_the_rolling_average(db):
