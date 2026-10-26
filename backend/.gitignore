@@ -8,3 +8,7 @@ __pycache__/
 
 # The wait-time model the server learns and saves (BACKEND.md phase 9)
 *.joblib
+
+# The warm-started wait-time model ships with the code; the live one the server keeps
+# learning in (ml/wait_model.joblib) stays on each machine
+!ml/wait_model_warm.joblib
