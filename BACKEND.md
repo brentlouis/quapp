@@ -379,7 +379,7 @@ One screen at a time, in this order, each one working before the next.
 
 **Status (Sep 30):** built and emulator-tested in four batches: accounts (bc79bcf), the queuer side (7ad0feb), then the organizer side and verification together. `FakeData` and the app's own rolling average are deleted. The PROGRESS.md ticks wait for Brent's run on the phone.
 
-**Status (Oct 26):** the app is now the teammate's version (DECISIONS.md "Build from the teammate's app"), and the same three batches were replayed onto it on `feature/teammate-base` (f27572f, 2ca4f2b, 705ce6d). `Repository` answers the step 10.1 `QueueRepository` question: his screens keep FakeData's callback shape, backed by the server. FakeData stays only for his tools the server doesn't have (counters, announcements, lookup, handover, appointments, staff). Compiled and unit-tested, not yet run on a device. Render still deploys `feature/civic-paper-foundations`; the server code is the same on both branches, so nothing changes until the branch is merged.
+**Status (Oct 26):** the app is now the teammate's version (DECISIONS.md "Build from the teammate's app"), and the same three batches were replayed onto it on `feature/teammate-base` (f27572f, 2ca4f2b, 705ce6d). `Repository` answers the step 10.1 `QueueRepository` question: his screens keep FakeData's callback shape, backed by the server. FakeData stays only for his tools the server doesn't have (counters, announcements, lookup, handover, appointments, staff). Compiled and unit-tested, not yet run on a device. Since Oct 27 `render.yaml` points Render at `feature/teammate-base` (it adds the phase 9 model to the server).
 
 ---
 
@@ -393,7 +393,7 @@ One screen at a time, in this order, each one working before the next.
 3. **Render:** sign up at render.com with GitHub, then New > Blueprint and pick the `quapp` repo. Render reads `render.yaml` and asks for `DATABASE_URL`: paste the Neon string. The first build takes a few minutes; then `https://quapp-api.onrender.com/health` answers `{"status": "ok"}` (the name may differ if it's taken).
 4. **The app:** `quapp.apiUrl=https://quapp-api.onrender.com/` in `local.properties`, then build the release APK.
 5. **The admin page:** the same address plus `/admin`, signed in as the seeded admin account.
-- Render deploys the branch named in `render.yaml` (`feature/civic-paper-foundations` for now); change it to `master` after merging.
+- Render deploys the branch named in `render.yaml` (`feature/teammate-base` since Oct 27); change it to `master` after merging.
 - Reseeding later is step 2 again. `seed.py` wipes the demo data, so don't run it once real people are using it.
 
 **On the PC** (for development, or a demo without internet on the server side):
