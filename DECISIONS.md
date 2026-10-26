@@ -1610,4 +1610,32 @@ What still runs on `FakeData` (kept for these only): counters, announcements, ti
 
 **Known limit:** Render's free disk is wiped on every deploy and restart, so the hosted server goes back to the warm start each time; what it learned in between is lost. Locally it keeps learning across restarts. For the defense, say so; a paid disk or saving the model in Postgres would fix it.
 
-**Status:** Current. 168 server tests pass (16 new). The verification comparison from the same harness (BACKEND.md step 9.4, second half) isn't done yet.
+**Status:** Current. 168 server tests pass (16 new). The verification comparison is the next entry.
+
+## The anti-prank checks, compared (Oct 27)
+
+**Decision:** Recommend the grace period and the no-show cooldown together as the setting for any queue with a prank problem, and the proximity check only for queues where people are expected to join from close by. Don't recommend the cooldown without the grace period.
+
+`backend/ml/verification.py` runs 60 simulated town days (one queue per category, sharing the same people, 4 pranksters a day trying 6 joins each) under six strategies, with exactly the same people in each. Results (`ml/results/verification.json`):
+
+| Strategy | Pranks refused | Counter min lost to pranks, per queue-day | Honest people wrongly refused or missed | Served per busy counter hour |
+|---|---|---|---|---|
+| None | 0% | 3.2 | 11.4% | 11.1 |
+| Grace period | 0% | 6.1 | 4.9% | 11.4 |
+| Cooldown | 7.2% | 2.9 | 11.6% | 11.1 |
+| Proximity | 76.2% | 0.8 | 20.9% | 11.1 |
+| Grace + cooldown | 7.3% | 5.6 | 4.9% | 11.4 |
+| All three | 77.6% | 1.4 | 14.8% | 11.4 |
+
+**Why:**
+- **The grace period doesn't catch pranks, it protects honest people.** Without it, staff move on after about 1.5 minutes and anyone slower is a no-show: 11.4% of honest people. With a 3-minute window and "I'm here", that falls to 4.9%. The price is a longer wait for each prank (3 minutes instead of 1.5).
+- **The cooldown is only fair with the grace period.** Alone, it blocked 104 honest people (their "no-shows" were really staff moving on too fast) for 103 pranks. With the grace period, 23 honest people for 105 pranks.
+- **The cooldown catches few pranks** (about 7%), because the server already lets an account hold one live ticket at a time (HOURS_OVERLAP: the simulated queues share hours), which refused about 30% of prank attempts under every strategy, and a prank only becomes a strike once it's called.
+- **Proximity catches most pranks** (76%), but refuses everyone who joins from home: in the simulation 10% of honest people, the largest false-positive cost. It fits a clinic or a relief distribution where people are already nearby, not a queue meant for remote joining.
+- **At this prank rate pranks are cheap anyway:** a few counter minutes per queue a day. Throughput hardly moves between strategies.
+
+**Also considered:** Counting a prank as "detected" when the grace period records it as a no-show (every prank is eventually a no-show under every strategy, so it doesn't separate them); one queue at a time (misses the one-ticket rule and the cooldown, which both work across queues).
+
+**Known limit:** The people are made up like simulate.py's rules: how fast honest people answer (median 0.6 min, 5% with the phone away for 2–10 min), the 10% who join from home, how many pranksters there are. The proximity false-positive rate is simply that 10%. The detection rates come from the structure (prankster location, the one-ticket rule, when strikes happen) and hold if the numbers change; the exact percentages don't. The wait times aren't compared, because proximity removes people from the line, which shortens everyone's wait for the wrong reason.
+
+**Status:** Current. 174 server tests pass (6 new, including that its rules match `app/services/tickets.py`).

@@ -311,7 +311,7 @@ backend/
 
 ## Phase 9: The learning model
 
-> **Built (Oct 26):** steps 9.1 to 9.4 in `backend/ml/` and `app/services/estimator.py`; results and choices in DECISIONS.md "The wait-time model, built". Still to do: the verification comparison (second half of 9.4).
+> **Built (Oct 26):** steps 9.1 to 9.4 in `backend/ml/` and `app/services/estimator.py`; results and choices in DECISIONS.md "The wait-time model, built". The verification comparison (second half of 9.4, Oct 27) is `ml/verification.py`; results in DECISIONS.md "The anti-prank checks, compared".
 
 > ~~Deferred (Sep 29).~~ Waits use the rolling average from phase 6 for now; training on synthetic data takes more time than there is right now (DECISIONS.md "Wait-time estimation learns online"). The steps below stay as the plan for when it's picked up. Phases 10 and 11 don't depend on it.
 

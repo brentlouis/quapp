@@ -1,0 +1,134 @@
+{
+  "days": 60,
+  "queues_per_day": 8,
+  "pranksters_per_day": 4,
+  "prank_attempts_each": 6,
+  "strategies": {
+    "none": {
+      "detection_rate_percent": 0.0,
+      "prank_attempts": 1440,
+      "prank_refused": {
+        "one_ticket_rule": 433,
+        "proximity": 0,
+        "cooldown": 0
+      },
+      "prank_tickets_called": 1007,
+      "counter_minutes_lost_to_pranks_per_queue_day": 3.17,
+      "false_positive_percent": 11.4,
+      "false_positives": {
+        "refused_too_far": 0,
+        "blocked_by_cooldown": 0,
+        "missed_although_coming": 4794
+      },
+      "honest_people": 41948,
+      "honest_served": 36909,
+      "served_per_counter_hour": 11.13,
+      "average_wait_minutes": 45.8
+    },
+    "grace_period": {
+      "detection_rate_percent": 0.0,
+      "prank_attempts": 1440,
+      "prank_refused": {
+        "one_ticket_rule": 470,
+        "proximity": 0,
+        "cooldown": 0
+      },
+      "prank_tickets_called": 970,
+      "counter_minutes_lost_to_pranks_per_queue_day": 6.06,
+      "false_positive_percent": 4.9,
+      "false_positives": {
+        "refused_too_far": 0,
+        "blocked_by_cooldown": 0,
+        "missed_although_coming": 2054
+      },
+      "honest_people": 41948,
+      "honest_served": 38356,
+      "served_per_counter_hour": 11.41,
+      "average_wait_minutes": 47.6
+    },
+    "cooldown": {
+      "detection_rate_percent": 7.2,
+      "prank_attempts": 1440,
+      "prank_refused": {
+        "one_ticket_rule": 403,
+        "proximity": 0,
+        "cooldown": 103
+      },
+      "prank_tickets_called": 934,
+      "counter_minutes_lost_to_pranks_per_queue_day": 2.94,
+      "false_positive_percent": 11.6,
+      "false_positives": {
+        "refused_too_far": 0,
+        "blocked_by_cooldown": 104,
+        "missed_although_coming": 4777
+      },
+      "honest_people": 41948,
+      "honest_served": 36815,
+      "served_per_counter_hour": 11.14,
+      "average_wait_minutes": 45.6
+    },
+    "proximity": {
+      "detection_rate_percent": 76.2,
+      "prank_attempts": 1440,
+      "prank_refused": {
+        "one_ticket_rule": 102,
+        "proximity": 1098,
+        "cooldown": 0
+      },
+      "prank_tickets_called": 240,
+      "counter_minutes_lost_to_pranks_per_queue_day": 0.75,
+      "false_positive_percent": 20.9,
+      "false_positives": {
+        "refused_too_far": 4212,
+        "blocked_by_cooldown": 0,
+        "missed_although_coming": 4556
+      },
+      "honest_people": 41948,
+      "honest_served": 35060,
+      "served_per_counter_hour": 11.09,
+      "average_wait_minutes": 38.3
+    },
+    "grace_and_cooldown": {
+      "detection_rate_percent": 7.3,
+      "prank_attempts": 1440,
+      "prank_refused": {
+        "one_ticket_rule": 432,
+        "proximity": 0,
+        "cooldown": 105
+      },
+      "prank_tickets_called": 903,
+      "counter_minutes_lost_to_pranks_per_queue_day": 5.64,
+      "false_positive_percent": 4.9,
+      "false_positives": {
+        "refused_too_far": 0,
+        "blocked_by_cooldown": 23,
+        "missed_although_coming": 2053
+      },
+      "honest_people": 41948,
+      "honest_served": 38334,
+      "served_per_counter_hour": 11.42,
+      "average_wait_minutes": 47.5
+    },
+    "all_three": {
+      "detection_rate_percent": 77.6,
+      "prank_attempts": 1440,
+      "prank_refused": {
+        "one_ticket_rule": 96,
+        "proximity": 1098,
+        "cooldown": 19
+      },
+      "prank_tickets_called": 227,
+      "counter_minutes_lost_to_pranks_per_queue_day": 1.42,
+      "false_positive_percent": 14.8,
+      "false_positives": {
+        "refused_too_far": 4212,
+        "blocked_by_cooldown": 25,
+        "missed_although_coming": 1966
+      },
+      "honest_people": 41948,
+      "honest_served": 36384,
+      "served_per_counter_hour": 11.42,
+      "average_wait_minutes": 39.4
+    }
+  }
+}
