@@ -79,7 +79,7 @@ public class ProfileSettingsActivity extends AppCompatActivity {
             title(R.string.profile_help_title); help();
         } else if ("verification".equals(page)) {
             title(R.string.profile_verification); text(content, R.string.profile_verification_heading, true);
-            text(content, new Session(this).isLoggedIn() ? FakeData.myVerification().name() : getString(R.string.profile_not_verified), false); text(content, R.string.profile_verification_body, false);
+            text(content, new Session(this).isLoggedIn() ? new Session(this).getVerification().name() : getString(R.string.profile_not_verified), false); text(content, R.string.profile_verification_body, false);
             row(content, R.string.profile_verification_action, null, () -> {
                 Session session = new Session(this);
                 if (!session.isLoggedIn()) startActivity(new Intent(this, LoginActivity.class));
@@ -87,17 +87,24 @@ public class ProfileSettingsActivity extends AppCompatActivity {
             });
         } else if ("receipt".equals(page)) {
             title(R.string.profile_receipt);
-            Ticket selected = null;
-            for (Ticket ticket : FakeData.history()) if (ticket.getId().equals(getIntent().getStringExtra("receipt_ticket_id"))) selected = ticket;
-            if (selected == null) text(content, R.string.profile_receipt_unavailable, false);
-            else {
-                text(content, selected.getQueueName(), true);
-                text(content, getString(R.string.ticket_number_format, selected.getTicketNumber()), true);
-                text(content, selected.getStatus().name().replace('_', ' '), false);
-                text(content, selected.getVenue(), false);
-                if (selected.getFinishedAt() != null) text(content, Format.day(this, selected.getFinishedAt()), false);
-                text(content, R.string.profile_receipt_boundary, false);
-            }
+            // The ticket comes from the server (one of the account's own, finished or not)
+            String receiptId = getIntent().getStringExtra("receipt_ticket_id");
+            if (receiptId == null) text(content, R.string.profile_receipt_unavailable, false);
+            else Repository.run(this, ApiClient.api(this).ticket(receiptId), new Repository.Callback<Ticket>() {
+                @Override public void onSuccess(Ticket selected) {
+                    if (isFinishing() || isDestroyed()) return;
+                    if (selected == null) { text(content, R.string.profile_receipt_unavailable, false); return; }
+                    text(content, selected.getQueueName(), true);
+                    text(content, getString(R.string.ticket_number_format, selected.getTicketNumber()), true);
+                    text(content, selected.getStatus().name().replace('_', ' '), false);
+                    text(content, selected.getVenue(), false);
+                    if (selected.getFinishedAt() != null) text(content, Format.day(ProfileSettingsActivity.this, selected.getFinishedAt()), false);
+                    text(content, R.string.profile_receipt_boundary, false);
+                }
+                @Override public void onError(ApiError error) {
+                    if (!isFinishing() && !isDestroyed()) text(content, R.string.profile_receipt_unavailable, false);
+                }
+            });
             row(content, R.string.profile_past_visits, null, this::finish);
             row(content, R.string.profile_find_service, null, () -> startActivity(QueuerHomeActivity.intent(this, QueuerHomeActivity.TAB_BROWSE)));
         } else if ("staff".equals(page)) {
