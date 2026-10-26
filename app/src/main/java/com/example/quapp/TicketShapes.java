@@ -5,6 +5,7 @@ import android.content.res.ColorStateList;
 import android.graphics.drawable.Drawable;
 import android.graphics.drawable.GradientDrawable;
 import android.graphics.drawable.LayerDrawable;
+import android.view.View;
 
 import androidx.annotation.ColorInt;
 import androidx.annotation.DimenRes;
@@ -45,10 +46,9 @@ public final class TicketShapes {
     }
 
     /**
-     * Punches in the top and bottom edges at the same distance from the left: the My ticket stub,
-     * where the tear line runs top to bottom.
+     * Punches in the top and bottom edges at the same distance from the left (the kept ticket).
      *
-     * @param fromLeftPx distance of the punches (and the tear line) from the left edge, in px
+     * @param fromLeftPx distance of the punches from the left edge, in px
      * @param widthPx    the view's width in px; the bottom edge is drawn right→left, so it needs it
      */
     public static ShapeAppearanceModel stub(@NonNull Context context, @DimenRes int cornerRes,
@@ -60,6 +60,19 @@ public final class TicketShapes {
                 .setTopEdge(new PunchEdgeTreatment(punch, fromLeftPx, true))
                 .setBottomEdge(new PunchEdgeTreatment(punch, widthPx - fromLeftPx, true))
                 .build();
+    }
+
+    /**
+     * The espresso ticket on My tickets and Active ticket: the stub is on top, the tear line runs
+     * across, and the punches sit at its two ends. Call it after layout (the tear line's height
+     * in the ticket is only known then); {@code tear} must be a direct child of {@code ticket}.
+     */
+    public static Drawable tearLineBackground(@NonNull Context context, @NonNull View ticket,
+                                              @NonNull View tear) {
+        float fromTop = (tear.getTop() + tear.getHeight() / 2f) / ticket.getHeight();
+        return background(context,
+                sidePunched(context, R.dimen.radius_card, R.dimen.punch_radius, fromTop),
+                ContextCompat.getColor(context, R.color.spotlight));
     }
 
     /** The espresso spotlight: 10dp corners, 9dp punches halfway down both sides. */

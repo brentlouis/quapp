@@ -25,7 +25,7 @@
     <string name="profile_staff_roles">Staff invitations</string>
     <string name="profile_sign_out">Sign out</string>
     <string name="profile_sign_in">Sign in</string>
-    <string name="profile_logout_tickets_warning">Signing out removes your local active tickets. Leave your queues first if you need to keep your place. Continue?</string>
+    <string name="profile_logout_tickets_warning">Your tickets stay with your account; you\'ll see them again when you sign back in. Sign out?</string>
     <string name="profile_reduce_motion">Reduce motion</string>
     <string name="profile_reduce_motion_hint">Respect system settings and limit movement.</string>
     <string name="profile_service_order">Service order</string>
@@ -86,4 +86,4 @@ Tickets, appointment drafts, reports and account details are not cleared here.</
     <string name="profile_help_boundary">No support message or reply is sent. Contact the real organizer for real help.</string>
     <string name="profile_expanded">Expanded</string>
     <string name="profile_collapsed">Collapsed</string>
-<string name="profile_close_dialog">Close dialog</string><string name="profile_email">Email</string><string name="profile_simulated">Simulated</string><string name="profile_customer_view">Return to customer view</string><string name="profile_verified_session">Verified in this session</string><string name="profile_receipt">Visit receipt</string><string name="profile_receipt_unavailable">This past visit is unavailable.</string><string name="profile_receipt_boundary">Demo receipt. No payment, official document or transaction was processed.</string><string name="profile_find_service">Find another service</string><string name="profile_help_title">Help</string><string name="profile_verified_demo">Local verification</string></resources>
+<string name="profile_close_dialog">Close dialog</string><string name="profile_email">Email</string><string name="profile_simulated">Simulated</string><string name="profile_customer_view">Return to customer view</string><string name="profile_verified_session">Verified organizer</string><string name="profile_receipt">Visit receipt</string><string name="profile_receipt_unavailable">This past visit is unavailable.</string><string name="profile_receipt_boundary">Demo receipt. No payment, official document or transaction was processed.</string><string name="profile_find_service">Find another service</string><string name="profile_help_title">Help</string><string name="profile_verified_demo">Verified organizer</string></resources>

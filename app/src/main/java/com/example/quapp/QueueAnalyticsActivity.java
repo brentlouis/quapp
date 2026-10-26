@@ -153,8 +153,10 @@ public class QueueAnalyticsActivity extends AppCompatActivity {
         text.setSpan(new ForegroundColorSpan(ContextCompat.getColor(this, R.color.ink)),
                 0, average.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
         text.append(' ');
-        text.append(getResources().getQuantityString(
-                R.plurals.analytics_average_basis, samples, samples));
+        // Once the model takes over, the minutes are its prediction, not an average
+        text.append(stats.getEstimateSource() == QueueStats.EstimateSource.MODEL
+                ? getString(R.string.analytics_average_basis_model)
+                : getResources().getQuantityString(R.plurals.analytics_average_basis, samples, samples));
         text.append(getString(R.string.analytics_waiting_suffix, stats.getWaitingNow()));
         basis.setText(text);
     }

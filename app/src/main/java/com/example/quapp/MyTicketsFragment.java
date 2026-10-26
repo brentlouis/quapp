@@ -15,7 +15,6 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.google.android.material.progressindicator.CircularProgressIndicator;
-import com.google.android.material.shape.ShapeAppearanceModel;
 import com.google.android.material.snackbar.Snackbar;
 
 import java.util.List;
@@ -155,14 +154,15 @@ public class MyTicketsFragment extends Fragment implements MyTicketsAdapter.OnTi
             }
         });
 
-        // The stub's bottom punch is placed from the right (Material draws that edge right→left),
-        // so the shape needs the ticket's width, which only exists after layout.
+        // The punches sit level with the tear line, which is only placed after layout; redrawn
+        // whenever the ticket's size changes (a longer queue name pushes the tear line down).
         ticketView.addOnLayoutChangeListener(new View.OnLayoutChangeListener() {
             @Override
             public void onLayoutChange(View v, int left, int top, int right, int bottom,
                                        int oldLeft, int oldTop, int oldRight, int oldBottom) {
-                if (right - left != oldRight - oldLeft) {
-                    applyTicketShape(v, right - left);
+                if (right - left != oldRight - oldLeft || bottom - top != oldBottom - oldTop) {
+                    v.setBackground(TicketShapes.tearLineBackground(requireContext(), v,
+                            v.findViewById(R.id.my_tickets_tear)));
                 }
             }
         });
@@ -215,17 +215,6 @@ public class MyTicketsFragment extends Fragment implements MyTicketsAdapter.OnTi
     @Override
     public void onTicketClick(Ticket ticket) {
         startActivity(ActiveTicketActivity.intent(requireContext(), ticket.getId()));
-    }
-
-    /** Espresso ticket with its holes top and bottom, centred on the tear line. */
-    private void applyTicketShape(View v, int width) {
-        // The tear line is 2dp wide and starts at the stub's edge, so its centre is 1dp further in.
-        float tearCentre = getResources().getDimension(R.dimen.my_tickets_stub_width)
-                + getResources().getDimension(R.dimen.hairline);
-        ShapeAppearanceModel shape = TicketShapes.stub(requireContext(),
-                R.dimen.radius_card, R.dimen.punch_radius, tearCentre, width);
-        v.setBackground(TicketShapes.background(requireContext(), shape,
-                ContextCompat.getColor(requireContext(), R.color.spotlight)));
     }
 
     private void bind() {

@@ -142,6 +142,7 @@
             <!-- Not there yet: the same sheet as the Called screen (28). Gone once moved back. -->
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/my_tickets_called_move_back"
+                android:textColor="?attr/colorOnSurface"
                 style="@style/Widget.Quapp.Button.Outlined"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"

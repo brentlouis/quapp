@@ -321,7 +321,7 @@ public class OwnerQueuesFragment extends Fragment implements QueueAdapter.OnQueu
         ((TextView) live.findViewById(R.id.owner_live_name)).setText(queue.getName());
         ((TextView) live.findViewById(R.id.owner_live_detail)).setText(serving == null
                 ? getString(R.string.owner_live_waiting_format, queue.getPeopleWaiting())
-                : getString(R.string.owner_live_serving_format, queue.getPeopleWaiting()));
+                : getString(R.string.owner_live_serving_format, queue.getPeopleWaiting(), serving));
 
         View.OnClickListener openConsole = new View.OnClickListener() {
             @Override

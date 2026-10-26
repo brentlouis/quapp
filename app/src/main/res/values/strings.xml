@@ -486,7 +486,8 @@
     <string name="ticket_outcome_not_affected">Not affected</string>
     <string name="ticket_browse_action">Browse other queues</string>
     <string name="ticket_bring_title">Bring</string>
-    <string name="analytics_source_model">Learning model · %d people learned from</string>
+    <string name="analytics_source_model">Learning model · learned from %1$,d people</string>
+    <string name="analytics_average_basis_model">(the learning model\'s prediction)</string>
     <string name="analytics_source_rolling">Rolling average of the last people served today</string>
 
     <!-- Queue cards (QueueCards) -->
@@ -557,7 +558,7 @@
     <string name="owner_live_now">Live now</string>
     <string name="owner_console_action">Console</string>
     <string name="owner_live_waiting_format">%d waiting · no one called yet</string>
-    <string name="owner_live_serving_format">%d waiting · called last</string>
+    <string name="owner_live_serving_format">%1$d waiting · #%2$d was called last</string>
     <string name="owner_chip_count_format">%1$s %2$d</string>
     <string name="owner_filter_empty_format">No %s queues.</string>
     <string name="create_busy">Saving…</string>

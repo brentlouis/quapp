@@ -1,46 +1,35 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!-- One person waiting on the Live console: the number tile, who it is, and the actions.
+     The tile has a minimum width so the names line up from row to row. -->
 <LinearLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:gravity="start"
+    android:gravity="center_vertical"
     android:minHeight="@dimen/list_row_min_height"
-    android:orientation="vertical"
+    android:orientation="horizontal"
     android:paddingTop="@dimen/space_sm"
     android:paddingBottom="@dimen/space_sm">
-    <LinearLayout
-        android:layout_width="match_parent"
+    <TextView
+        android:id="@+id/waiting_number"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        android:gravity="center_vertical">
-        <TextView
-            android:id="@+id/waiting_number"
-            android:layout_width="@dimen/dimension_zero"
-            android:layout_height="wrap_content"
-            android:background="@drawable/bg_tile"
-            android:gravity="start|center_vertical"
-            android:textAppearance="?attr/textAppearanceStatSmall"
-            tools:text="#24"
-            android:layout_weight="1"
-            android:minHeight="@dimen/console_lead_height"
-            android:paddingStart="@dimen/space_sm"
-            android:paddingEnd="@dimen/space_sm" />
-        <ImageButton
-            android:id="@+id/waiting_actions"
-            android:layout_width="@dimen/touch_target_min"
-            android:layout_height="@dimen/touch_target_min"
-            android:background="?attr/selectableItemBackgroundBorderless"
-            android:contentDescription="@string/console_ticket_actions_description"
-            android:src="@drawable/ic_more_vert"
-            app:tint="?attr/colorOnSurfaceVariant" />
-    </LinearLayout>
+        android:background="@drawable/bg_tile"
+        android:gravity="center"
+        android:minWidth="@dimen/console_number_min_width"
+        android:minHeight="@dimen/console_lead_height"
+        android:paddingStart="@dimen/space_sm"
+        android:paddingEnd="@dimen/space_sm"
+        android:textAppearance="?attr/textAppearanceStatSmall"
+        tools:text="#24" />
     <LinearLayout
-        android:layout_width="match_parent"
+        android:layout_width="@dimen/dimension_zero"
         android:layout_height="wrap_content"
-        android:orientation="vertical"
-        android:layout_marginTop="@dimen/space_xs">
+        android:layout_marginStart="@dimen/space_ms"
+        android:layout_weight="1"
+        android:orientation="vertical">
         <TextView
             android:id="@+id/waiting_name"
             android:layout_width="match_parent"
@@ -54,14 +43,22 @@
             android:fontFeatureSettings="tnum"
             android:textAppearance="?attr/textAppearanceBodySmall"
             tools:text="0917 ••• 0003" />
+        <TextView
+            android:id="@+id/waiting_tag"
+            style="@style/Widget.Quapp.Tag"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/space_xs"
+            android:text="@string/console_walk_in_label"
+            android:visibility="gone"
+            tools:visibility="visible" />
     </LinearLayout>
-    <TextView
-        android:id="@+id/waiting_tag"
-        style="@style/Widget.Quapp.Tag"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="@string/console_walk_in_label"
-        android:visibility="gone"
-        tools:visibility="visible"
-        android:layout_marginTop="@dimen/space_xs" />
+    <ImageButton
+        android:id="@+id/waiting_actions"
+        android:layout_width="@dimen/touch_target_min"
+        android:layout_height="@dimen/touch_target_min"
+        android:background="?attr/selectableItemBackgroundBorderless"
+        android:contentDescription="@string/console_ticket_actions_description"
+        android:src="@drawable/ic_more_vert"
+        app:tint="?attr/colorOnSurfaceVariant" />
 </LinearLayout>

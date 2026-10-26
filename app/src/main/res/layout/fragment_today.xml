@@ -45,18 +45,17 @@
             android:id="@+id/today_totals"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="vertical" >
+            android:orientation="horizontal" >
             <LinearLayout
-                android:layout_width="match_parent"
+                android:layout_width="@dimen/dimension_zero"
                 android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                android:gravity="center_vertical"
+                android:layout_weight="1"
+                android:orientation="vertical"
                 android:paddingTop="@dimen/space_ms"
                 android:paddingBottom="@dimen/space_ms" >
                 <TextView
                     android:id="@+id/today_served"
-                    android:layout_width="@dimen/dimension_zero"
-                    android:layout_weight="1"
+                    android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:textAppearance="?attr/textAppearanceStatHero"
                     tools:text="85" />
@@ -67,21 +66,16 @@
                     android:textAppearance="?attr/textAppearanceLabelSmall"
                     android:textColor="?attr/colorOnSurfaceVariant" />
             </LinearLayout>
-            <com.google.android.material.divider.MaterialDivider
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:visibility="gone" />
             <LinearLayout
-                android:layout_width="match_parent"
+                android:layout_width="@dimen/dimension_zero"
                 android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                android:gravity="center_vertical"
+                android:layout_weight="1"
+                android:orientation="vertical"
                 android:paddingTop="@dimen/space_ms"
                 android:paddingBottom="@dimen/space_ms" >
                 <TextView
                     android:id="@+id/today_waiting"
-                    android:layout_width="@dimen/dimension_zero"
-                    android:layout_weight="1"
+                    android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:textAppearance="?attr/textAppearanceStatHero"
                     tools:text="20" />
@@ -92,21 +86,16 @@
                     android:textAppearance="?attr/textAppearanceLabelSmall"
                     android:textColor="?attr/colorOnSurfaceVariant" />
             </LinearLayout>
-            <com.google.android.material.divider.MaterialDivider
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:visibility="gone" />
             <LinearLayout
-                android:layout_width="match_parent"
+                android:layout_width="@dimen/dimension_zero"
                 android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                android:gravity="center_vertical"
+                android:layout_weight="1"
+                android:orientation="vertical"
                 android:paddingTop="@dimen/space_ms"
                 android:paddingBottom="@dimen/space_ms" >
                 <TextView
                     android:id="@+id/today_no_show_rate"
-                    android:layout_width="@dimen/dimension_zero"
-                    android:layout_weight="1"
+                    android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:textAppearance="?attr/textAppearanceStatHero"
                     tools:text="7%" />

@@ -19,7 +19,6 @@ import androidx.core.view.ViewCompat;
 
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
-import com.google.android.material.shape.ShapeAppearanceModel;
 import com.google.android.material.snackbar.Snackbar;
 
 import java.time.Instant;
@@ -204,13 +203,14 @@ public class ActiveTicketActivity extends AppCompatActivity {
             }
         });
 
-        // The stub's bottom punch is placed from the right edge, so the shape needs the width.
+        // The punches sit level with the tear line, which is only placed after layout
         ticketCard.addOnLayoutChangeListener(new View.OnLayoutChangeListener() {
             @Override
             public void onLayoutChange(View v, int left, int top, int right, int bottom,
                                        int oldLeft, int oldTop, int oldRight, int oldBottom) {
-                if (right - left != oldRight - oldLeft) {
-                    applyTicketShape(v, right - left);
+                if (right - left != oldRight - oldLeft || bottom - top != oldBottom - oldTop) {
+                    v.setBackground(TicketShapes.tearLineBackground(ActiveTicketActivity.this, v,
+                            v.findViewById(R.id.ticket_tear_line)));
                 }
             }
         });
@@ -619,14 +619,5 @@ public class ActiveTicketActivity extends AppCompatActivity {
         statusPill.setTextColor(ContextCompat.getColor(ActiveTicketActivity.this, color));
         ViewCompat.setBackgroundTintList(statusPill,
                 ColorStateList.valueOf(ContextCompat.getColor(ActiveTicketActivity.this, ground)));
-    }
-
-    private void applyTicketShape(View v, int width) {
-        float tearCentre = ActiveTicketActivity.this.getResources().getDimension(R.dimen.ticket_stub_width)
-                + ActiveTicketActivity.this.getResources().getDimension(R.dimen.hairline);
-        ShapeAppearanceModel shape = TicketShapes.stub(ActiveTicketActivity.this,
-                R.dimen.radius_card, R.dimen.punch_radius, tearCentre, width);
-        v.setBackground(TicketShapes.background(ActiveTicketActivity.this, shape,
-                ContextCompat.getColor(ActiveTicketActivity.this, R.color.spotlight)));
     }
 }

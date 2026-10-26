@@ -1,7 +1,10 @@
 <resources xmlns:tools="http://schemas.android.com/tools">
 
     <!-- Civic Paper, light only (DESIGN.md section 2). Layouts use these roles, never the colours. -->
-    <style name="Theme.Quapp" parent="Theme.Material3Expressive.DayNight.NoActionBar">
+    <style name="Theme.Quapp" parent="Theme.Material3Expressive.Light.NoActionBar">
+        <!-- Light even when the phone is in dark mode: only light colours exist, and HyperOS
+             would otherwise darken the screens itself (Android 10+) -->
+        <item name="android:forceDarkAllowed" tools:targetApi="q">false</item>
         <!-- Ink on paper is the default action: the primary is not a brand hue -->
         <!-- Textures every Material component as it's inflated (QuappViewInflater, Grain) -->
         <item name="viewInflaterClass">com.google.android.material.theme.MaterialComponentsViewInflater</item>

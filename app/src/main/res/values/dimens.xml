@@ -45,7 +45,6 @@
     <dimen name="pill_height">24dp</dimen>       <!-- status pill -->
     <dimen name="avatar_size">56dp</dimen>
     <dimen name="list_row_min_height">60dp</dimen>
-    <dimen name="ticket_stub_width">118dp</dimen>    <!-- the full ticket on My ticket (08) -->
     <dimen name="ticket_min_height">152dp</dimen>
     <dimen name="ticket_barcode_width">78dp</dimen>
     <dimen name="ticket_barcode_height">16dp</dimen>
@@ -55,7 +54,7 @@
     <dimen name="grace_ring_thickness">4dp</dimen>
     <dimen name="console_lead_width">52dp</dimen>     <!-- the #24 tile in the console list -->
     <dimen name="console_lead_height">40dp</dimen>
-    <dimen name="my_tickets_stub_width">118dp</dimen> <!-- where the tear line and punches sit on a compact ticket -->
+    <dimen name="console_number_min_width">64dp</dimen> <!-- the number tile on a console row -->
     <dimen name="brand_mark_width">34dp</dimen>   <!-- the ticket mark next to the wordmark; 4:5 -->
     <dimen name="brand_mark_height">42.5dp</dimen>
     <dimen name="splash_mark_width">112dp</dimen>

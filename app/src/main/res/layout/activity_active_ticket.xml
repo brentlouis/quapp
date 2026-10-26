@@ -247,7 +247,7 @@
                     android:layout_height="wrap_content"
                     android:gravity="center_vertical"
                     android:minHeight="@dimen/list_row_min_height"
-                    android:orientation="vertical"
+                    android:orientation="horizontal"
                     android:paddingTop="@dimen/space_sm"
                     android:paddingBottom="@dimen/space_sm" >
                     <ImageView
@@ -256,9 +256,13 @@
                         android:importantForAccessibility="no"
                         android:src="@drawable/ic_map_pin"
                         app:tint="?attr/colorOnSurfaceVariant" />
+                    <!-- Same spacing as the other rows here (view_list_row) -->
                     <LinearLayout
-                        android:layout_width="match_parent"
+                        android:layout_width="@dimen/dimension_zero"
                         android:layout_height="wrap_content"
+                        android:layout_marginStart="@dimen/space_md"
+                        android:layout_marginEnd="@dimen/space_sm"
+                        android:layout_weight="1"
                         android:orientation="vertical" >
                         <TextView
                             android:id="@+id/ticket_be_there"
@@ -276,8 +280,6 @@
                     </LinearLayout>
                     <com.google.android.material.button.MaterialButton
                         android:id="@+id/ticket_directions"
-                        android:layout_gravity="end"
-                        android:layout_marginTop="@dimen/space_sm"
                         style="@style/Widget.Quapp.Button.Tonal.Small"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"

@@ -5,7 +5,7 @@
      Each style names the exact font file for its weight. Picking 500/600 out of a font family
      only works on API 28+, and min SDK is 24.
      fontFamily (app) is read by AppCompat below API 26; android:fontFamily on 26+. -->
-<resources>
+<resources xmlns:tools="http://schemas.android.com/tools">
 
     <!-- ===== DM Serif Display: headlines and numbers that name a ticket. Never below 20sp, never bold. ===== -->
 
@@ -15,6 +15,7 @@
         <item name="android:textStyle">bold</item>
         <item name="android:textSize">@dimen/type_29_sp</item>
         <item name="lineHeight">@dimen/type_36_sp</item>
+        <item name="android:lineHeight" tools:targetApi="p">@dimen/type_36_sp</item>
         <item name="android:letterSpacing">-0.005</item>
     </style>
 
@@ -24,6 +25,7 @@
         <item name="android:textStyle">bold</item>
         <item name="android:textSize">@dimen/type_24_sp</item>
         <item name="lineHeight">@dimen/type_29_sp</item>
+        <item name="android:lineHeight" tools:targetApi="p">@dimen/type_29_sp</item>
         <item name="android:letterSpacing">0</item>
     </style>
 
@@ -33,18 +35,21 @@
         <item name="android:textStyle">bold</item>
         <item name="android:textSize">@dimen/type_56_sp</item>
         <item name="lineHeight">@dimen/type_53_sp</item>
+        <item name="android:lineHeight" tools:targetApi="p">@dimen/type_53_sp</item>
         <item name="android:letterSpacing">-0.01</item>
     </style>
 
     <style name="TextAppearance.Quapp.TicketNumber.Called">
         <item name="android:textSize">@dimen/type_132_sp</item>
         <item name="lineHeight">@dimen/type_119_sp</item>
+        <item name="android:lineHeight" tools:targetApi="p">@dimen/type_119_sp</item>
     </style>
 
     <!-- The counter display (canvas 32): read from across a waiting room -->
     <style name="TextAppearance.Quapp.TicketNumber.Counter">
         <item name="android:textSize">@dimen/type_160_sp</item>
         <item name="lineHeight">@dimen/type_144_sp</item>
+        <item name="android:lineHeight" tools:targetApi="p">@dimen/type_144_sp</item>
     </style>
 
     <!-- ===== IBM Plex Sans: everything read ===== -->
@@ -55,6 +60,7 @@
         <item name="android:textStyle">bold</item>
         <item name="android:textSize">@dimen/type_17_sp</item>
         <item name="lineHeight">@dimen/type_21_sp</item>
+        <item name="android:lineHeight" tools:targetApi="p">@dimen/type_21_sp</item>
         <item name="android:letterSpacing">0</item>
     </style>
 
@@ -65,6 +71,7 @@
         <item name="android:textStyle">bold</item>
         <item name="android:textSize">@dimen/type_16_sp</item>
         <item name="lineHeight">@dimen/type_20_sp</item>
+        <item name="android:lineHeight" tools:targetApi="p">@dimen/type_20_sp</item>
         <item name="android:letterSpacing">0</item>
     </style>
 
@@ -74,6 +81,7 @@
         <item name="android:textStyle">normal</item>
         <item name="android:textSize">@dimen/type_16_sp</item>
         <item name="lineHeight">@dimen/type_24_sp</item>
+        <item name="android:lineHeight" tools:targetApi="p">@dimen/type_24_sp</item>
         <item name="android:letterSpacing">0</item>
     </style>
 
@@ -83,6 +91,7 @@
         <item name="android:fontFamily">sans-serif</item>
         <item name="android:textSize">@dimen/type_16_sp</item>
         <item name="lineHeight">@dimen/type_24_sp</item>
+        <item name="android:lineHeight" tools:targetApi="p">@dimen/type_24_sp</item>
     </style>
 
     <style name="TextAppearance.Quapp.Caption" parent="TextAppearance.Material3.BodySmall">
@@ -91,6 +100,7 @@
         <item name="android:textStyle">normal</item>
         <item name="android:textSize">@dimen/type_16_sp</item>
         <item name="lineHeight">@dimen/type_22_sp</item>
+        <item name="android:lineHeight" tools:targetApi="p">@dimen/type_22_sp</item>
         <item name="android:letterSpacing">0</item>
         <item name="android:textColor">?attr/colorOnSurfaceVariant</item>
     </style>
@@ -101,6 +111,7 @@
         <item name="android:textStyle">bold</item>
         <item name="android:textSize">@dimen/type_16_sp</item>
         <item name="lineHeight">@dimen/type_20_sp</item>
+        <item name="android:lineHeight" tools:targetApi="p">@dimen/type_20_sp</item>
         <item name="android:letterSpacing">0</item>
         <item name="android:textAllCaps">false</item>
     </style>
@@ -112,6 +123,7 @@
         <item name="android:textStyle">normal</item>
         <item name="android:textSize">@dimen/type_16_sp</item>
         <item name="lineHeight">@dimen/type_20_sp</item>
+        <item name="android:lineHeight" tools:targetApi="p">@dimen/type_20_sp</item>
         <item name="android:letterSpacing">0</item>
     </style>
 
@@ -124,12 +136,14 @@
         <item name="android:textStyle">bold</item>
         <item name="android:textSize">@dimen/type_22_sp</item>
         <item name="lineHeight">@dimen/type_24_sp</item>
+        <item name="android:lineHeight" tools:targetApi="p">@dimen/type_24_sp</item>
         <item name="android:letterSpacing">-0.02</item>
     </style>
 
     <style name="TextAppearance.Quapp.StatHero" parent="TextAppearance.Quapp.Stat">
         <item name="android:textSize">@dimen/type_26_sp</item>
         <item name="lineHeight">@dimen/type_29_sp</item>
+        <item name="android:lineHeight" tools:targetApi="p">@dimen/type_29_sp</item>
     </style>
 
     <!-- Status pills, section labels ("IN TAGBILARAN CITY · 4"), stat labels -->
@@ -139,6 +153,7 @@
         <item name="android:textStyle">normal</item>
         <item name="android:textSize">@dimen/type_16_sp</item>
         <item name="lineHeight">@dimen/type_20_sp</item>
+        <item name="android:lineHeight" tools:targetApi="p">@dimen/type_20_sp</item>
         <item name="android:letterSpacing">0</item>
         <item name="android:textAllCaps">false</item>
     </style>
@@ -149,6 +164,7 @@
         <item name="android:textStyle">bold</item>
         <item name="android:textSize">@dimen/type_16_sp</item>
         <item name="lineHeight">@dimen/type_18_sp</item>
+        <item name="android:lineHeight" tools:targetApi="p">@dimen/type_18_sp</item>
         <item name="android:letterSpacing">0</item>
         <item name="android:textAllCaps">false</item>
         <item name="android:textColor">?attr/colorOnSurface</item>
@@ -161,6 +177,7 @@
         <item name="android:textStyle">normal</item>
         <item name="android:textSize">@dimen/type_16_sp</item>
         <item name="lineHeight">@dimen/type_21_sp</item>
+        <item name="android:lineHeight" tools:targetApi="p">@dimen/type_21_sp</item>
         <item name="android:letterSpacing">0</item>
         <item name="android:textColor">?attr/colorOnSurface</item>
     </style>
@@ -168,12 +185,14 @@
     <style name="TextAppearance.Quapp.StatSmall" parent="TextAppearance.Quapp.Stat">
         <item name="android:textSize">@dimen/type_16_sp</item>
         <item name="lineHeight">@dimen/type_18_sp</item>
+        <item name="android:lineHeight" tools:targetApi="p">@dimen/type_18_sp</item>
         <item name="android:letterSpacing">-0.01</item>
     </style>
 
     <style name="TextAppearance.Quapp.StatDisplay" parent="TextAppearance.Quapp.Stat">
         <item name="android:textSize">@dimen/type_56_sp</item>
         <item name="lineHeight">@dimen/type_56_sp</item>
+        <item name="android:lineHeight" tools:targetApi="p">@dimen/type_56_sp</item>
         <item name="android:letterSpacing">-0.03</item>
     </style>
     <!-- "I'm here": the one 64dp button -->
@@ -183,6 +202,7 @@
         <item name="android:fontFamily">sans-serif</item>
         <item name="android:textSize">@dimen/type_18_sp</item>
         <item name="lineHeight">@dimen/type_22_sp</item>
+        <item name="android:lineHeight" tools:targetApi="p">@dimen/type_22_sp</item>
     </style>
     <!-- Rubber stamp: mono caps, widely tracked -->
     <style name="TextAppearance.Quapp.Stamp" parent="TextAppearance.Quapp.Label">
@@ -197,12 +217,14 @@
     <style name="TextAppearance.Quapp.TicketNumber.Large">
         <item name="android:textSize">@dimen/type_112_sp</item>
         <item name="lineHeight">@dimen/type_104_sp</item>
+        <item name="android:lineHeight" tools:targetApi="p">@dimen/type_104_sp</item>
     </style>
 
     <!-- The number on a kept ticket (canvas 22, 23) -->
     <style name="TextAppearance.Quapp.TicketNumber.Small">
         <item name="android:textSize">@dimen/type_44_sp</item>
         <item name="lineHeight">@dimen/type_44_sp</item>
+        <item name="android:lineHeight" tools:targetApi="p">@dimen/type_44_sp</item>
     </style>
     <!-- Chip labels -->
     <style name="TextAppearance.Quapp.Chip" parent="TextAppearance.Material3.LabelLarge">
@@ -221,6 +243,7 @@
         <item name="android:textStyle">normal</item>
         <item name="android:textSize">@dimen/type_16_sp</item>
         <item name="lineHeight">@dimen/type_22_sp</item>
+        <item name="android:lineHeight" tools:targetApi="p">@dimen/type_22_sp</item>
         <item name="android:letterSpacing">-0.01</item>
         <item name="android:textAllCaps">false</item>
     </style>

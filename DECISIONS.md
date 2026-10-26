@@ -1639,3 +1639,18 @@ What still runs on `FakeData` (kept for these only): counters, announcements, ti
 **Known limit:** The people are made up like simulate.py's rules: how fast honest people answer (median 0.6 min, 5% with the phone away for 2–10 min), the 10% who join from home, how many pranksters there are. The proximity false-positive rate is simply that 10%. The detection rates come from the structure (prankster location, the one-ticket rule, when strikes happen) and hold if the numbers change; the exact percentages don't. The wait times aren't compared, because proximity removes people from the line, which shortens everyone's wait for the wrong reason.
 
 **Status:** Current. 174 server tests pass (6 new, including that its rules match `app/services/tickets.py`).
+
+## Fixing the teammate's layouts, keeping his design (Oct 27)
+
+**Decision:** An emulator pass over every main screen (normal and 130% font) fixed what was broken without changing the look:
+- **Dark mode:** the theme inherited a light/dark parent with only light colours defined, so in dark mode half the colours flipped. It's light-only now, and HyperOS may not force-darken it.
+- **Line spacing:** `type.xml` set `lineHeight` but the Material parents set `android:lineHeight`, which wins, so small text had 16sp lines instead of his 22sp. Both are set now.
+- **Rows that drifted apart:** Directions sits beside the venue (Queue detail, Active ticket); Walk-in's icon and label sit together; console rows are tile, name, actions on one line; Insights reads "~47 min" on one line; Today's totals are the three columns its comment describes.
+- **Broken bits:** the called card's "Move me back" text was dark on dark; "Verified" squeezed to one letter per line at large fonts; the ticket punches were placed for the old left-stub ticket and now sit at the ends of the tear line.
+- **Wording that still described the offline build:** Profile ("Local verification", sign-out warning), the live card ("#12 was called last"), and Insights, which said "average of the last 5 served" when the learning model made the estimate.
+
+**Why:** Brent found the app "kind of broken on some parts" and asked to keep his teammate's design.
+
+**Also considered:** Restyling the rows; no, the brief was to fix, not redesign.
+
+**Status:** Current. Emulator-checked; waiting for Brent's run on the Xiaomi. Left open: the ticket screen still says "average of the last 5 served" when the model is the source, because the queue response doesn't say which one made the estimate (needs a MODELS.md change).
