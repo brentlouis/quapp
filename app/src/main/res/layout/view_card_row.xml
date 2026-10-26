@@ -5,31 +5,29 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:background="@drawable/bg_ruled_row"
-    android:baselineAligned="true"
+    android:baselineAligned="false"
     android:minHeight="@dimen/card_row_height"
-    android:gravity="bottom"
+    android:gravity="top"
     android:orientation="horizontal"
-    android:paddingBottom="@dimen/space_xs">
+    android:paddingTop="@dimen/space_sm"
+    android:paddingBottom="@dimen/space_sm">
 
     <TextView
         android:id="@+id/row_label"
+        android:minWidth="@dimen/card_label_width"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:maxLines="1"
         android:textAppearance="?attr/textAppearanceBodySmall"
         android:textColor="?attr/colorOnSurfaceVariant"
         tools:text="Where" />
 
     <TextView
         android:id="@+id/row_value"
-        android:layout_width="0dp"
+        android:layout_width="@dimen/dimension_zero"
         android:layout_height="wrap_content"
         android:layout_marginStart="@dimen/space_md"
         android:layout_weight="1"
-        android:ellipsize="end"
-        android:gravity="end"
-        android:maxLines="1"
+        android:gravity="start"
         android:textAppearance="?attr/textAppearanceBodySmall"
         android:textColor="?attr/colorOnSurface"
         tools:text="Brgy. Poblacion Hall · Within 1 km" />

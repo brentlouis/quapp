@@ -34,6 +34,7 @@ import com.google.android.material.color.MaterialColors;
 import com.google.android.material.shape.MaterialShapeDrawable;
 import com.google.android.material.shape.ShapeAppearanceModel;
 import com.google.android.material.shape.ShapeAppearancePathProvider;
+import com.google.android.material.textfield.TextInputEditText;
 
 /**
  * Texture on components, so they look like they're cut from the same paper as the grained
@@ -75,20 +76,17 @@ public final class Grain {
      */
     public static void attach(@NonNull View view) {
         final Overlay grain = new Overlay(view);
+        grain.setAlpha(view.getResources().getInteger(
+                view instanceof MaterialButton || view instanceof TextInputEditText
+                        ? R.integer.control_grain_alpha : R.integer.surface_grain_alpha));
         view.getOverlay().add(grain);
         view.addOnLayoutChangeListener((v, left, top, right, bottom, oldLeft, oldTop, oldRight, oldBottom) ->
                 grain.setBounds(0, 0, right - left, bottom - top));
     }
 
-    /** Textures a bottom sheet's paper once it's on screen. */
+    /** Preserve native sheet motion while keeping routine sheet surfaces flat. */
     public static void attach(@NonNull BottomSheetDialog sheet) {
-        sheet.setOnShowListener(dialog -> {
-            View paper = sheet.findViewById(com.google.android.material.R.id.design_bottom_sheet);
-            if (paper != null) {
-                attach(paper);
-                paper.requestLayout();
-            }
-        });
+        QuappMotion.sheet(sheet);
     }
 
     /**
@@ -106,8 +104,8 @@ public final class Grain {
      * It follows the header as it collapses, since the header moves without redrawing.
      */
     public static void groundBehind(@NonNull AppBarLayout bar) {
-        bar.setBackground(new Ground(bar));
-        bar.addOnOffsetChangedListener((appBar, offset) -> appBar.invalidate());
+        // Routine headers match the flat Slate & Mint window; texture stays on ticket surfaces.
+        bar.setBackgroundResource(R.drawable.bg_paper);
     }
 
     /** The tile for a fill colour, or null when the fill is (nearly) see-through. */
@@ -331,6 +329,7 @@ public final class Grain {
         Background(Context context, MaterialShapeDrawable shape) {
             this.context = context;
             this.shape = shape;
+            setAlpha(context.getResources().getInteger(R.integer.surface_grain_alpha));
         }
 
         @Override

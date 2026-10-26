@@ -4,7 +4,7 @@ The shared contract between the Android app (Java models, Retrofit) and the Fast
 Settled Sep 28, 2026 (see DECISIONS.md "Data models settled"). Change it here first, then in code.
 
 Conventions:
-- JSON is `snake_case`; Java fields are `camelCase`. Gson maps every name automatically (`FieldNamingPolicy.LOWER_CASE_WITH_UNDERSCORES` in `ApiClient`), so a Java field must be named exactly like its JSON field in camelCase: `holder_phone` ↔ `holderPhone`.
+- JSON is `snake_case`; Java fields are `camelCase`. Gson maps them with `@SerializedName`.
 - Enums travel as their names in caps (`"OPEN"`). In Java they're enums, never strings.
 - Times are ISO 8601 in **Asia/Manila**. A moment in time: `"2026-09-27T10:05:00+08:00"`. A date: `"2026-09-27"`. A time of day: `"08:00"`.
   In Java: `Instant`, `LocalDate`, `LocalTime` (java.time, through core library desugaring since min SDK is 24).
@@ -55,7 +55,7 @@ What a queue is, when it runs, what checks it uses, and its live numbers.
 | endDate | `end_date` | LocalDate | |
 | opensAt | `opens_at` | LocalTime | Same hours every day of the run |
 | closesAt | `closes_at` | LocalTime | Extending closing time changes this |
-| status | `status` | Queue.Status | Server moves UPCOMING → OPEN → CLOSED on schedule. On a multi-day queue, each day's live tickets are released as QUEUE_CLOSED at that day's closing time; the queue stays OPEN between days |
+| status | `status` | Queue.Status | Server moves UPCOMING → OPEN → CLOSED on schedule |
 | pausedAt | `paused_at` | Instant? | "No new joins since 10:05 AM" |
 | closedAt | `closed_at` | Instant? | "Closed at 10:00 AM" |
 | gracePeriodEnabled | `grace_period_enabled` | boolean | Presence confirmation, 3 min |
@@ -65,9 +65,6 @@ What a queue is, when it runs, what checks it uses, and its live numbers.
 | peopleWaiting | `people_waiting` | int | Live, server-computed |
 | nowServing | `now_serving` | Integer? | Ticket number being served; null before the first call |
 | estimatedWaitMinutes | `estimated_wait_minutes` | int | For someone joining now |
-| nextTicketNumber | `next_ticket_number` | int | The number the next person to join gets ("You'll be #64") |
-| minutesPerPerson | `minutes_per_person` | double | The estimator's minutes per person today (the rolling average, or 5 before anyone is served) |
-| serviceSampleCount | `service_sample_count` | int | How many service times that average came from ("average of the last 5 served"); 0 means it's the default |
 
 Removed: `serviceHours` (replaced by the schedule), `smsOtpEnabled` (SMS confirmation is future work; the app shows it as PLANNED without a field).
 
@@ -104,20 +101,17 @@ One person's place in one queue.
 | holderPhone | `holder_phone` | String? | Masked by the server for organizers ("0917 ••• 0002"); null for walk-ins |
 | walkIn | `walk_in` | boolean | Added at the counter by the organizer |
 | ticketNumber | `ticket_number` | int | Fixed for good |
-| position | `position` | int | Counts down; 1 = next. 0 when not WAITING (called or finished) |
+| position | `position` | int | Counts down; 1 = next |
 | estimatedWaitMinutes | `estimated_wait_minutes` | int | |
 | status | `status` | Ticket.Status | |
 | joinedAt | `joined_at` | Instant | History dates, "joined 24 min ago" |
 | calledAt | `called_at` | Instant? | Grace deadline = called_at + 3 min |
-| hereAt | `here_at` | Instant? | When the holder tapped "I'm here". The ticket stays CALLED until the organizer serves it; the app shows it as done |
 | finishedAt | `finished_at` | Instant? | Served, no-show, closed or removed |
 | movedBack | `moved_back` | boolean | Once per ticket |
 | movedBackAt | `moved_back_at` | Instant? | Console: "Moved at 10:05 AM" |
 | removalReason | `removal_reason` | RemovalReason? | Only when status is REMOVED |
 
 Rules the server enforces:
-- **Cooldown.** On queues with the no-show penalty, strikes are NO_SHOW tickets and PRANK removals on penalty queues. Every second strike starts 30 minutes in which penalty queues refuse joins; the count then starts again (DECISIONS.md "No-show cooldown").
-- **Radius.** Distance is measured with the haversine formula. The app measures with Android's `Location.distanceBetween`, which can differ by up to about 0.5%, so the server allows 1% over the radius.
 - **Several tickets, hours can't overlap.** A queuer can hold live tickets (WAITING or CALLED) in more than one queue, as long as no two of those queues' opening hours overlap on the same day. A ticket is for one day: today once the queue has started, otherwise its first day, and each queue is compared on that day (DECISIONS.md "A ticket is for one day").
 - **Closed by the owner is not a no-show.** Closing a queue turns every WAITING or CALLED ticket into QUEUE_CLOSED and never counts toward the cooldown.
 - **Removal.** PRANK counts as a no-show and goes to the admin; DUPLICATE and ASKED_TO_LEAVE don't count.
@@ -187,28 +181,6 @@ Anyone reporting a queue. The organizer never sees who reported.
 
 Server only: `reporter_id` (to stop one person flooding reports).
 
-## Cooldown
-
-Where the no-show penalty stands for the signed-in user (`GET /me/cooldown`), so Queue detail and the ticket outcomes can say it before a join is refused.
-
-| Field | JSON | Type | Notes |
-|---|---|---|---|
-| until | `until` | Instant? | When the current cooldown ends; null when there isn't one |
-| strikes | `strikes` | int | Strikes counted toward the next cooldown (0 or 1) |
-| strikeLimit | `strike_limit` | int | Strikes that start a cooldown: 2 |
-| durationMinutes | `duration_minutes` | int | How long a cooldown lasts: 30 |
-
-## Line
-
-What the Live console shows: `GET /queues/{id}/line` and the calling endpoints return it. Holder phones are masked (`0917 ••• 0002`).
-
-| Field | JSON | Type | Notes |
-|---|---|---|---|
-| nowServing | `now_serving` | Ticket? | The CALLED ticket; null when nobody is at the counter |
-| nowServingHereAt | `now_serving_here_at` | Instant? | When they tapped "I'm here" (the console's confirmed state) |
-| nowServingTimedOut | `now_serving_timed_out` | boolean | Grace period on, 3 minutes since the call, no "I'm here". The organizer decides: no-show, or serve anyway. The server marks the no-show itself only when the holder joins the same queue again |
-| waiting | `waiting` | Ticket[] | Today's WAITING tickets in call order |
-
 ## TicketRemoval
 
 An organizer taking someone out of the line, with a reason.
@@ -224,79 +196,33 @@ An organizer taking someone out of the line, with a reason.
 
 ---
 
-## Errors
-
-Every error has the same JSON body, so the app can pick a message by `error` without parsing text:
-
-```json
-{"error": "DEVICE_LIMIT", "message": "This phone already has 2 accounts."}
-```
-
-`message` is plain English the app may show as-is. Some errors add fields (listed below).
-
-| HTTP | `error` | When | Extra fields |
-|---|---|---|---|
-| 401 | `NOT_SIGNED_IN` | No token, or a token that was logged out | |
-| 401 | `WRONG_CREDENTIALS` | Login with an unknown phone or a wrong password (the same answer for both) | |
-| 403 | `SUSPENDED` | Login, or any signed-in call, by a suspended user | `suspended_reason`, `suspended_at` |
-| 409 | `PHONE_TAKEN` | Register with a phone that has an account | |
-| 409 | `DEVICE_LIMIT` | Register a third account on one install | |
-| 422 | `INVALID_INPUT` | A field fails validation (bad phone, short password, missing field, a closing time before the opening time) | `fields`: `{"phone": "…"}` |
-| 404 | `QUEUE_NOT_FOUND` | No queue with that id | |
-| 403 | `NOT_OWNER` | An organizer-only call on someone else's queue | |
-| 409 | `ONE_LIVE_QUEUE` | An unverified organizer opening a second live (open or paused) queue; an upcoming one is allowed | `live_queue_id`, `live_queue_name`, `live_queue_status` (the one already running) |
-| 409 | `WRONG_STATUS` | A status change that doesn't fit ("Only an open queue can be paused"), or editing a closed queue | |
-| 409 | `QUEUE_PAUSED` | Joining a paused queue | |
-| 409 | `QUEUE_NOT_OPEN` | Joining a closed queue, or an open one after today's closing time | |
-| 409 | `ALREADY_IN_LINE` | Joining a queue you already have a live ticket in | `ticket_id` |
-| 409 | `HOURS_OVERLAP` | Joining while holding a live ticket for a queue on the same day with overlapping hours | `other_queue_id`, `other_queue_name` |
-| 409 | `COOLDOWN` | Joining a queue with the no-show penalty during a cooldown | `until` |
-| 422 | `LOCATION_NEEDED` | Joining a queue with the proximity check without `latitude`/`longitude` | |
-| 409 | `TOO_FAR` | Joining from farther than the queue's radius | `distance_meters`, `join_radius_meters` |
-| 404 | `TICKET_NOT_FOUND` | No such ticket, or not yours | |
-| 409 | `NOBODY_CALLED` | No-show with nobody at the counter | |
-| 409 | `NOT_CALLED` | "I'm here" on a ticket that isn't being called | |
-| 409 | `GRACE_OVER` | "I'm here" after the 3-minute grace window | |
-| 409 | `ALREADY_MOVED_BACK` | A second "I need more time" on one ticket | |
-| 409 | `LAST_IN_LINE` | "I need more time" with nobody behind to let ahead | |
-| 409 | `ALREADY_REPORTED` | A second report on one queue from the same person | |
-| 409 | `VERIFICATION_PENDING` | Asking to be verified while a request is already waiting | |
-| 409 | `ALREADY_VERIFIED` | Asking to be verified when you already are | |
-
-Later steps add their own codes here.
-
 ## Endpoints
 
 Auth is a bearer token from `/auth/login`. "Owner" means the queue's organizer.
 
 | Method | Path | Who | Does |
 |---|---|---|---|
-| POST | `/auth/register` | anyone | name, phone, password (8 to 72 characters), device_install_id → token + User. Spaces and dashes in the phone are ignored (`0917 123 4567`) |
+| POST | `/auth/register` | anyone | name, phone, password (min 8), device_install_id → token + User |
 | POST | `/auth/login` | anyone | phone, password → token + User (403 if suspended) |
-| POST | `/auth/logout` | user | ends this token's session → 204 |
 | GET | `/me` | user | the User |
 | GET | `/queues?municipality=&category=&q=` | anyone | Browse: UPCOMING, OPEN, PAUSED (no CLOSED) |
 | GET | `/queues/{id}` | anyone | one Queue |
-| GET | `/me/queues` | user | the organizer's own queues, all statuses: live first, then upcoming, then closed |
 | POST | `/queues` | user | create (unverified: one live queue at a time) |
 | PATCH | `/queues/{id}` | owner | edit details, schedule, checks |
-| POST | `/queues/{id}/pause` · `/resume` · `/close` · `/extend` | owner | status changes, each returning the Queue; extend takes a later `closes_at` |
+| POST | `/queues/{id}/pause` · `/resume` · `/close` · `/extend` | owner | status changes; extend takes a new `closes_at` |
 | GET | `/queues/{id}/stats` | owner | QueueStats |
-| GET | `/queues/{id}/line` | owner | Line (below): who's at the counter and who's waiting, phones masked |
-| POST | `/queues/{id}/call-next` | owner | marks the one at the counter SERVED (if any), calls the first waiting for today → Line. Open or paused queues only (a paused queue still serves its line) |
-| POST | `/queues/{id}/no-show` | owner | marks the one at the counter NO_SHOW, calls the next → Line. 409 `NOBODY_CALLED` if nobody is at the counter |
-| POST | `/queues/{id}/walk-ins` | owner | `{name}` → Ticket: numbered like a join, no account, no phone, at the back of today's line |
-| POST | `/tickets/{id}/remove` | owner | `{reason}` → TicketRemoval; the ticket becomes REMOVED. Waiting or called tickets only |
-| POST | `/queues/{id}/tickets` | user | join; body `{latitude, longitude, holder_name, holder_phone}`, all optional: the location is needed only when the queue checks proximity, and the holder defaults to the account (Join's Edit, e.g. joining for a parent) → Ticket. Checks, in order: the queue takes joins now, not already in it, cooldown, overlap, radius |
+| GET | `/queues/{id}/line` | owner | now serving + waiting Tickets (phones masked) |
+| POST | `/queues/{id}/call-next` | owner | marks the current one served, calls the next |
+| POST | `/queues/{id}/no-show` | owner | marks the current one no-show, calls the next |
+| POST | `/queues/{id}/walk-ins` | owner | name → Ticket |
+| POST | `/tickets/{id}/remove` | owner | reason → TicketRemoval |
+| POST | `/queues/{id}/tickets` | user | join (checks overlap, cooldown, radius with lat/lng) → Ticket |
 | GET | `/me/tickets?live=true` | user | My tickets; `live=false` for History |
-| GET | `/me/cooldown` | user | Cooldown (below): where the no-show penalty stands |
-| POST | `/tickets/{id}/here` | holder | "I'm here" while CALLED, within 3 minutes of `called_at` when the queue has the grace period → Ticket |
-| POST | `/tickets/{id}/move-back?dry_run=` | holder | `{minutes_needed}` (5, 10, 15, 20, 30 or 45) → Ticket at its new place (once). Waiting or called: a called ticket hands the counter back and rejoins the line. `dry_run=true` returns the same Ticket without saving, for the sheet's preview |
-| GET | `/tickets/{id}` | holder | one of my tickets, with its position and wait now |
-| DELETE | `/tickets/{id}` | holder | leave the queue (waiting or called) → 204. The ticket is deleted: not a no-show, not in history |
-| POST | `/me/verification` | user | `{organization_name, organization_type, position, office_phone}` → VerificationRequest (PENDING); the user's `verification_status` becomes PENDING. After REJECTED or REVOKED you may ask again |
-| GET | `/me/verification` | user | the latest VerificationRequest (Profile's pending card), or null |
-| POST | `/queues/{id}/reports` | user | `{reason, details}` → Report. Once per person per queue; the organizer never learns who |
+| POST | `/tickets/{id}/here` | holder | "I'm here" within the grace window |
+| POST | `/tickets/{id}/move-back` | holder | minutes_needed → Ticket (once) |
+| DELETE | `/tickets/{id}` | holder | leave the queue |
+| POST | `/me/verification` | user | VerificationRequest |
+| POST | `/queues/{id}/reports` | user | Report |
 | GET/POST | `/admin/...` | admin | web page: verification requests, reports, suspend and revoke |
 
 ---

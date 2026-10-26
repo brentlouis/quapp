@@ -6,9 +6,13 @@ import android.text.Spanned;
 import android.text.style.RelativeSizeSpan;
 import android.view.View;
 import android.widget.TextView;
+import android.widget.LinearLayout;
 
 import androidx.annotation.Nullable;
 import androidx.core.content.ContextCompat;
+import androidx.core.graphics.ColorUtils;
+import com.google.android.material.shape.RelativeCornerSize;
+import com.google.android.material.shape.ShapeAppearanceModel;
 
 import java.time.Duration;
 import java.time.LocalDate;
@@ -73,24 +77,35 @@ public final class QueueCards {
         }
     }
 
-    /**
-     * "Relief · No. 001": the category and a number, like a catalogue card's corner. It's
-     * decoration, not an id: the demo's short ids ("q3") give their own number; the server's
-     * random ids (uuids) give a steady one from 0 to 999, the same every time for that queue.
-     */
+    /** "Relief · No. 001": the category and the queue's number, like a catalogue card's corner. */
     private static String serial(Context context, Queue queue) {
         String category = context.getString(queue.getCategory().label);
         String digits = queue.getId().replaceAll("\\D", "");
-        int number = !digits.isEmpty() && digits.length() <= 3
-                ? Integer.parseInt(digits) : Math.floorMod(queue.getId().hashCode(), 1000);
-        return context.getString(R.string.card_serial_format, category, number);
+        if (digits.isEmpty()) {
+            return category;
+        }
+        return context.getString(R.string.card_serial_format, category, Integer.parseInt(digits));
     }
 
-    /** One ruled line: its label and value. Returns the value, for the lines that restyle it. */
+    /** Ruled metadata: stack at large text on phones instead of squeezing the value column. */
     private static TextView row(View card, int rowId, int label, CharSequence value) {
-        View row = card.findViewById(rowId);
-        ((TextView) row.findViewById(R.id.row_label)).setText(label);
+        LinearLayout row = card.findViewById(rowId);
+        TextView labelText = row.findViewById(R.id.row_label);
+        labelText.setText(label);
         TextView valueText = row.findViewById(R.id.row_value);
+        android.content.res.Configuration configuration = card.getResources().getConfiguration();
+        boolean stacked = configuration.fontScale >= 1.5f && configuration.screenWidthDp < 480;
+        row.setOrientation(stacked ? LinearLayout.VERTICAL : LinearLayout.HORIZONTAL);
+        labelText.setMinWidth(stacked ? 0
+                : card.getResources().getDimensionPixelSize(R.dimen.card_label_width));
+        LinearLayout.LayoutParams params = (LinearLayout.LayoutParams) valueText.getLayoutParams();
+        params.width = stacked ? LinearLayout.LayoutParams.MATCH_PARENT : 0;
+        params.weight = stacked ? 0 : 1;
+        params.setMarginStart(stacked ? 0
+                : card.getResources().getDimensionPixelSize(R.dimen.space_md));
+        params.topMargin = stacked
+                ? card.getResources().getDimensionPixelSize(R.dimen.space_xs) : 0;
+        valueText.setLayoutParams(params);
         valueText.setText(value);
         return valueText;
     }
@@ -124,7 +139,9 @@ public final class QueueCards {
         }
         int c = ContextCompat.getColor(context, color);
         stamp.setTextColor(c);
-        stamp.setBackground(TicketShapes.stampBackground(context, c));
+        stamp.setBackground(TicketShapes.background(context,
+                ShapeAppearanceModel.builder().setAllCornerSizes(new RelativeCornerSize(0.5f)).build(),
+                ColorUtils.setAlphaComponent(c, 20)));
         // Owners see when a queue was paused, right in the stamp: "Paused 10:05".
         if (owner && queue.getStatus() == Queue.Status.PAUSED && queue.getPausedAt() != null) {
             stamp.setText(context.getString(R.string.card_paused_at_format,
@@ -171,9 +188,26 @@ public final class QueueCards {
 
     // ---- The last line ---------------------------------------------------------
 
-    /** Wait: "55 min · 42 in line · serving #21"; Opens for upcoming; a status line otherwise. */
+    /** Open queues lead with "55 min"; upcoming and inactive queues keep one compact line. */
     private static void bindQueuerLine(View card, Queue queue) {
         Context context = card.getContext();
+        View hero = card.findViewById(R.id.card_wait_hero);
+        View compact = card.findViewById(R.id.card_row_wait);
+        if (queue.getStatus() == Queue.Status.OPEN) {
+            compact.setVisibility(View.GONE);
+            hero.setVisibility(View.VISIBLE);
+            text(card, R.id.card_wait_value).setText(context.getString(
+                    R.string.card_wait_value_format, queue.getEstimatedWaitMinutes()));
+            Integer serving = queue.getNowServing();
+            text(card, R.id.card_wait_details).setText(context.getString(
+                    R.string.card_wait_details_format, queue.getPeopleWaiting(),
+                    serving == null ? context.getString(R.string.browse_eta_none)
+                            : context.getString(R.string.ticket_number_format, serving)));
+            return;
+        }
+
+        hero.setVisibility(View.GONE);
+        compact.setVisibility(View.VISIBLE);
         CharSequence value;
         int label = R.string.card_label_wait;
         switch (queue.getStatus()) {
@@ -187,15 +221,10 @@ public final class QueueCards {
             case UPCOMING:
                 label = R.string.card_opens;
                 value = context.getString(R.string.card_opens_line_format,
-                        opensText(context, queue), queue.getPeopleWaiting());
+                        opensText(context, queue));
                 break;
-            case OPEN:
             default:
-                Integer serving = queue.getNowServing();
-                value = context.getString(R.string.card_wait_line_format,
-                        queue.getEstimatedWaitMinutes(), queue.getPeopleWaiting(),
-                        serving == null ? context.getString(R.string.browse_eta_none)
-                                : context.getString(R.string.ticket_number_format, serving));
+                value = "";
         }
         lastLine(card, label, value);
     }
@@ -203,6 +232,8 @@ public final class QueueCards {
     /** Today: "42 waiting · 18 served · 3 no-shows"; closed queues say when they closed. */
     private static void bindOwnerLine(View card, Queue queue, QueueStats stats) {
         Context context = card.getContext();
+        card.findViewById(R.id.card_wait_hero).setVisibility(View.GONE);
+        card.findViewById(R.id.card_row_wait).setVisibility(View.VISIBLE);
         if (queue.getStatus() == Queue.Status.CLOSED) {
             lastLine(card, R.string.card_label_today, closedLine(context, queue, stats));
             return;

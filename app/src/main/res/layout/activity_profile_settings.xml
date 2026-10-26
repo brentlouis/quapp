@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto" android:id="@+id/profile_settings_root"
+    android:layout_width="match_parent" android:layout_height="match_parent" android:orientation="vertical" android:background="@color/paper_raised">
+    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:gravity="center_vertical">
+        <ImageButton android:id="@+id/profile_settings_back" android:layout_width="@dimen/touch_target_min" android:layout_height="@dimen/touch_target_min"
+            android:src="@drawable/ic_arrow_back" android:background="?attr/selectableItemBackgroundBorderless" android:contentDescription="@string/detail_back_description" />
+        <TextView android:id="@+id/profile_settings_title" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1"
+            android:textAppearance="?attr/textAppearanceTitleMedium" android:accessibilityHeading="true" />
+    </LinearLayout>
+    <androidx.core.widget.NestedScrollView android:layout_width="match_parent" android:layout_height="0dp" android:layout_weight="1" android:fillViewport="true">
+        <LinearLayout android:id="@+id/profile_settings_content" android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:padding="@dimen/space_lg" />
+    </androidx.core.widget.NestedScrollView>
+    <com.google.android.material.bottomnavigation.BottomNavigationView android:id="@+id/profile_settings_nav"
+        style="@style/Widget.Quapp.BottomNavigation" android:layout_width="match_parent" android:layout_height="wrap_content" />
+</LinearLayout>

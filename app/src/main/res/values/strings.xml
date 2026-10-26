@@ -1,7 +1,65 @@
 <resources>
+    <string name="join_eligibility_changed">This queue or your tickets changed. Go back to review availability before joining again.</string>
+    <string name="detail_not_open_action">Not open yet</string>
+    <string name="detail_not_open_notice">Joining becomes available when the organizer opens this queue.</string>
+    <string name="called_arrival_confirmed">Arrival confirmed</string>
+    <string name="called_waiting_completion">Stay at your counter. Your ticket remains active until the organizer completes service.</string>
+    <string name="saved_title">Saved services</string>
+    <string name="saved_headline">Ready when you are.</string>
+    <string name="saved_scope">Bookmarks stay on this device for this account. They do not reserve a ticket or send alerts.</string>
+    <string name="saved_save">Save service</string>
+    <string name="saved_remove">Remove saved service</string>
+    <string name="saved_remove_named">Remove %1$s from saved services</string>
+    <string name="saved_save_named">Save %1$s</string>
+    <string name="saved_service_detail">%1$s · %2$d min estimated wait</string>
+    <string name="saved_service_status">%1$s · %2$s</string>
+    <string name="saved_empty_title">No saved services yet</string>
+    <string name="saved_unavailable_title">Saved services unavailable</string>
+    <string name="saved_empty">Bookmark a service to keep its preparation details close. Saved services that are unavailable stay bookmarked.</string>
+    <string name="saved_browse">Explore services</string>
+    <string name="saved_clear_action">Clear saved services</string>
+    <string name="saved_clear_confirm">Clear</string>
+    <string name="saved_clear_title">Clear bookmarks?</string>
+    <string name="saved_clear_body">This removes this account’s bookmarks from this device. Your tickets, history and other accounts’ bookmarks stay.</string>
+    <string name="state_loading_title">Getting things ready</string>
+    <string name="state_loading_body">Finding queues and checking their latest updates.</string>
     <string name="app_name">Quapp</string>
     <string name="splash_tagline">Queue from anywhere</string>
-    <string name="splash_loading">Loading</string>
+
+    <!-- Loading and Error states -->
+    <string name="loading_default">Loading…</string>
+    <string name="loading_queues">Loading queues…</string>
+    <string name="loading_your_queues">Loading your queues…</string>
+    <string name="loading_tickets">Loading tickets…</string>
+    <string name="loading_ticket_details">Loading ticket details…</string>
+    <string name="loading_queue_details">Loading queue details…</string>
+    <string name="loading_analytics">Loading analytics…</string>
+    <string name="joining_queue">Joining queue…</string>
+    <string name="leaving_queue">Leaving queue…</string>
+    <string name="creating_queue">Creating queue…</string>
+    <string name="saving_changes">Saving changes…</string>
+    <string name="signing_in">Signing in…</string>
+    <string name="creating_account">Creating account…</string>
+    <string name="calling_next">Calling next person…</string>
+    <string name="marking_no_show">Marking no-show…</string>
+    <string name="adding_walk_in">Adding walk-in…</string>
+    <string name="removing_ticket">Removing from line…</string>
+    <string name="updating_queue">Updating queue…</string>
+    <string name="submitting_report">Submitting report…</string>
+    <string name="submitting_verification">Submitting verification…</string>
+    <string name="error_title">Something went wrong</string>
+    <string name="error_default_message">Could not connect to the server. Please check your connection and try again.</string>
+    <string name="error_retry_action">Try again</string>
+    <string name="debug_mode_title">Debug slow-response mode</string>
+    <string name="debug_mode_summary">Simulates 1.5s server latency, errors, and empty responses for testing</string>
+    <string name="debug_mode_dialog_message">Simulated 1.5s latency is now ON. Would you also like to test a failure or empty result for the next request?</string>
+    <string name="debug_mode_normal">Normal success</string>
+    <string name="debug_mode_error">Test Error</string>
+    <string name="debug_mode_empty">Test Empty</string>
+    <string name="debug_mode_toast_on">Debug mode ON (1.5s delay)</string>
+    <string name="debug_mode_toast_off">Debug mode OFF</string>
+    <string name="debug_mode_toast_error">Next request will fail with an error</string>
+    <string name="debug_mode_toast_empty">Next request will return empty</string>
 
     <!-- Bottom navigation -->
     <string name="nav_browse">Browse</string>
@@ -46,13 +104,11 @@
     <string name="login_create_account">Create account</string>
     <string name="login_phone_error">Enter an 11-digit number starting with 09</string>
     <string name="login_password_error">Enter your password</string>
-    <string name="login_busy">Logging in…</string>
-    <string name="login_wrong">Wrong number or password.</string>
 
     <!-- Register -->
     <string name="register_heading">Create account</string>
     <string name="register_subheading">Join queues remotely or manage your own.</string>
-    <string name="register_back_description">Back to log in</string>
+    <string name="register_back_description">Back</string>
     <string name="register_name_label">Full name</string>
     <string name="register_phone_label">Phone number</string>
     <string name="register_password_label">Password</string>
@@ -60,16 +116,11 @@
     <string name="register_confirm_label">Confirm password</string>
     <string name="register_action">Create account</string>
     <string name="register_have_account">Already have an account?</string>
-    <string name="register_login_action">Log in</string>
+    <string name="register_login_action">Sign in</string>
     <string name="register_name_error">Enter your full name</string>
     <string name="register_phone_error">Enter an 11-digit number starting with 09</string>
     <string name="register_password_error">Use at least %d characters</string>
     <string name="register_confirm_error">Passwords don\'t match. Retype it to confirm.</string>
-    <string name="register_busy">Creating account…</string>
-    <string name="register_phone_taken">That number already has an account. Log in instead.</string>
-
-    <!-- Any screen that talks to the server -->
-    <string name="api_offline">Can\'t reach Quapp. Check your connection and try again.</string>
 
     <!-- Role select -->
     <string name="role_heading">How will you use Quapp?</string>
@@ -95,6 +146,7 @@
     <string name="detail_verified">Verified</string>
     <string name="detail_unverified_note">&lt;b&gt;Quapp hasn\'t confirmed who runs this queue&lt;/b&gt;&lt;br&gt;Check it against the organizer\'s own announcement before you go. Nobody running a free distribution should ask you for money.</string>
     <string name="detail_bring_format">Bring: %s</string>
+    <string name="detail_preparation_note">Use the preparation check as a reminder on this screen. It does not confirm eligibility or guarantee service.</string>
     <string name="detail_status_upcoming">Upcoming</string>
     <string name="detail_join_early_action">Join early</string>
     <string name="detail_paused_since_notice">No new joins since %s. People already in line keep their place.</string>
@@ -136,7 +188,6 @@
     <string name="join_back_description">Back</string>
     <string name="join_name_error">Enter your name</string>
     <string name="join_phone_error">Enter an 11-digit number starting with 09</string>
-    <string name="join_busy">Joining…</string>
 
     <!-- Active ticket -->
     <string name="ticket_number_label">Your number</string>
@@ -254,9 +305,9 @@
     <string name="console_call_format">Call #%d</string>
     <string name="console_served_call_format">Served · call #%d</string>
     <string name="console_up_next_format">Up next · %d waiting</string>
-    <string name="console_loading">Loading the line…</string>
     <string name="console_marked_served">#%1$d %2$s marked served</string>
     <string name="console_marked_no_show">#%1$d %2$s marked no-show</string>
+    <string name="console_masked_phone_format">%1$s ••• %2$s</string>
     <string name="console_serve_action">Served</string>
     <string name="console_no_show_action">No-show</string>
     <string name="console_ticket_format">#%d</string>
@@ -271,6 +322,7 @@
     <string name="console_menu_edit">Edit details</string>
     <string name="console_menu_pause">Pause new joins</string>
     <string name="console_menu_resume">Resume joins</string>
+    <string name="console_menu_reopen">Reopen queue</string>
     <string name="console_menu_insights">Insights</string>
     <string name="console_close_confirm">Close queue</string>
     <string name="console_cancel">Cancel</string>
@@ -330,9 +382,6 @@
     <string name="history_empty_title">No past queues yet</string>
     <string name="history_empty_body">Queues you finish, served or missed, show up here.</string>
     <string name="history_empty_action">Browse queues</string>
-    <string name="history_loading">Loading your past queues</string>
-    <string name="history_error_title">Couldn\'t load your history</string>
-    <string name="history_error_retry">Try again</string>
 
     <plurals name="analytics_average_basis">
         <item quantity="one">(the last person served)</item>
@@ -340,6 +389,7 @@
     </plurals>
     <!-- Today tab (owner) -->
     <string name="today_title">Today</string>
+    <string name="today_manage_queues">Manage queues</string>
     <string name="today_subtitle">Across all your queues</string>
     <string name="today_served_label">Served</string>
     <string name="today_waiting_label">Waiting now</string>
@@ -357,21 +407,20 @@
     <string name="today_detail_separator">" · "</string>
     <string name="today_empty_title">Nothing to count yet</string>
     <string name="today_empty_body">Totals show up here once you create a queue.</string>
-    <string name="today_loading_title">Counting today…</string>
-    <string name="today_error_title">Couldn\'t load today\'s numbers</string>
     <!-- Forgot password -->
     <string name="forgot_back_description">Back to log in</string>
     <string name="forgot_title">Forgot your password?</string>
-    <string name="forgot_body">Quapp can\'t send reset codes by text yet. Support can reset it for you.</string>
+    <string name="forgot_body">Demo only. Password recovery and the support inbox are not connected.</string>
     <string name="forgot_step_1_title">Email Quapp support</string>
-    <string name="forgot_step_1_body">Include your name and the phone number you registered with.</string>
+    <string name="forgot_step_1_body">A verified support contact is still required. Do not send personal details to a placeholder address.</string>
     <string name="forgot_step_2_title">Get a temporary password</string>
-    <string name="forgot_step_2_body">We reply within a day. Change it in Profile after you log in.</string>
-    <string name="forgot_note">In line right now? Your spot is kept. Show your number to staff at the counter.</string>
+    <string name="forgot_step_2_body">No reset request is sent in this demo. Recovery instructions will be available when the service is connected.</string>
+    <string name="forgot_note">Demo tickets are temporary and do not reserve a real place.</string>
     <string name="forgot_email_action">Email support</string>
     <string name="forgot_back_action">Back to log in</string>
     <!-- Placeholder address until the project has a real support inbox -->
-    <string name="forgot_support_email" translatable="false">support@quapp.app</string>
+    <string name="forgot_support_email" translatable="false"></string>
+    <string name="support_unavailable">Support is unavailable in this demo. No message was sent.</string>
     <string name="forgot_email_subject">Password reset</string>
     <string name="forgot_email_body">Name:\nRegistered phone number:\n</string>
     <string name="forgot_no_email_app">No email app found. Write to %1$s.</string>
@@ -408,7 +457,7 @@
     <string name="step_3">3</string>
 
     <!-- Model follow-ups (Sep 28) -->
-    <string name="console_status_upcoming">Upcoming · taking early joins</string>
+    <string name="console_status_upcoming">Upcoming · joining not available yet</string>
     <string name="console_awaiting_format">Awaiting \"I\'m here\" · %s left</string>
     <string name="console_timed_out">Didn\'t confirm in time. Slot released and recorded as a no-show.</string>
     <string name="console_call_next_name_format">Call next · #%1$d %2$s</string>
@@ -433,7 +482,7 @@
     <string name="ticket_browse_action">Browse other queues</string>
     <string name="ticket_bring_title">Bring</string>
     <string name="analytics_source_model">Learning model · %d people learned from</string>
-    <string name="analytics_source_rolling">Rolling average of the last people served today</string>
+    <string name="analytics_source_rolling">Rolling average of recent people · the model takes over once this queue has more history today</string>
 
     <!-- Queue cards (QueueCards) -->
     <string name="card_within_format">Within %s</string>
@@ -441,9 +490,9 @@
     <string name="card_hours_format">%1$s – %2$s</string>
     <string name="card_day_of_format">Day %1$d of %2$d · %3$s</string>
     <string name="card_closes_in_format">Closes in %d min</string>
-    <string name="card_paused_line_format">Paused since %1$s · %2$d in line</string>
+    <string name="card_paused_line_format">Paused since %1$s · %2$,d in line</string>
     <string name="card_closed_at_format">Closed at %s</string>
-    <string name="card_closed_served_format">Closed at %1$s · %2$d served</string>
+    <string name="card_closed_served_format">Closed at %1$s · %2$,d served</string>
     <string name="card_minutes_unit">min</string>
     <string name="card_opens">Opens</string>
     <string name="card_label_where">Where</string>
@@ -453,8 +502,11 @@
     <string name="card_label_today">Today</string>
     <string name="card_serial_format">%1$s · No. %2$03d</string>
     <string name="card_where_within_format">%1$s · %2$s</string>
-    <string name="card_wait_line_format">%1$d min · %2$d in line · serving %3$s</string>
-    <string name="card_opens_line_format">%1$s · %2$d joined early</string>
+    <string name="card_wait_line_format">%1$d min · %2$,d in line · serving %3$s</string>
+    <string name="card_wait_value_format">%1$d min</string>
+    <string name="card_wait_details_format">%1$,d in line · serving %2$s</string>
+    <string name="browse_cached_error_format">Couldn’t refresh. Showing saved queues. %1$s</string>
+    <string name="card_opens_line_format">%1$s · joining not available yet</string>
     <plurals name="card_today_line">
         <item quantity="one">%1$d waiting · %2$d served · %3$d no-show</item>
         <item quantity="other">%1$d waiting · %2$d served · %3$d no-shows</item>
@@ -472,9 +524,6 @@
     <string name="browse_more_towns_format">%d more</string>
     <string name="browse_town_dialog_title">Your town</string>
     <string name="browse_search_hint">Search queues or venues</string>
-    <string name="browse_loading">Loading queues…</string>
-    <string name="browse_error_title">Couldn\'t load queues</string>
-    <string name="browse_error_retry">Try again</string>
     <string name="browse_search_any_hint">Or search any queue or venue</string>
     <string name="browse_open_now_format">Open now across Bohol · %d</string>
     <string name="browse_open_now_detail_format">%1$s · %2$d min wait</string>
@@ -500,12 +549,9 @@
     <string name="owner_live_now">Live now</string>
     <string name="owner_console_action">Console</string>
     <string name="owner_live_waiting_format">%d waiting · no one called yet</string>
-    <string name="owner_live_serving_format">%d waiting · called last</string>
+    <string name="owner_live_serving_format">%1$d waiting · serving %2$s</string>
     <string name="owner_chip_count_format">%1$s %2$d</string>
     <string name="owner_filter_empty_format">No %s queues.</string>
-    <string name="create_busy">Saving…</string>
-    <string name="owner_loading">Loading your queues…</string>
-    <string name="owner_error_format">%s Tap to try again.</string>
     <string name="owner_new_queue">New queue</string>
     <string name="owner_first_title">Run your first queue</string>
     <string name="owner_first_body">People join from their phones and wait wherever they are. You call them when you\'re ready.</string>
@@ -586,6 +632,7 @@
     <string name="options_resume_body">People can join again</string>
     <string name="options_close_title">Close queue now</string>
     <string name="options_close_body">Everyone still waiting is released</string>
+    <string name="options_reopen_body">Take joins again</string>
     <string name="console_close_title_format">Close %s now?</string>
     <plurals name="console_close_release_message">
         <item quantity="one">The 1 person still waiting is released and notified. It won\'t count as a no-show for them. This can\'t be undone.</item>
@@ -687,7 +734,7 @@
     <string name="help_moving_subtitle">What counts as a no-show, and what doesn\'t</string>
     <string name="help_moving_body">Running late? Tap \"I need more time\" on your ticket, or \"Move me back\" when you\'re called. Say how many minutes you need and Quapp moves you back that far. You keep your number. It works once per ticket and never counts as a no-show.\n\nLeaving a queue gives your place up for good. It isn\'t a no-show either.\n\nA no-show is when you\'re called and don\'t confirm in time, or an organizer removes a fake join.\n\nIf an organizer closes a queue, nobody in it gets a no-show.</string>
     <string name="help_email_title">Email Quapp support</string>
-    <string name="help_email_subtitle">We reply within a day</string>
+    <string name="help_email_subtitle">Support email is not connected in this demo</string>
     <string name="help_email_subject">Quapp help</string>
     <string name="help_email_body">Name:\nRegistered phone number:\nWhat happened:\n</string>
     <string name="help_note">In line and something\'s wrong? Your spot is kept. Show your number to staff at the counter.</string>
@@ -743,7 +790,8 @@
 
     <!-- Organizer badge sheet (canvas 52) and the unverified note (53) -->
     <string name="badge_verified_title">Verified organizer</string>
-    <string name="badge_verified_body">Quapp confirmed that %s runs this account, by calling their office.</string>
+    <string name="badge_organizer_fallback">this organizer</string>
+    <string name="badge_verified_body">In this demo, %s is marked as an organizer. Real identity checks are not connected.</string>
     <string name="badge_verified_note">It doesn\'t check each queue\'s details. If something about this queue looks wrong, report it.</string>
     <string name="badge_unverified_title">Unverified organizer</string>
     <string name="badge_unverified_body">Quapp hasn\'t confirmed that %s runs this account.</string>
@@ -767,9 +815,9 @@
     <string name="report_reason_other_body">Tell us below</string>
     <string name="report_details_label">Details (optional)</string>
     <string name="report_details_error">Say what\'s wrong so the admin can check it.</string>
-    <string name="report_note">Reports go to the Quapp admin. The organizer never sees who reported.</string>
+    <string name="report_note">Demo report only. Stored for this app process; nothing is sent to an admin.</string>
     <string name="report_send">Send report</string>
-    <string name="report_sent">Report sent. The Quapp admin will look at it.</string>
+    <string name="report_sent">Demo report only. Not sent.</string>
 
     <!-- One live queue while unverified (canvas 58) -->
     <string name="limit_title">One live queue for now</string>
@@ -782,7 +830,7 @@
     <!-- Get verified (canvas 50) -->
     <string name="verify_title">Get verified</string>
     <string name="verify_back_description">Back to profile</string>
-    <string name="verify_lead">Verified organizers get a badge on every queue they post, and no limit on live queues.</string>
+    <string name="verify_lead">Practice organizer verification with fictional details. No real identity check is performed.</string>
     <string name="verify_org_label">Organization name</string>
     <string name="verify_org_hint">City Health Office</string>
     <string name="verify_org_error">Enter the organization\'s name.</string>
@@ -794,12 +842,12 @@
     <string name="verify_position_error">Enter your position.</string>
     <string name="verify_phone_label">Office contact number</string>
     <string name="verify_phone_hint">(038) 411 2345</string>
-    <string name="verify_phone_helper">Use the office\'s public number, not your own. We call it to confirm you work there.</string>
+    <string name="verify_phone_helper">Use a fictional office number. No call or message is sent.</string>
     <string name="verify_phone_error">Enter the office\'s number, 7 to 11 digits.</string>
-    <string name="verify_note">No ID photos needed. We keep only the result of the check; your answers are deleted after review.</string>
-    <string name="verify_submit">Submit for review</string>
-    <string name="verify_turnaround">Usually reviewed within 2 working days.</string>
-    <string name="verify_sent">Sent. We\'ll call the office to confirm.</string>
+    <string name="verify_note">Demo request only. Do not enter personal details or identification numbers.</string>
+    <string name="verify_submit">Submit demo request</string>
+    <string name="verify_turnaround">No review or office call is scheduled.</string>
+    <string name="verify_sent">Demo request saved for this session. Nothing was sent for review.</string>
     <string name="org_type_lgu">LGU office</string>
     <string name="org_type_barangay">Barangay</string>
     <string name="org_type_health">Health center or clinic</string>
@@ -810,13 +858,15 @@
     <!-- Profile, organizer verification (canvas 51) -->
     <string name="profile_phone_org_format">%1$s · %2$s</string>
     <string name="profile_verification_pending">Verification pending</string>
-    <string name="profile_verification_pending_body">Submitted %1$s. We\'ll call %2$s to confirm.</string>
+    <string name="profile_verification_pending_body">Demo request recorded %1$s for %2$s. No office call or review is scheduled.</string>
     <string name="profile_verification_limits">Until you\'re verified: no badge, one live queue at a time, and your queues aren\'t listed in \"Open now across Bohol\".</string>
     <string name="profile_verified">Verified organizer</string>
     <string name="profile_get_verified">Get verified</string>
     <string name="profile_get_verified_hint">A badge on your queues, and no limit on live queues</string>
     <string name="profile_get_verified_rejected">The office call didn\'t confirm it. You can apply again.</string>
     <string name="profile_get_verified_revoked">Your badge was removed. You can apply again.</string>
+    <string name="profile_demo_approved">Demo: the admin approved it</string>
+    <string name="profile_demo_reset">Demo: back to unverified</string>
 
     <!-- Account suspended (canvas 55) -->
     <string name="suspended_title">Account suspended</string>
@@ -831,13 +881,75 @@
     <string name="suspended_email_body">Registered phone number: %s\nWhy I think this is a mistake:\n</string>
 
     <!-- Create account, device limit (canvas 56) -->
-    <plurals name="register_limit_title">
-        <item quantity="one">This phone already has %d Quapp account</item>
-        <item quantity="other">This phone already has %d Quapp accounts</item>
-    </plurals>
-    <plurals name="register_limit_body">
-        <item quantity="one">Log in to it instead. One phone can hold up to %d account.</item>
-        <item quantity="other">Log in to one of them instead. One phone can hold up to %d accounts, so a shared family phone still works.</item>
-    </plurals>
-    <string name="register_limit_action">Log in instead</string>
+    <string name="counters_title">Counters</string>
+    <string name="counters_menu_body">Manage counters sharing this queue’s waiting line</string>
+    <string name="counters_demo">Demo mode. Counter changes are temporary.</string>
+    <string name="counters_add">Add counter</string>
+    <string name="counters_rename">Rename counter</string>
+    <string name="counters_save">Save</string>
+    <string name="counters_name_label">Counter name</string>
+    <string name="counters_name_required">Enter a counter name.</string>
+    <string name="counters_default_name">Counter 1</string>
+    <string name="counters_available">Available</string>
+    <string name="counters_serving_format">Serving #%1$d</string>
+    <string name="counters_waiting_format">%1$d waiting in the shared line</string>
+    <string name="counters_call_next">Call next waiting ticket</string>
+    <string name="counters_done">Mark served</string>
+    <string name="counters_display">Show this counter’s display</string>
+    <string name="counters_unavailable">Counter unavailable. Check the queue and finish its current ticket before calling another.</string>
+    <string name="counters_display_name_format">%1$s · %2$s</string>
+    <string name="counters_now_serving_format">Now serving %1$s</string>
+    <string name="announcement_title">Announcement</string>
+    <string name="announcement_menu_body">Publish a message on this queue’s counter displays</string>
+    <string name="announcement_demo">Demo mode. Changes are temporary.</string>
+    <string name="announcement_message_label">Message</string>
+    <string name="announcement_message_help">Up to 500 characters. Shown on this queue’s counter displays.</string>
+    <string name="announcement_publish">Publish announcement</string>
+    <string name="announcement_clear">Clear announcement</string>
+    <string name="announcement_required">Enter an announcement.</string>
+    <string name="announcement_too_long">Use 500 characters or fewer.</string>
+    <string name="announcement_none">No active announcement.</string>
+    <string name="announcement_current_format">Active announcement\n%1$s</string>
+    <string name="announcement_display_format">Announcement\n%1$s</string>
+    <string name="announcement_published">Announcement published in this demo.</string>
+    <string name="announcement_cleared">Announcement cleared.</string>
+    <string name="announcement_unavailable">This queue’s owner is required to change its announcement.</string>
+    <string name="preview_open">Preview queue</string>
+    <string name="preview_title">Queue preview</string>
+    <string name="preview_back">Back to form</string>
+    <string name="preview_notice">Review only. Return to the form to create or save.</string>
+    <string name="preview_unavailable">This preview is no longer available. Return to the form and preview it again.</string>
+    <string name="preview_enabled">Enabled</string>
+    <string name="preview_disabled">Disabled</string>
+    <string name="preview_radius_format">Enabled · %1$d m</string>
+    <string name="preview_not_provided">Not provided</string>
+    <string name="lookup_title">Ticket lookup</string>
+    <string name="lookup_menu_body">Find an exact ticket number in this queue</string>
+    <string name="lookup_scope">Owner-only lookup in this queue. Demo records are temporary.</string>
+    <string name="lookup_number_label">Ticket number</string>
+    <string name="lookup_search">Find ticket</string>
+    <string name="lookup_invalid">Enter a whole ticket number from 0 to 2147483647.</string>
+    <string name="lookup_not_found">No ticket with that number is available in this queue.</string>
+    <string name="lookup_denied">Only this queue’s owner can look up its tickets.</string>
+    <string name="lookup_name_format">Name: %1$s</string>
+    <string name="lookup_phone_format">Phone: %1$s</string>
+    <string name="lookup_status_format">Status: %1$s</string>
+    <string name="public_organizer_title">Organizer</string>
+    <string name="public_organization_title">Organization</string>
+    <string name="public_view_organizer">View organizer</string>
+    <string name="public_view_organization">View organization</string>
+    <string name="public_profile_scope">Choose a queue to view its details or report it.</string>
+    <string name="public_organization_demo">Demo organization linked to this organizer.</string>
+    <string name="public_profile_queues">Public queues</string>
+    <string name="public_profile_empty">No public queues available.</string>
+    <string name="public_profile_loading">Loading public queues…</string>
+    <string name="public_profile_unavailable">This public profile is unavailable. Try again.</string>
+    <string name="handover_title">Handover</string>
+    <string name="handover_menu_body">Review ownership handover availability</string>
+    <string name="handover_queue_unnamed">Queue</string>
+    <string name="handover_unavailable">Eligible recipients are unavailable. Try again later.</string>
+    <string name="handover_still_unavailable">Eligible recipients are still unavailable. No transfer was made.</string>
+    <string name="handover_unchanged">Transfer stays disabled until an eligible recipient is available. Your queue, tickets and ownership are unchanged.</string>
+    <string name="handover_retry">Retry</string>
+    <string name="handover_transfer">Transfer ownership</string>
 </resources>

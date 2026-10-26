@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Log in (canvas 01). The form scrolls; the dock with "Create account" stays at the bottom
-     and rides up with the keyboard (SystemBars.applyPaddingWithKeyboard). -->
+<!-- Log in (canvas 01). The form scrolls; actions scroll above the keyboard (SystemBars.applyPaddingWithKeyboard). -->
 <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:id="@+id/login_root"
@@ -9,9 +8,9 @@
 
     <androidx.core.widget.NestedScrollView
         android:id="@+id/login_scroll"
-        android:layout_width="0dp"
-        android:layout_height="0dp"
-        app:layout_constraintBottom_toTopOf="@id/login_tear"
+        android:layout_width="@dimen/dimension_zero"
+        android:layout_height="@dimen/dimension_zero"
+        app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent">
@@ -20,12 +19,14 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
-            android:paddingStart="@dimen/space_md"
+            android:paddingStart="24dp"
             android:paddingTop="@dimen/space_xl"
-            android:paddingEnd="@dimen/space_md"
+            android:paddingEnd="24dp"
             android:paddingBottom="@dimen/space_lg">
 
-            <include layout="@layout/view_brand" />
+            <ImageButton android:id="@+id/login_back" android:layout_width="48dp" android:layout_height="48dp"
+                android:src="@drawable/ic_arrow_back" android:contentDescription="@string/p4_back"
+                android:background="?attr/selectableItemBackgroundBorderless" app:tint="?attr/colorOnSurface" />
 
             <TextView
                 android:id="@+id/login_heading"
@@ -33,16 +34,17 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="@dimen/space_md"
                 android:accessibilityHeading="true"
-                android:text="@string/login_heading"
+                android:text="@string/phase2a_login_heading"
                 android:textAppearance="?attr/textAppearanceHeadlineMedium" />
 
             <TextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="@dimen/space_xs"
-                android:text="@string/login_subheading"
+                android:text="@string/phase2a_login_body"
                 android:textAppearance="?attr/textAppearanceBodyMedium"
                 android:textColor="?attr/colorOnSurfaceVariant" />
+
 
             <!-- Phone -->
             <TextView
@@ -66,39 +68,21 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:autofillHints="phone"
-                    android:hint="@string/login_phone_placeholder"
+
                     android:inputType="phone" />
             </com.google.android.material.textfield.TextInputLayout>
 
-            <!-- Password, with "Forgot password?" on the label's line -->
-            <LinearLayout
+            <TextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="@dimen/space_sm"
-                android:gravity="center_vertical"
-                android:orientation="horizontal">
-
-                <TextView
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:labelFor="@id/login_password_input"
-                    android:text="@string/login_password_label"
-                    android:textAppearance="?attr/textAppearanceFieldLabel" />
-
-                <com.google.android.material.button.MaterialButton
-                    android:id="@+id/login_forgot_button"
-                    style="@style/Widget.Quapp.Button.Text"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:minWidth="0dp"
-                    android:paddingStart="@dimen/space_sm"
-                    android:paddingEnd="@dimen/space_sm"
-                    android:text="@string/login_forgot" />
-            </LinearLayout>
+                android:layout_marginTop="@dimen/space_lg"
+                android:labelFor="@id/login_password_input"
+                android:text="@string/login_password_label"
+                android:textAppearance="?attr/textAppearanceFieldLabel" />
 
             <com.google.android.material.textfield.TextInputLayout
                 android:id="@+id/login_password_layout"
+                android:layout_marginTop="@dimen/space_sm"
                 style="@style/Widget.Quapp.TextField"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -109,53 +93,81 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:autofillHints="password"
+                    android:saveEnabled="false"
                     android:inputType="textPassword" />
             </com.google.android.material.textfield.TextInputLayout>
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/login_forgot_button"
+                    style="@style/Widget.Quapp.Button.Text"
+                    android:layout_width="wrap_content"
+                    android:layout_gravity="end"
+                    android:layout_height="wrap_content"
+                    android:minWidth="@dimen/dimension_zero"
+                    android:paddingStart="@dimen/space_sm"
+                    android:paddingEnd="@dimen/space_sm"
+                    android:text="@string/login_forgot" />
 
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/login_submit_button"
                 android:layout_width="match_parent"
-                android:layout_height="@dimen/button_height_lg"
+                android:layout_height="wrap_content"
+            android:minHeight="@dimen/button_height_lg"
                 android:layout_marginTop="@dimen/space_lg"
-                android:text="@string/login_action" />
+                android:text="@string/auth_sign_in_demo" />
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/login_google_button"
+                style="@style/Widget.Quapp.Button.Outlined"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
+                android:enabled="false"
+                android:backgroundTint="#FFFFFF"
+                android:textColor="#1F1F1F"
+                android:fontFamily="@font/google_sans_medium"
+                app:fontFamily="@font/google_sans_medium"
+                android:textStyle="normal"
+                android:textSize="14sp"
+                android:paddingStart="12dp"
+                android:paddingEnd="12dp"
+                app:strokeColor="#747775"
+                app:strokeWidth="1dp"
+                app:cornerRadius="4dp"
+                app:icon="@drawable/google_g_official"
+                app:iconTint="@null"
+                app:iconSize="20dp"
+                app:iconPadding="10dp"
+                app:iconGravity="textStart"
+                android:text="@string/google_continue" />
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/google_unavailable"
+                android:textAppearance="?attr/textAppearanceBodySmall" />
+            <LinearLayout
+                android:id="@+id/login_dock"
+                style="@style/Widget.Quapp.Dock"
+                android:paddingStart="0dp"
+                android:paddingEnd="0dp"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center"
+                android:orientation="vertical">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/login_no_account"
+                    android:textAppearance="?attr/textAppearanceBodySmall" />
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/login_register_button"
+                    style="@style/Widget.Quapp.Button.Text"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/login_create_account" />
+            </LinearLayout>
         </LinearLayout>
     </androidx.core.widget.NestedScrollView>
-
-    <!-- ===== Dock ===== -->
-
-    <com.example.quapp.TearLineView
-        android:id="@+id/login_tear"
-        android:layout_width="0dp"
-        android:layout_height="@dimen/tear_line_width"
-        android:layout_marginStart="@dimen/space_md"
-        android:layout_marginEnd="@dimen/space_md"
-        app:layout_constraintBottom_toTopOf="@id/login_dock"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent" />
-
-    <LinearLayout
-        android:id="@+id/login_dock"
-        style="@style/Widget.Quapp.Dock"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:gravity="center"
-        android:orientation="horizontal"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent">
-
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="@string/login_no_account"
-            android:textAppearance="?attr/textAppearanceBodySmall" />
-
-        <com.google.android.material.button.MaterialButton
-            android:id="@+id/login_register_button"
-            style="@style/Widget.Quapp.Button.Text"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="@string/login_create_account" />
-    </LinearLayout>
 
 </androidx.constraintlayout.widget.ConstraintLayout>

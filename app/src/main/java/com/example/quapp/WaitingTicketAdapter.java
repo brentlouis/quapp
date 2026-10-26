@@ -20,11 +20,10 @@ import java.util.List;
 public class WaitingTicketAdapter
         extends RecyclerView.Adapter<WaitingTicketAdapter.WaitingViewHolder> {
 
-    /**
-     * What a waiting row can do. Serving and no-shows happen at the counter (the Now Serving
-     * card), so only removing is left here (DECISIONS.md, Live console).
-     */
     public interface OnTicketActionListener {
+        void onServeTicket(Ticket ticket);
+        void onNoShowTicket(Ticket ticket);
+
         /** Remove from line, with a reason (canvas 57). */
         void onRemoveTicket(Ticket ticket);
     }
@@ -94,8 +93,10 @@ public class WaitingTicketAdapter
                 tag.setText(R.string.console_walk_in_label);
                 tag.setVisibility(View.VISIBLE);
             } else {
-                phoneText.setText(context.getString(R.string.console_joined_phone_format,
-                        ticket.getHolderPhone(), joinedAgo(context, ticket)));
+                String phone = maskPhone(context, ticket.getHolderPhone());
+                String joined = joinedAgo(context, ticket);
+                phoneText.setText(phone.isEmpty() ? joined
+                        : context.getString(R.string.console_joined_phone_format, phone, joined));
                 tag.setVisibility(View.GONE);
             }
 
@@ -111,9 +112,20 @@ public class WaitingTicketAdapter
                                  final OnTicketActionListener actionListener) {
             PopupMenu popup = new PopupMenu(anchor.getContext(), anchor);
             popup.inflate(R.menu.menu_waiting_ticket);
+            // Waiting tickets must be called before they can be completed or marked absent.
+            popup.getMenu().removeItem(R.id.waiting_action_serve);
+            popup.getMenu().removeItem(R.id.waiting_action_no_show);
             popup.setOnMenuItemClickListener(new PopupMenu.OnMenuItemClickListener() {
                 @Override
                 public boolean onMenuItemClick(MenuItem item) {
+                    if (item.getItemId() == R.id.waiting_action_serve) {
+                        actionListener.onServeTicket(ticket);
+                        return true;
+                    }
+                    if (item.getItemId() == R.id.waiting_action_no_show) {
+                        actionListener.onNoShowTicket(ticket);
+                        return true;
+                    }
                     if (item.getItemId() == R.id.waiting_action_remove) {
                         actionListener.onRemoveTicket(ticket);
                         return true;
@@ -125,10 +137,25 @@ public class WaitingTicketAdapter
         }
     }
 
+    /**
+     * "0917 ••• 0002": enough for staff to match a person at the counter without showing the
+     * whole number on a screen other people can see.
+     */
     /** "18 min ago", or "Just joined" under a minute. */
     static String joinedAgo(Context context, Ticket ticket) {
         long minutes = Duration.between(ticket.getJoinedAt(), Instant.now()).toMinutes();
         return minutes < 1 ? context.getString(R.string.console_joined_just_now)
                 : context.getString(R.string.console_joined_ago_format, (int) minutes);
+    }
+
+    static String maskPhone(Context context, String phone) {
+        if (phone == null) {
+            return "";
+        }
+        if (phone.length() < 8) {
+            return phone;
+        }
+        return context.getString(R.string.console_masked_phone_format,
+                phone.substring(0, 4), phone.substring(phone.length() - 4));
     }
 }

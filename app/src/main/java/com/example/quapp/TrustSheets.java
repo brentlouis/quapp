@@ -30,9 +30,17 @@ final class TrustSheets {
      * Both offer Report this queue.
      */
     static void showOrganizer(final Activity activity, final Queue queue) {
+        showOrganizer(activity, queue, true);
+    }
+
+    static void showOrganizer(final Activity activity, final Queue queue, boolean allowQueueReport) {
         final Notice notice = new Notice(activity);
         boolean verified = queue.isOrganizerVerified();
-        String name = "<b>" + TextUtils.htmlEncode(queue.getOrganizerName()) + "</b>";
+        String organizerName = queue.getOrganizerName();
+        if (organizerName == null || organizerName.trim().isEmpty()) {
+            organizerName = activity.getString(R.string.badge_organizer_fallback);
+        }
+        String name = "<b>" + TextUtils.htmlEncode(organizerName) + "</b>";
 
         notice.icon(verified ? R.drawable.ic_badge_check : R.drawable.ic_info,
                 verified ? R.color.ok : R.color.warn);
@@ -45,6 +53,7 @@ final class TrustSheets {
         notice.primary.setText(R.string.badge_got_it);
         notice.primary.setOnClickListener(notice.dismiss());
         notice.secondary.setText(R.string.badge_report);
+        notice.secondary.setVisibility(allowQueueReport ? View.VISIBLE : View.GONE);
         notice.secondary.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -59,16 +68,16 @@ final class TrustSheets {
      * Canvas 58: an unverified organizer already has a queue running. They can still set up an
      * upcoming one, or get verified to lift the limit.
      */
-    static void showOneLiveQueue(final Activity activity, String runningName, boolean paused) {
+    static void showOneLiveQueue(final Activity activity, Queue running) {
         final Notice notice = new Notice(activity);
         notice.icon(R.drawable.ic_info, R.color.warn);
         notice.title.setText(R.string.limit_title);
-        notice.body.setText(activity.getString(paused
-                ? R.string.limit_body_paused : R.string.limit_body, runningName));
+        notice.body.setText(activity.getString(running.getStatus() == Queue.Status.PAUSED
+                ? R.string.limit_body_paused : R.string.limit_body, running.getName()));
         notice.note.setVisibility(View.GONE);
 
         // Already asked: nothing to do but wait for the call.
-        boolean pending = new Session(activity).getVerification() == VerificationStatus.PENDING;
+        boolean pending = FakeData.myVerification() == VerificationStatus.PENDING;
         notice.primary.setText(pending ? R.string.limit_pending : R.string.limit_get_verified);
         notice.primary.setEnabled(!pending);
         notice.primary.setOnClickListener(new View.OnClickListener() {

@@ -1,12 +1,13 @@
+
 # Design Decisions — Quapp (Public Community Queue Management)
 
 A log of the important choices made while building this, and why. Each entry says what was decided, the reason, and what else was considered. The point is to remember *why* things are the way they are — useful for the documentation and for answering "why did you do it this way?" later.
 
 Entries are roughly in the order they happened. Status is one of: **Current**, **Deferred to full app**, **Open**, or **Superseded**.
 
-Where things stand: UI and navigation milestone done, plus the missing screens and features (entries from "Queue status is an enum" onward). 14 screens, in-memory data, no backend yet. The visual direction is settled: **Civic Paper** (see "Civic Paper direction (Sep 28)" below and `DESIGN.md`), and the XML rebuild starts from its foundations. Brent builds the rest; partner polishes the UI after. Remaining work continues in Claude Code.
+Current choices: preserve Java/XML Android and the existing functionality; use prominent wait on open queuer cards, straight lists, accessible state feedback and recoverable Browse errors. Civic Paper is the current baseline, not a permanent design commitment. Modernization is deferred until the user requests a concrete direction. Installation and test results belong in [PROGRESS.md](PROGRESS.md); visual specifications belong in [DESIGN.md](DESIGN.md).
 
-Last updated: 2026-09-28.
+Last reviewed: 2026-10-13. Earlier entries retain their historical rationale. Historical screen counts, implementation summaries and backend plans are not current verification evidence.
 
 ---
 
@@ -1102,7 +1103,7 @@ A crema tear line runs above every bottom button bar and along the top of the bo
 - On-device TensorFlow Lite: not needed, Quapp is an online service.
 - A no-show prediction model: future work; it would double the ML and evaluation work.
 
-**Status:** Deferred (Sep 29). The backend ships with the rolling average only (BACKEND.md phase 6), since training on synthetic data takes more time than the rest of the backend needs. The estimator already reports `estimate_source` and `model_samples`, so adding the model later changes nothing the app sees. Supersedes the forecasting half of "Cut the proposal down to a buildable subset".
+**Status:** Current (design). Built with the backend. Supersedes the forecasting half of "Cut the proposal down to a buildable subset".
 
 ---
 
@@ -1196,7 +1197,7 @@ The organizer line on Queue detail opens the badge sheet (52) for both verified 
 
 **Why:** It follows "Unverified organizers can post, with limits" without building the admin page first. Starting verified keeps the seeded queues looking like the canvas.
 
-**Status:** Superseded Sep 30 by the server: the status lives on the account (`GET /me`), the admin decides on the admin page, and the long-press demo hook is gone. The one-live-queue rule is the server's (`ONE_LIVE_QUEUE`); reopening a closed queue no longer exists (see "A closed queue stays closed").
+**Status:** Current. Built Sep 29. Demo hooks are listed under Known compromises.
 
 ---
 
@@ -1256,6 +1257,8 @@ The organizer line on Queue detail opens the badge sheet (52) for both verified 
 
 ## Queue cards are catalogue cards on aged paper
 
+**Partial supersession:** the later [queue-card decision entry](#2026-10-13-0357-utc0800--model-model-unknown) replaces the slight tilt and equal-weight Wait-line metrics. The remaining catalogue direction is retained; current layout details are in DESIGN.md.
+
 **Decision:** Queue cards (Browse and the organizer's Queues tab) are old library catalogue cards: the category and the queue's number in the corner, the status as a rubber stamp, the name in serif over a double rule, then Where / What / When / Wait written on ruled lines, and a punched hole at the bottom. They're whiter than the paper, with a 2dp shadow and a slight tilt each. The screen ground changes from fine grain to aged paper (`paper_aged.png`: soft blotches, fibres, a few tiny age spots), and the component textures go to the loudest strength from the texture canvas (2.4 times the first version).
 
 **Why:** Brent wanted the queue cards to read as notes, and picked this over classic sticky notes, taped paper notes, plain index cards and a two-column sticky wall on the "Quapp textures and sticky notes" canvas. The ruled Where / What / When / Wait lines were his pick over running text. The card is whiter than the paper because on the aged ground a cream card blended in. Aged won over vintage (stains, darker edges) once Brent saw vintage on a phone-size screen: too much. Serving stays on the Wait line so the three numbers read together.
@@ -1270,7 +1273,7 @@ The organizer line on Queue detail opens the badge sheet (52) for both verified 
 
 ## Backend: PostgreSQL and SQLAlchemy, in backend/
 
-**Decision:** The FastAPI server uses PostgreSQL (already installed on Brent's desktop, where the server runs) through SQLAlchemy models. The code lives in `backend/` in this repo. The schema is in MODELS.md, "Database (PostgreSQL)". Claude writes the backend one step at a time; Brent reviews each step before the next.
+**Decision:** The FastAPI server uses PostgreSQL (already installed on Brent's desktop, where the server runs) through SQLAlchemy models. The code lives in `backend/` in this repo. The schema is in MODELS.md, "Database (PostgreSQL)". Brent writes the backend; Claude reviews.
 
 **Why:** Postgres is already on the machine, so there's no setup cost, and the server has to be reachable from the instructor's phone anyway. SQLAlchemy is the usual FastAPI pairing and the easiest to explain. One repo keeps MODELS.md, the app and the server changing in the same commit. Numbers the server can count (positions, waits, stats, the cooldown) aren't stored, so they can't go stale.
 
@@ -1280,99 +1283,11 @@ The organizer line on Queue detail opens the badge sheet (52) for both verified 
 
 ---
 
-## The app talks to the server with Retrofit, over http, from one client
-
-**Decision:** Every server call goes through `ApiClient` (one Retrofit and OkHttp client) and comes back through `ApiCallback`. `ApiClient` adds the signed-in token, reads JSON with Gson (snake_case names mapped to the models' camelCase fields automatically, and java.time adapters for moments, dates and times), and gets the server's address from `quapp.apiUrl` in `local.properties`, defaulting to `http://127.0.0.1:8000/` with `adb reverse tcp:8000 tcp:8000` forwarding it to the PC (the emulator and a phone on USB). The emulator's `10.0.2.2` shortcut was tried first: on this emulator apps use its virtual Wi-Fi, where 10.0.2.2 doesn't reach the PC (only the shell's route does), so every request timed out. `ApiCallback` turns every answer into success or an `ApiError` with the server's code, and handles SUSPENDED and NOT_SIGNED_IN the same way on every screen. The app allows plain http (`network_security_config.xml`), because the server runs on a PC with no certificate. The device limit is the server's now: the app sends a random install id made once per install (`Session.installId`).
-
-**Why:** One place for the address, the token, the JSON format and the error handling means each screen only writes what's its own. Automatic name mapping means no `@SerializedName` on every field, as long as the names match. http is what a PC on the same network can serve; https needs a domain and a certificate.
-
-**Also considered:** `@SerializedName` on every field (the first plan in MODELS.md; lots of repetition for no gain here). Volley or plain `HttpURLConnection` (more code per request). Allowing http only for listed addresses (the PC's address changes between networks).
-
-**Status:** Current (BACKEND.md phase 10). If the server moves to a host with https, remove `cleartextTrafficPermitted`.
-
----
-
-## "You've been called" reaches the phone by polling
-
-**Decision:** The app asks the server again every few seconds while a screen that can change is open: Active ticket and My tickets every 10 seconds (`GET /tickets/{id}`, `GET /me/tickets`), the Live console every 5 (`GET /queues/{id}/line`). The called notification fires when a poll sees the ticket turn CALLED. Nothing new on the server: those endpoints already exist.
-
-**Why:** It's the simplest thing that works for a demo with two phones, and there's nothing new to explain at the defense: a timer and a request. The 3-minute grace window is long compared with a 10-second poll, so nobody loses their slot to the delay.
-
-**Also considered:** FCM push, which reaches a phone even when the app is closed. It needs a Firebase project, `google-services.json` and a server key, and it's worth adding if time allows. A WebSocket or server-sent events: instant, but more moving parts on both ends than polling, for no gain a demo would show.
-
-**Known limit:** With the app closed, nothing polls, so the call only shows when the app is opened again. Say so in the demo, or add FCM.
-
-**Status:** Current (BACKEND.md step 5.4).
-
----
-
-## A missed call settles itself when the queuer joins again
-
-**Decision:** When the 3 minutes pass without "I'm here", the ticket stays CALLED on the server and the organizer decides (no-show, or serve anyway), as before. The one exception: if the holder joins the same queue again, the server marks that ticket NO_SHOW first and then lets them join. The app shows the no-show from the deadline on, and hides a ticket the queuer closed with Done even while the server still has it live (a confirmed ticket stays CALLED until the counter calls the next person).
-
-**Why:** Found testing batch 2 on the emulator. The app said "Slot released · Join again", and joining was refused with ALREADY_IN_LINE because the organizer hadn't pressed anything yet. The queuer has given the slot up either way, so settling it is what the organizer would do, and it still counts as a strike on penalty queues.
-
-**Also considered:** The server marking every missed call NO_SHOW at the deadline. That takes "serve anyway" away from the organizer, for someone who walks up at 3:05. Hiding "Join again" until the organizer acts: the queuer would be stuck waiting on someone else's tap.
-
-**Status:** Current (MODELS.md "Line", `nowServingTimedOut`).
-
----
-
-## A new queue's pin is its town's centre
-
-**Decision:** Create Queue has no map, so a new queue's latitude and longitude are its town's centre (`Towns.java`, the ten towns on the Bohol list). Editing keeps the pin unless the town changes. The server needs a pin for Directions and the proximity check.
-
-**Why:** A map picker is a screen of its own (Maps SDK, an API key, a draggable pin), and the demo's queues are in towns people know. A 500 m to 5 km radius around the town hall is close enough for the proximity check to show what it does.
-
-**Also considered:** The organizer's current location when they create the queue (they're often not at the venue yet, and it needs the location permission on the organizer's side too). A pin picker with the Maps SDK (the proper fix, later).
-
-**Status:** Current. Known compromise 9.
-
----
-
-## A closed queue stays closed
-
-**Decision:** Closing a queue is for good: the options sheet has no Reopen any more, and a closed queue's next run is a new queue. Serving and no-shows happen only on the Now Serving card; a waiting row's menu has only Remove. After a time-out, Call next records the one at the counter as a no-show (`POST /no-show`), since "Call next" alone would mark them served.
-
-**Why:** The server's `/close` releases everyone still waiting as QUEUE_CLOSED, which can't be undone, so reopening would bring back an empty queue with the same name, more confusing than a new one. The server has no endpoint for serving someone who wasn't called, and the console card is where the grace period shows (DECISIONS.md, Live console).
-
-**Also considered:** A `/reopen` endpoint (more states to explain for little use); keeping Serve and No-show on the rows (they'd skip the grace period entirely).
-
-**Status:** Current.
-
----
-
-## The organizer side on the server
-
-**Decision:** Your queues and Today load `GET /me/queues`, then each queue's `GET /queues/{id}/stats`, through `MyQueues`, which keeps the last copy for both tabs. The Live console asks for its line every 5 seconds while open (and the counter display does too). The verification status and organization name live in `Session`, refreshed from `GET /me` each time Profile shows. `ONE_LIVE_QUEUE` names the queue already running, so the limit sheet can say which one.
-
-**Why:** A handful of queues makes one stats request each cheap, and a new combined endpoint would only move the loop to the server. The badge can change while the app is closed (the admin approves it), so it's read again rather than kept from login.
-
-**Also considered:** Stats inside `/me/queues` (a second shape of Queue in the contract); asking `/me/queues` again when the limit error arrives (an extra request for a name the server already knows).
-
-**Status:** Current (BACKEND.md phase 10).
-
----
-
-## Hosting: Render and Neon
-
-**Decision:** The API runs on Render's free web service, and the database on Neon's free Postgres. `render.yaml` in the repo root describes the service (build, start command, health check, the one secret); Render runs in Singapore, next to Neon (a request makes several queries, and from Render's default Oregon each one crossed the Pacific: Browse took about 3 seconds). Render redeploys on every push to the branch in `render.yaml` (the feature branch until it's merged). The database address is the only setting, pasted into Render as `DATABASE_URL`; the server points Neon's `postgresql://` address at psycopg 3 itself (`config.py`). The tables are made at startup by `create_all`, and the demo data by running `seed.py` once against Neon from the PC. The app's `quapp.apiUrl` is the Render address, so a released APK keeps working.
-
-**Why:** A permanent https address without buying a domain or keeping the PC on. Render runs Python straight from `requirements.txt`, so there's nothing new to explain (no Docker). The backend has no background jobs (the schedule refresh is lazy), so a server that sleeps loses nothing: the first request after waking brings every queue up to date. Neon wakes by itself in about a second, where Supabase's free projects pause after a week unused.
-
-**Also considered:** The PC with a tunnel (ngrok's free fixed address, Tailscale Funnel, or a named Cloudflare tunnel with a domain): free, but down whenever the PC is. Render's own Postgres (deleted about a month after it's made). Supabase for the database (fine, but pauses). A VPS (all the upkeep is ours). Docker (only needed by hosts that take images).
-
-**Known limits:** Render's free server sleeps after 15 minutes without requests, and the first request after that takes 30 to 60 seconds; open the app a minute before a demo. Anything written to the server's disk is lost on redeploy (Quapp writes nothing there). Tests never run against Neon: they drop every table.
-
-**Status:** Current. Answers BACKEND.md's hosting question (step 11.1).
-
----
-
 ## Known compromises
 
 Deliberate shortcuts, not oversights. Each has a planned fix.
 
-1. ~~**`ActiveTicketStore` is a static field holding app state.**~~ Now a copy of the server's tickets, synced every 10 seconds and on every screen that needs it; a process restart starts empty and the first sync fills it.
+1. **`ActiveTicketStore` is a static field holding app state.** If Android kills the process in the background it's null while the Activity comes back expecting a ticket — a real crash path. Accepted because the backend replaces it with a fetch by ticket id. `Parcelable` would be the proper local fix, but that's boilerplate for something being deleted anyway.
 
 2. ~~**`servedToday` is hardcoded to 18** in `OwnedQueueAdapter`.~~ Fixed — comes from `FakeData.stats()` now.
 
@@ -1382,19 +1297,19 @@ Deliberate shortcuts, not oversights. Each has a planned fix.
 
 5. ~~**No validation anywhere.**~~ Login, Register, Join, Create/Edit Queue and Walk-in now validate. Phone must be 09 plus nine digits.
 
-6. ~~**Active Ticket's "called" state is triggered by long-pressing.**~~ The call comes from the organizer's console through the server; the long-press hooks are gone.
+6. **Active Ticket's "called" state is triggered by long-pressing the "ahead of you" count**, and long-pressing the countdown skips to the end of the grace period. Pure demo scaffolding — in the real system both arrive from the backend.
 
 7. **Ticket removal in Live Console relies on reference equality.** `List.remove(Object)` uses `.equals()`, which `Ticket` doesn't override, so it's identity comparison. Works because the adapter hands back the exact object from the list. Would break if tickets came from separate network fetches — then removal needs to be by id, or `equals` needs overriding. Fixed — `FakeData` removes by id.
 
 8. **Queue history has no dates.** `Ticket` has no `joinedAt` field, so rows show queue, ticket number and outcome only. Adding it is a model change to propose.
 
-9. **A new queue's pin is its town's centre** until Create Queue has a map picker (see "A new queue's pin is its town's centre").
+9. **New queues get Tagbilaran City's coordinates** until Create Queue has a map picker.
 
-10. ~~**Trust and safety demo hooks.**~~ Verification, suspension and the device limit are the server's now, decided on the admin page.
+10. **Trust and safety demo hooks.** Long-press the organizer's verification row or pending card in Profile to play the admin (verified → unverified, pending → approved). Logging in as 0918 000 0000 shows a suspended account. The device limit counts registrations in local storage. All three move to the server and the admin page.
 
-11. **The called notification comes from polling**, so it only arrives while the app is open (see "You've been called reaches the phone by polling"). Real push needs Firebase Cloud Messaging.
+11. **The called notification is triggered by FakeData**, which only works while the owner and the queuer are the same app process (one phone). Real push needs Firebase Cloud Messaging and the backend.
 
-**Status:** Deferred to full app. FakeData is gone (Sep 30); what's left here is 3, 4, 9 and 11.
+**Status:** Deferred to full app.
 
 ---
 
@@ -1457,4 +1372,111 @@ Two things need resolving before it's implementable. First, "related queues" nee
 
 ## What isn't
 
-Notifications. Loading and error states (nothing loads yet — they arrive with Retrofit). Dates in history. The backend.
+Notifications. Dates in history. The backend.
+
+---
+
+## Loading feedback for asynchronous operations (October 5, 2026)
+**Written by Gemini AI 3.6 Flash**
+
+**Decision:** Implement comprehensive descriptive loading indicators ("Loading queues…", "Joining queue…", "Creating queue…", etc.), empty results handling, recoverable error states with Retry actions, and disabled states during form submissions across all data-backed screens and actions.
+
+**Why:** Server operations can take several seconds. Providing clear feedback prevents users from mistaking a slow response for an empty screen, failed action, or unresponsive app. State transitions are tied to operation completion rather than arbitrary timers.
+
+**Also considered:** Full-screen blocking progress dialogs (deprecated and disruptive); static spinners without descriptive text (insufficient context for users).
+
+**Status:** Current.
+
+---
+
+## Reusable LoadingStateHelper and 4-state lifecycle pattern
+
+**Decision:** Introduce a lightweight `LoadingStateHelper` managing Loading, Content, Empty, and Error states cleanly, backed by `FakeData` asynchronous callback APIs (`FakeData.Callback<T>`).
+
+**Why:** Keeps presentation logic separate from request execution while maintaining clean lifecycle safety (preventing updates to destroyed views or out-of-order responses) without a major architectural rewrite.
+
+**Also considered:** Architectural rewrite with LiveData/Flow/ViewModel (overkill for Java + XML views backed by in-memory FakeData).
+
+**Status:** Current.
+
+---
+
+## Debug Slow-Response Mode for verification testing
+
+**Decision:** Add a toggleable "Debug slow-response mode" in Profile that enables 1.5-second simulated latency, one-time error injection, and one-time empty result injection in `FakeData`.
+
+**Why:** Allows rigorous QA auditing and verification of loading indicators, empty states, and error retry actions even when running against fast in-memory data.
+
+**Also considered:** Hardcoded Thread.sleep() in production code (violates threading guidelines and performance rules).
+
+**Status:** Current.
+---
+
+## Organize around the Android-standard tree
+
+### 2026-10-12 00:10 UTC+08:00 | Model: Model unknown
+
+**Decision:** Keep `app/src/main`, Java package paths, resource directories, and root contract documents in their established locations. Organize the full project through a root entry guide, `docs/`, `scripts/`, folder indexes, and `diagnostics/` rather than physically regrouping Android source by feature.
+
+**Why:** Android resource discovery, manifest references, package declarations, Gradle conventions, project instructions, and existing documentation links depend on the current locations. A navigation and tooling layer provides faster use and debugging without creating a high-risk package/resource migration.
+
+**Also considered:** Moving Activities, models, helpers, and resources into new feature folders. This would require broad package and reference updates and was not needed to achieve the user's organization goal.
+
+**Status:** Current. Future package refactoring should be a separate, tested migration after feature behavior has stronger automated coverage.
+
+### 2026-10-13 03:57 UTC+08:00 | Model: Model unknown
+
+Project: Quapp. Source: current Codex conversation; chat title/link unavailable. Backfill recorded now from accessible chat history and current files. Earlier changes occurred before this entry; exact event times and writer model are unavailable.
+
+Confirmed decisions from the user's six-point UI request:
+- Make estimated wait the main comparison value on open queuer cards.
+- Keep cards straight in scrolling lists to reduce visual density.
+- Keep the exported screen reference aligned with the newer catalogue-card direction.
+- Announce loading/empty/error transitions and make the redundant error icon decorative.
+- Preserve cached Browse results during refresh failure and provide Retry plus last-updated information.
+- Require normal/200% text, centered splash, Pixel/Xiaomi, and TalkBack checks before claiming device/accessibility verification complete.
+
+Status: implemented as described in [the latest progress checkpoint](PROGRESS.md); device verification is partial. This supersedes earlier equal-weight queue metrics and tilted-list presentation where those conflict. Earlier decision history is retained; current card details are in [DESIGN.md](DESIGN.md).
+
+Additional confirmed workflow: continue unfinished organization through the hourly follow-up when usage permits, following the user's latest continue request. It cannot bypass usage limits.
+
+### 2026-10-13 04:40 UTC+08:00 | Model: Model unknown
+
+Project: Quapp. Source: current Codex conversation; title/link unavailable.
+
+Decision: use grill-me/grilling for requirement clarification and ui-ux-pro-max for UI reviews, as requested by the user.
+
+Why: clarify plans before implementation and review usability, accessibility, and consistency using a small set of tools.
+
+Boundary: installing these tools does not approve the deferred redesign. Preserve Civic Paper and Java/XML unless the user requests a different direction.
+
+Status: confirmed. Installation and verification details remain in [PROGRESS.md](PROGRESS.md), under the matching 04:40 entry.
+
+### 2026-10-13 05:15 UTC+08:00 | Model: Model unknown
+
+Project: Quapp. Source: current Codex conversation; title/link unavailable.
+
+Decision: add emil-design-eng for interaction polish and break-ui for difficult-content reviews, following the user's installation request.
+
+Why: complement the existing UI/UX guidance with focused polish and layout checks.
+
+Boundary: adapt relevant guidance to native Java/XML Android. Installation does not authorize redesign or changes to the backend.
+
+Status: confirmed. Installation evidence and remaining execution checks are in [PROGRESS.md](PROGRESS.md), under the matching 05:15 entry.
+
+### 2026-10-13 21:40 UTC+08:00 | Model: Model unknown
+
+Project: Quapp. Source: current Civic Paper refinement chat; title/link unavailable. Exact writer model unavailable.
+
+Confirmed requirement: refine selected native UI using frontend_senior, UI/UX Pro Max, Emil and break-ui while preserving the current theme. Latest feedback rejects the subtle first pass as an adequate redesign.
+
+Next-action proposal: one clearly changed screen for visual review before more coding and extensive testing. No approval for a new palette or stack migration. Existing verification requirements remain; avoid repeated broad reads/builds without a concrete change. [[Projects/Quapp/PROGRESS]] · [[Projects/Quapp/DESIGN]].
+
+### 2026-10-13 21:43 UTC+08:00 | Model: Model unknown
+
+Project: Quapp. Source: current Codex chat; title/link unavailable. Exact writer model unavailable.
+
+Confirmed decision: future renovation scope is Browse, My Tickets and Profile, preserving Civic Paper. Execution is deferred; save a reusable prompt now. This expands the earlier proposal to show one Browse screen into a three-screen renovation scope; the earlier checkpoint remains historical. Preview-first workflow remains a proposal for review, not approved screen specifications. Prompt: [[Projects/Quapp/DESIGN#Deferred renovation — Browse, My Tickets, Profile]].
+
+
+

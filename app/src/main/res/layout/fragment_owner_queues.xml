@@ -1,17 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- The owner's Queues tab (canvas 13, 35). The live queue is the spotlight on top, then status
-     chips with counts, then queue cards with the organizer footer. First visit: a three-step
-     guide instead. "New queue" floats over the list.
-
-     Same scrolling as Browse (DECISIONS.md "Browse: the header scrolls away"): the title,
-     greeting and live queue scroll away with the list and come back at its top; the status
-     chips stay pinned. -->
-<androidx.coordinatorlayout.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.coordinatorlayout.widget.CoordinatorLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
-    android:layout_height="match_parent">
-
+    android:layout_height="match_parent"
+    android:background="@color/paper" >
     <!-- Opaque paper: the pinned chips cover the cards scrolling under them. The textured ground,
          lined up with the window's, is set in code (Grain.groundBehind) -->
     <com.google.android.material.appbar.AppBarLayout
@@ -19,17 +13,15 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:background="?android:attr/colorBackground"
-        app:elevation="0dp"
-        app:liftOnScroll="false">
-
+        app:elevation="@dimen/dimension_zero"
+        app:liftOnScroll="false" >
         <!-- ===== Scrolls away ===== -->
         <LinearLayout
             android:id="@+id/owner_header"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
-            app:layout_scrollFlags="scroll">
-
+            app:layout_scrollFlags="scroll" >
             <TextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -39,7 +31,6 @@
                 android:accessibilityHeading="true"
                 android:text="@string/dashboard_title"
                 android:textAppearance="?attr/textAppearanceHeadlineMedium" />
-
             <TextView
                 android:id="@+id/owner_greeting"
                 android:layout_width="match_parent"
@@ -49,9 +40,8 @@
                 android:textAppearance="?attr/textAppearanceBodyMedium"
                 android:textColor="?attr/colorOnSurfaceVariant"
                 tools:text="Good morning, Rhea" />
-
             <!-- The live queue: the spotlight -->
-            <androidx.constraintlayout.widget.ConstraintLayout
+            <LinearLayout
                 android:id="@+id/owner_live"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -64,35 +54,26 @@
                 android:padding="@dimen/space_md"
                 android:theme="@style/ThemeOverlay.Quapp.Spotlight"
                 android:visibility="gone"
-                tools:visibility="visible">
-
+                tools:visibility="visible"
+                android:orientation="vertical" >
                 <TextView
                     android:id="@+id/owner_live_number"
-                    android:layout_width="wrap_content"
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:includeFontPadding="false"
-                    android:textAppearance="?attr/textAppearanceTicketNumber"
+                    android:textAppearance="?attr/textAppearanceTicketNumberSmall"
                     android:textColor="@color/signal"
-                    app:layout_constraintBottom_toBottomOf="parent"
-                    app:layout_constraintStart_toStartOf="parent"
-                    app:layout_constraintTop_toTopOf="parent"
-                    tools:text="#23" />
-
-                <com.example.quapp.TearLineView
+                    tools:text="#23"
+                    android:layout_marginTop="@dimen/space_sm" />
+                <View
                     android:id="@+id/owner_live_tear"
-                    android:layout_width="2dp"
-                    android:layout_height="0dp"
-                    android:layout_marginStart="@dimen/space_md"
-                    app:layout_constraintBottom_toBottomOf="parent"
-                    app:layout_constraintStart_toEndOf="@id/owner_live_number"
-                    app:layout_constraintTop_toTopOf="parent"
-                    app:tearOrientation="vertical" />
-
+                    android:layout_width="@dimen/tear_line_width"
+                    android:layout_height="@dimen/dimension_zero"
+                    android:visibility="gone" />
                 <TextView
                     android:id="@+id/owner_live_label"
-                    android:layout_width="wrap_content"
-                    android:layout_height="@dimen/pill_height"
-                    android:layout_marginStart="@dimen/space_md"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
                     android:background="@drawable/bg_pill"
                     android:backgroundTint="@color/ok_soft"
                     android:gravity="center"
@@ -101,50 +82,36 @@
                     android:text="@string/owner_live_now"
                     android:textAppearance="?attr/textAppearanceLabelSmall"
                     android:textColor="@color/ok"
-                    app:layout_constraintStart_toEndOf="@id/owner_live_tear"
-                    app:layout_constraintTop_toTopOf="parent" />
-
+                    android:layout_marginTop="@dimen/space_sm"
+                    android:minHeight="@dimen/pill_height" />
                 <TextView
                     android:id="@+id/owner_live_name"
-                    android:layout_width="0dp"
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginStart="@dimen/space_md"
                     android:layout_marginTop="@dimen/space_sm"
                     android:textAppearance="?attr/textAppearanceTitleLarge"
-                    app:layout_constraintEnd_toEndOf="parent"
-                    app:layout_constraintStart_toEndOf="@id/owner_live_tear"
-                    app:layout_constraintTop_toBottomOf="@id/owner_live_label"
                     tools:text="Free Medical Mission" />
-
                 <TextView
                     android:id="@+id/owner_live_detail"
-                    android:layout_width="0dp"
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginStart="@dimen/space_md"
                     android:fontFeatureSettings="tnum"
                     android:textAppearance="?attr/textAppearanceBodySmall"
-                    app:layout_constraintEnd_toEndOf="parent"
-                    app:layout_constraintStart_toEndOf="@id/owner_live_tear"
-                    app:layout_constraintTop_toBottomOf="@id/owner_live_name"
-                    tools:text="8 waiting · serving Ana Lopez" />
-
+                    tools:text="8 waiting · serving Ana Lopez"
+                    android:layout_marginTop="@dimen/space_sm" />
                 <com.google.android.material.button.MaterialButton
                     android:id="@+id/owner_live_console"
                     style="@style/Widget.Quapp.Button.Tonal"
-                    android:layout_width="wrap_content"
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginStart="@dimen/space_md"
-                    android:layout_marginTop="@dimen/space_ms"
-                    android:text="@string/owner_console_action"
-                    app:layout_constraintBottom_toBottomOf="parent"
-                    app:layout_constraintStart_toEndOf="@id/owner_live_tear"
-                    app:layout_constraintTop_toBottomOf="@id/owner_live_detail" />
-            </androidx.constraintlayout.widget.ConstraintLayout>
+                    android:layout_marginTop="@dimen/space_sm"
+                    android:text="@string/owner_console_action" />
+            </LinearLayout>
         </LinearLayout>
-
         <!-- ===== Stays pinned: the status filter with counts ===== -->
         <HorizontalScrollView
             android:id="@+id/owner_filters"
+            android:visibility="gone"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:paddingTop="@dimen/space_md"
@@ -152,8 +119,7 @@
             android:clipToPadding="false"
             android:paddingStart="@dimen/space_md"
             android:paddingEnd="@dimen/space_md"
-            android:scrollbars="none">
-
+            android:scrollbars="none" >
             <com.google.android.material.chip.ChipGroup
                 android:id="@+id/owner_status_group"
                 android:layout_width="wrap_content"
@@ -164,7 +130,6 @@
                 app:singleSelection="true" />
         </HorizontalScrollView>
     </com.google.android.material.appbar.AppBarLayout>
-
     <!-- The scrolling behaviour places the list under the app bar and passes its scrolls up -->
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/owner_list"
@@ -177,7 +142,6 @@
         android:paddingBottom="@dimen/owner_list_bottom_padding"
         app:layout_behavior="@string/appbar_scrolling_view_behavior"
         tools:listitem="@layout/item_queue_card" />
-
     <!-- Filter matches nothing -->
     <TextView
         android:id="@+id/owner_filter_empty"
@@ -191,45 +155,38 @@
         android:visibility="gone"
         app:layout_behavior="@string/appbar_scrolling_view_behavior"
         tools:text="No paused queues." />
-
     <!-- First visit: run your first queue -->
     <androidx.core.widget.NestedScrollView
         android:id="@+id/owner_first_visit"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:visibility="gone"
-        app:layout_behavior="@string/appbar_scrolling_view_behavior">
-
+        app:layout_behavior="@string/appbar_scrolling_view_behavior" >
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
-            android:padding="@dimen/space_md">
-
+            android:padding="@dimen/space_md" >
             <com.google.android.material.card.MaterialCardView
                 style="@style/Widget.Quapp.Card"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content">
-
+                android:layout_height="wrap_content" >
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:orientation="vertical"
-                    android:padding="@dimen/space_md">
-
+                    android:padding="@dimen/space_md" >
                     <TextView
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:text="@string/owner_first_title"
                         android:textAppearance="?attr/textAppearanceTitleLarge" />
-
                     <TextView
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="@dimen/space_xs"
                         android:text="@string/owner_first_body"
                         android:textAppearance="?attr/textAppearanceBodySmall" />
-
                     <LinearLayout
                         android:id="@+id/owner_first_steps"
                         android:layout_width="match_parent"
@@ -238,18 +195,17 @@
                         android:divider="@drawable/divider_line"
                         android:orientation="vertical"
                         android:showDividers="middle" />
-
                     <com.google.android.material.button.MaterialButton
                         android:id="@+id/owner_first_create"
                         android:layout_width="match_parent"
-                        android:layout_height="@dimen/button_height_lg"
+                        android:layout_height="wrap_content"
                         android:layout_marginTop="@dimen/space_md"
                         android:text="@string/dashboard_empty_action"
                         app:icon="@drawable/ic_plus"
-                        app:iconGravity="textStart" />
+                        app:iconGravity="textStart"
+                        android:minHeight="@dimen/button_height_lg" />
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
-
             <TextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -261,7 +217,6 @@
                 app:drawableTint="?attr/colorOnSurfaceVariant" />
         </LinearLayout>
     </androidx.core.widget.NestedScrollView>
-
     <com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton
         android:id="@+id/owner_create_fab"
         style="@style/Widget.Quapp.ExtendedFab"
@@ -272,5 +227,20 @@
         android:layout_marginBottom="@dimen/space_md"
         android:text="@string/owner_new_queue"
         app:icon="@drawable/ic_plus" />
-
+    <!-- Loading state -->
+    <include
+        android:id="@+id/owner_loading"
+        layout="@layout/view_loading_state"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_gravity="center"
+        app:layout_behavior="@string/appbar_scrolling_view_behavior" />
+    <!-- Error state -->
+    <include
+        android:id="@+id/owner_error"
+        layout="@layout/view_error_state"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_gravity="center"
+        app:layout_behavior="@string/appbar_scrolling_view_behavior" />
 </androidx.coordinatorlayout.widget.CoordinatorLayout>

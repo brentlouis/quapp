@@ -5,6 +5,7 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/share_root"
+    android:background="@color/paper"
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
@@ -23,25 +24,28 @@
         app:tint="?attr/colorOnSurface" />
 
     <TextView
-        android:layout_width="0dp"
+        android:id="@+id/share_header"
+        android:minHeight="@dimen/touch_target_min"
+        android:gravity="center_vertical"
+        android:layout_width="@dimen/dimension_zero"
         android:layout_height="wrap_content"
         android:layout_marginStart="@dimen/space_xs"
         android:layout_marginEnd="@dimen/space_md"
         android:accessibilityHeading="true"
         android:text="@string/share_title"
         android:textAppearance="?attr/textAppearanceTitleMedium"
-        app:layout_constraintBottom_toBottomOf="@id/share_back"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toEndOf="@id/share_back"
         app:layout_constraintTop_toTopOf="@id/share_back" />
 
     <androidx.core.widget.NestedScrollView
-        android:layout_width="0dp"
-        android:layout_height="0dp"
-        app:layout_constraintBottom_toTopOf="@id/share_tear"
+        android:fillViewport="true"
+        android:layout_width="@dimen/dimension_zero"
+        android:layout_height="@dimen/dimension_zero"
+        app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/share_back">
+        app:layout_constraintTop_toBottomOf="@id/share_header">
 
         <LinearLayout
             android:layout_width="match_parent"
@@ -66,7 +70,7 @@
                 android:background="@drawable/bg_card"
                 android:gravity="center_horizontal"
                 android:orientation="vertical"
-                android:padding="@dimen/space_lg">
+                android:padding="@dimen/space_md">
 
                 <TextView
                     android:id="@+id/share_queue_name"
@@ -107,57 +111,51 @@
                 android:background="@drawable/bg_field"
                 android:gravity="center_vertical"
                 android:minHeight="@dimen/field_height"
-                android:orientation="horizontal"
+                android:orientation="vertical"
+                android:paddingTop="@dimen/space_sm"
+                android:paddingBottom="@dimen/space_sm"
                 android:paddingStart="@dimen/space_md"
                 android:paddingEnd="@dimen/space_xs">
 
                 <TextView
                     android:id="@+id/share_link"
-                    android:layout_width="0dp"
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:ellipsize="middle"
-                    android:singleLine="true"
+                    android:breakStrategy="simple"
+                    android:textIsSelectable="true"
                     android:textAppearance="?attr/textAppearanceBodyLarge"
                     tools:text="quapp.app/q/free-medical-mission" />
 
                 <com.google.android.material.button.MaterialButton
                     android:id="@+id/share_copy"
+                    android:layout_gravity="end"
                     style="@style/Widget.Quapp.Button.Text.Icon"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="@string/share_copy"
                     app:icon="@drawable/ic_copy" />
             </LinearLayout>
-        </LinearLayout>
-    </androidx.core.widget.NestedScrollView>
-
     <!-- ===== Dock ===== -->
 
-    <com.example.quapp.TearLineView
+    <View
         android:id="@+id/share_tear"
-        android:layout_width="0dp"
+        android:layout_width="match_parent"
         android:layout_height="@dimen/tear_line_width"
         android:layout_marginStart="@dimen/space_md"
-        android:layout_marginEnd="@dimen/space_md"
-        app:layout_constraintBottom_toTopOf="@id/share_dock"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent" />
+        android:layout_marginEnd="@dimen/space_md" />
 
     <LinearLayout
         android:id="@+id/share_dock"
         style="@style/Widget.Quapp.Dock"
-        android:layout_width="0dp"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="vertical"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent">
+        android:orientation="vertical">
 
         <com.google.android.material.button.MaterialButton
             android:id="@+id/share_send"
             android:layout_width="match_parent"
-            android:layout_height="@dimen/button_height_lg"
+            android:layout_height="wrap_content"
+            android:minHeight="@dimen/button_height_lg"
             android:text="@string/share_send"
             app:icon="@drawable/ic_share"
             app:iconGravity="textStart" />
@@ -172,5 +170,9 @@
             app:icon="@drawable/ic_monitor"
             app:iconGravity="textStart" />
     </LinearLayout>
+
+        </LinearLayout>
+    </androidx.core.widget.NestedScrollView>
+
 
 </androidx.constraintlayout.widget.ConstraintLayout>

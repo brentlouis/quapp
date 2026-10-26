@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Preserve paper identity without painting strong grain over action labels. -->
+    <integer name="control_grain_alpha">48</integer>
+    <integer name="surface_grain_alpha">64</integer>
+</resources>

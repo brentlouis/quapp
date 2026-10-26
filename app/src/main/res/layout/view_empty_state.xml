@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="utf-8"?>
+        <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+            xmlns:app="http://schemas.android.com/apk/res-auto"
+            xmlns:tools="http://schemas.android.com/tools"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="@dimen/screen_margin"
+            android:layout_marginTop="@dimen/space_sm"
+            android:layout_marginEnd="@dimen/screen_margin"
+            android:orientation="vertical">
+
+            <ImageView
+                android:layout_width="@dimen/space_xxl"
+                android:layout_height="@dimen/space_xxl"
+                android:layout_marginBottom="@dimen/space_md"
+                android:importantForAccessibility="no"
+                android:src="@drawable/ic_map_pin"
+                app:tint="?attr/colorOnSurfaceVariant" />
+
+            <TextView
+                android:id="@+id/browse_empty_title"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:textAppearance="?attr/textAppearanceTitleLarge"
+                tools:text="No queues in Dauis yet" />
+
+            <TextView
+                android:id="@+id/browse_empty_body"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/space_sm"
+                android:textAppearance="?attr/textAppearanceBodyMedium"
+                android:textColor="?attr/colorOnSurfaceVariant"
+                tools:text="Queues show up here when an organizer in Dauis opens one. Try a nearby town for now." />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/browse_empty_button"
+                style="@style/Widget.Quapp.Button.Tonal"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/space_md"
+                tools:text="Change town" />
+
+            <!-- Empty town: the nearest town that has something open -->
+            <TextView
+                android:id="@+id/browse_nearby_label"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/space_lg"
+                android:text="@string/browse_nearby"
+                android:textAppearance="?attr/textAppearanceLabelSmall"
+                android:textColor="?attr/colorOnSurfaceVariant" />
+
+            <include
+                android:id="@+id/browse_nearby_row"
+                layout="@layout/view_list_row"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content" />
+        </LinearLayout>

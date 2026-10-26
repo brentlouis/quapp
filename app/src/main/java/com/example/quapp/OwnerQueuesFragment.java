@@ -50,6 +50,9 @@ public class OwnerQueuesFragment extends Fragment implements QueueAdapter.OnQueu
 
     // null means every status
     private Queue.Status selectedStatus;
+    private LoadingStateHelper loadingStateHelper;
+    private List<Queue> cachedOwned;
+    private boolean isRequestInFlight;
 
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container,
@@ -90,6 +93,19 @@ public class OwnerQueuesFragment extends Fragment implements QueueAdapter.OnQueu
 
         setUpStatusChips();
         setUpSteps(view);
+
+        loadingStateHelper = new LoadingStateHelper(
+                null,
+                null,
+                view.findViewById(R.id.owner_loading),
+                view.findViewById(R.id.owner_error)
+        );
+        loadingStateHelper.setOnRetryListener(new LoadingStateHelper.OnRetryListener() {
+            @Override
+            public void onRetry() {
+                refresh();
+            }
+        });
     }
 
     @Override
@@ -134,7 +150,7 @@ public class OwnerQueuesFragment extends Fragment implements QueueAdapter.OnQueu
                     return;
                 }
                 selectedStatus = (Queue.Status) group.findViewById(checkedIds.get(0)).getTag();
-                render(null);
+                refresh();
             }
         });
     }
@@ -177,55 +193,63 @@ public class OwnerQueuesFragment extends Fragment implements QueueAdapter.OnQueu
 
     // ---- Rendering ----------------------------------------------------------
 
-    /** Shows the last copy straight away, then asks the server for the latest. */
     private void refresh() {
-        render(null);
-        MyQueues.load(requireContext(), new MyQueues.Loaded() {
+        if (getView() == null || isRequestInFlight) {
+            return;
+        }
+
+        if (cachedOwned == null) {
+            loadingStateHelper.showLoading(getString(R.string.loading_your_queues));
+            list.setVisibility(View.GONE);
+            firstVisit.setVisibility(View.GONE);
+            filterEmpty.setVisibility(View.GONE);
+            live.setVisibility(View.GONE);
+            createFab.hide();
+        }
+
+        isRequestInFlight = true;
+        FakeData.getOwnedQueuesAsync(new FakeData.Callback<List<Queue>>() {
             @Override
-            public void onLoaded(List<Queue> queues, Map<String, QueueStats> stats) {
-                if (isAdded()) {
-                    render(null);
+            public void onSuccess(List<Queue> owned) {
+                isRequestInFlight = false;
+                if (getView() == null) {
+                    return;
                 }
+                cachedOwned = owned;
+                loadingStateHelper.showContent();
+                renderWithData(owned);
             }
 
             @Override
-            public void onFailed(ApiError error) {
-                if (isAdded()) {
-                    render(error);
+            public void onError(Throwable error) {
+                isRequestInFlight = false;
+                if (getView() == null) {
+                    return;
+                }
+                if (cachedOwned == null) {
+                    loadingStateHelper.showError(getString(R.string.error_default_message));
+                    list.setVisibility(View.GONE);
+                    firstVisit.setVisibility(View.GONE);
+                    filterEmpty.setVisibility(View.GONE);
+                    live.setVisibility(View.GONE);
+                    createFab.hide();
+                } else {
+                    if (getContext() != null) {
+                        QuappMotion.snackbar(
+                                requireView(), R.string.error_default_message,
+                                com.google.android.material.snackbar.Snackbar.LENGTH_SHORT).show();
+                    }
+                    renderWithData(cachedOwned);
                 }
             }
         });
     }
 
-    /**
-     * Before the first answer the line under the filters says it's loading; if that first
-     * request failed, it says why and retries when tapped. After that, the last copy stays.
-     */
-    private void render(@Nullable ApiError error) {
+    private void renderWithData(List<Queue> owned) {
         View view = getView();
         if (view == null) {
             return;
         }
-        List<Queue> owned = MyQueues.last();
-        if (owned == null) {
-            firstVisit.setVisibility(View.GONE);
-            live.setVisibility(View.GONE);
-            list.setVisibility(View.GONE);
-            filters.setVisibility(View.GONE);
-            createFab.hide();
-            filterEmpty.setVisibility(View.VISIBLE);
-            filterEmpty.setText(error == null ? getString(R.string.owner_loading)
-                    : getString(R.string.owner_error_format, error.is(ApiError.OFFLINE)
-                            ? getString(R.string.api_offline) : error.message));
-            filterEmpty.setOnClickListener(error == null ? null : new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    refresh();
-                }
-            });
-            return;
-        }
-        filterEmpty.setOnClickListener(null);
         boolean first = owned.isEmpty();
         bindGreeting(view, first);
 
@@ -245,12 +269,14 @@ public class OwnerQueuesFragment extends Fragment implements QueueAdapter.OnQueu
         bindCounts(owned);
 
         List<Queue> shown = new ArrayList<>();
+        Map<String, QueueStats> stats = new HashMap<>();
         for (Queue queue : owned) {
             if (selectedStatus == null || queue.getStatus() == selectedStatus) {
                 shown.add(queue);
+                stats.put(queue.getId(), FakeData.stats(queue.getId()));
             }
         }
-        adapter.submitQueues(shown, MyQueues.lastStats());
+        adapter.submitQueues(shown, stats);
         boolean none = shown.isEmpty() && selectedStatus != null;
         filterEmpty.setVisibility(none ? View.VISIBLE : View.GONE);
         if (none) {
@@ -286,15 +312,16 @@ public class OwnerQueuesFragment extends Fragment implements QueueAdapter.OnQueu
             return;
         }
         final Queue queue = current;
-        // The number called last today, as on the counter display
-        Integer serving = queue.getNowServing();
+        List<Ticket> servingTickets = FakeData.servingTickets(queue.getId());
+        Ticket serving = servingTickets.isEmpty() ? null : servingTickets.get(0);
         ((TextView) live.findViewById(R.id.owner_live_number)).setText(serving == null
                 ? getString(R.string.browse_eta_none)
-                : getString(R.string.ticket_number_format, serving));
+                : getString(R.string.ticket_number_format, serving.getTicketNumber()));
         ((TextView) live.findViewById(R.id.owner_live_name)).setText(queue.getName());
         ((TextView) live.findViewById(R.id.owner_live_detail)).setText(serving == null
                 ? getString(R.string.owner_live_waiting_format, queue.getPeopleWaiting())
-                : getString(R.string.owner_live_serving_format, queue.getPeopleWaiting()));
+                : getString(R.string.owner_live_serving_format, queue.getPeopleWaiting(),
+                        serving.getHolderName()));
 
         View.OnClickListener openConsole = new View.OnClickListener() {
             @Override

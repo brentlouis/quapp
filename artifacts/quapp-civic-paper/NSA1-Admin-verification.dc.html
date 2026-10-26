@@ -1,0 +1,104 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>A1 Admin, verification review</title>
+
+
+
+
+
+
+<link rel="stylesheet" href="fonts.css"><style>x-dc{display:block}html,body{margin:0}</style></head>
+<body>
+<x-dc>
+<helmet>
+
+
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{margin:0;background:#F2EDE3}
+.adm{--paper:#F2EDE3;--raised:#FBF8F2;--sunk:#E9E2D4;--spot:#2B211C;--on-spot:#F6EFE6;--crema:#C8A27A;--roast:#6B4A2F;
+--bg:var(--paper);--s1:var(--raised);--s2:var(--sunk);--ink:#17150F;--ink2:#4F4A40;--ink3:#6E6859;--line:#D8CFBE;--outline:#8C8474;--ok:#2F6B47;--ok-soft:#DCEAD9;--warn:#80590C;--warn-soft:#F1E5C8;--err:#B3261E;--err-soft:#F6DCD8;
+--font:'IBM Plex Sans',system-ui,sans-serif;--display:'DM Serif Display',Georgia,serif;--mono:'IBM Plex Mono',ui-monospace,monospace;
+width:1280px;height:800px;display:flex;position:relative;background-color:var(--bg);color:var(--ink);font:400 15px/1.45 var(--font)}
+.adm > .grain{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;z-index:0}
+.adm > .side,.adm > .main{position:relative}
+.adm svg{width:18px;height:18px;stroke-width:1.75;stroke-linecap:round;stroke-linejoin:round;flex:none}
+.adm svg.grain{width:100%;height:100%}
+.side{width:232px;flex:none;background:var(--raised);border-right:1px solid var(--line);padding:20px 12px;display:flex;flex-direction:column;gap:4px}
+.brand{display:flex;align-items:center;gap:12px;padding:0 8px 20px;font:400 24px/1 var(--display)}
+.brand i{width:30px;height:36px;border-radius:6px;background:var(--spot);color:var(--on-spot);display:grid;place-items:center;font:400 22px/1 var(--display);font-style:normal;-webkit-mask:radial-gradient(circle 4px at 0 50%,#0000 97%,#000) left/51% 100% no-repeat,radial-gradient(circle 4px at 100% 50%,#0000 97%,#000) right/51% 100% no-repeat;mask:radial-gradient(circle 4px at 0 50%,#0000 97%,#000) left/51% 100% no-repeat,radial-gradient(circle 4px at 100% 50%,#0000 97%,#000) right/51% 100% no-repeat}
+.nv{display:flex;align-items:center;gap:10px;height:44px;padding:0 12px;border-radius:999px;color:var(--ink2);text-decoration:none;font:500 15px/1 var(--font)}
+.nv[aria-current]{background:var(--sunk);color:var(--ink);font-weight:700}
+.nv .n{margin-left:auto;font:600 12px/1 var(--mono);padding:4px 8px;border-radius:999px;background:var(--ink);color:var(--raised)}
+.main{flex:1;min-width:0;display:flex;flex-direction:column}
+.top{height:76px;flex:none;display:flex;align-items:center;gap:16px;padding:0 32px;border-bottom:1px solid var(--line)}
+.top h1{font:400 32px/1.1 var(--display)}
+.top .sub{color:var(--ink2);font:500 12px/1 var(--mono);text-transform:uppercase;letter-spacing:.08em}
+.top .me{margin-left:auto;color:var(--ink2);font-size:14px}
+.cols{flex:1;min-height:0;display:flex}
+.list{width:420px;flex:none;border-right:1px solid var(--line);overflow:hidden}
+.tabs{display:flex;gap:8px;padding:16px 20px}
+.chip{height:40px;padding:0 14px;border-radius:999px;box-shadow:inset 0 0 0 1px var(--outline);display:inline-flex;align-items:center;gap:6px;font:500 14px/1 var(--font);color:var(--ink);background:none;border:0}
+.chip[aria-pressed=true]{background:var(--ink);color:var(--raised);box-shadow:none}
+.row{display:flex;gap:12px;padding:14px 20px;border-top:1px solid var(--line);text-decoration:none;color:inherit}
+.row[aria-current]{background:var(--raised);box-shadow:inset 0 0 0 1px var(--line)}
+.row .m{flex:1;min-width:0}.row b{display:block;font:600 15px/1.3 var(--font)}.row span{font-size:13px;color:var(--ink2)}
+.row .when{font:500 12px/1.3 var(--mono);color:var(--ink3);white-space:nowrap}
+.tile{width:40px;height:40px;border-radius:6px;display:grid;place-items:center;background:var(--sunk);flex:none}
+.det{flex:1;min-width:0;padding:24px 32px;overflow:hidden;display:flex;flex-direction:column;gap:12px}
+.det h2{font:400 28px/1.1 var(--display)}
+.pill{display:inline-flex;align-items:center;gap:6px;height:24px;padding:0 10px;border-radius:999px;font:500 12px/1 var(--mono);text-transform:uppercase;letter-spacing:.08em;white-space:nowrap}
+.pill i{width:6px;height:6px;border-radius:50%;background:currentColor}
+.p-warn{background:var(--warn-soft);color:var(--warn)}.p-ok{background:var(--ok-soft);color:var(--ok)}.p-err{background:var(--err-soft);color:var(--err)}.p-ink{background:var(--s2);color:var(--ink2)}
+.card{background:var(--raised);box-shadow:inset 0 0 0 1px var(--line);border-radius:10px;padding:4px 20px}
+.kv{display:grid;grid-template-columns:180px 1fr;gap:12px;padding:10px 0;border-top:1px solid var(--line);font-size:15px}
+.kv:first-child{border-top:0}.kv span{color:var(--ink2)}
+.check{display:flex;gap:12px;align-items:flex-start;padding:10px 0;border-top:1px solid var(--line)}
+.check:first-child{border-top:0}
+.box{width:20px;height:20px;border-radius:4px;box-shadow:inset 0 0 0 2px var(--outline);flex:none;margin-top:1px;display:grid;place-items:center}
+.box.on{background:var(--ink);box-shadow:none;color:var(--raised)}
+.box.on svg{width:14px;height:14px}
+.check b{display:block;font:600 15px/1.3 var(--font)}.check span{font-size:13px;color:var(--ink2)}
+.sec{font:500 12px/1.33 var(--mono);color:var(--ink2);text-transform:uppercase;letter-spacing:.08em;margin-top:4px}
+.acts{display:flex;gap:12px;margin-top:auto;padding-top:16px;border-top:1px solid var(--line)}
+.btn{white-space:nowrap;height:48px;padding:0 20px;border-radius:10px;border:0;display:inline-flex;align-items:center;justify-content:center;gap:8px;font:600 15px/1 var(--font);cursor:pointer;text-decoration:none}
+.f{background:var(--ink);color:var(--raised)}.o{background:none;color:var(--ink);box-shadow:inset 0 0 0 1px var(--outline)}.d{background:none;color:var(--err);box-shadow:inset 0 0 0 1px var(--err)}.df{background:var(--err);color:#FFFFFF}
+.btn:focus-visible,.chip:focus-visible,.nv:focus-visible,.row:focus-visible{outline:2px solid var(--crema);outline-offset:2px}
+.note{display:flex;gap:12px;padding:12px 16px;border-radius:6px;box-shadow:inset 0 0 0 1px var(--line);font-size:14px;background:var(--raised)}
+.note svg{color:var(--ink2);margin-top:2px}
+textarea{font:inherit;color:var(--ink);background:var(--raised);border:0;border-radius:6px;box-shadow:inset 0 0 0 1px var(--outline);padding:10px 12px;width:100%;min-height:64px;resize:none;caret-color:var(--roast)}
+::selection{background:var(--crema);color:#17150F}
+/* punched selection, same as the phone app */
+.nv[aria-current],.chip[aria-pressed=true]{border-radius:8px;
+  -webkit-mask:radial-gradient(circle 5px at 0 50%,#0000 97%,#000) left/51% 100% no-repeat,radial-gradient(circle 5px at 100% 50%,#0000 97%,#000) right/51% 100% no-repeat;
+  mask:radial-gradient(circle 5px at 0 50%,#0000 97%,#000) left/51% 100% no-repeat,radial-gradient(circle 5px at 100% 50%,#0000 97%,#000) right/51% 100% no-repeat}
+.chip[aria-pressed=true]{padding:0 16px}
+.adm svg.qmark{width:29px;height:36.25px}
+</style>
+</helmet>
+<div class="adm"><svg class="grain" aria-hidden="true" focusable="false"><filter id="paper-grain" x="0" y="0" width="100%" height="100%"><feTurbulence type="fractalNoise" baseFrequency=".9" numOctaves="2" stitchTiles="stitch"></feTurbulence><feColorMatrix type="matrix" values="0 0 0 0 .31  0 0 0 0 .29  0 0 0 0 .25  2.2 0 0 0 -.9"></feColorMatrix></filter><rect width="100%" height="100%" filter="url(#paper-grain)" opacity=".09"></rect></svg><nav class="side" aria-label="Admin"><div class="brand"><svg class="qmark" width="29" height="36.25" viewBox="0 0 40 50" aria-hidden="true"><mask id="qm-admin" maskUnits="userSpaceOnUse" x="0" y="0" width="40" height="50"><rect width="40" height="50" fill="#fff"></rect><circle cx="0" cy="36" r="3.4" fill="#000"></circle><circle cx="40" cy="36" r="3.4" fill="#000"></circle></mask><rect width="40" height="50" rx="5" fill="#2B211C" mask="url(#qm-admin)"></rect><text x="20" y="26.5" text-anchor="middle" font-family="DM Serif Display, Georgia, serif" font-size="28" fill="#F6EFE6">Q</text><line x1="6.5" y1="36" x2="33.5" y2="36" stroke="#C8A27A" stroke-width="1.3" stroke-dasharray="2 2"></line></svg><span>Quapp <span style="font:500 12px/1 var(--mono);letter-spacing:.1em;text-transform:uppercase;color:var(--ink2);vertical-align:3px">admin</span></span></div><a class="nv" href="#" aria-current="page"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" data-lucide="shield-check" class="lucide lucide-shield-check"><path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"></path><path d="m9 12 2 2 4-4"></path></svg>Verification<span class="n">3</span></a><a class="nv" href="#"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" data-lucide="flag" class="lucide lucide-flag"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"></path><line x1="4" x2="4" y1="22" y2="15"></line></svg>Reports<span class="n">2</span></a><a class="nv" href="#"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" data-lucide="users" class="lucide lucide-users"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M22 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>Users</a><a class="nv" href="#"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" data-lucide="list" class="lucide lucide-list"><path d="M3 12h.01"></path><path d="M3 18h.01"></path><path d="M3 6h.01"></path><path d="M8 12h13"></path><path d="M8 18h13"></path><path d="M8 6h13"></path></svg>Queues</a></nav><div class="main"><div class="top"><h1>Verification</h1><span class="sub">3 waiting</span><span class="me">Signed in as Brent · admin</span></div><div class="cols"><div class="list"><div class="tabs"><button class="chip" aria-pressed="true">Pending 3</button><button class="chip" aria-pressed="false">Verified 12</button><button class="chip" aria-pressed="false">Rejected 2</button></div>
+<a class="row" href="#" aria-current="true"><span class="tile"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" data-lucide="building-2" class="lucide lucide-building-2"><path d="M6 22V4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v18Z"></path><path d="M6 12H4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h2"></path><path d="M18 9h2a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2h-2"></path><path d="M10 6h4"></path><path d="M10 10h4"></path><path d="M10 14h4"></path><path d="M10 18h4"></path></svg></span><span class="m"><b>City Health Office, Tagbilaran</b><span>Rhea Bautista · Nurse, program coordinator</span></span><span class="when">2 h ago</span></a>
+<a class="row" href="#"><span class="tile"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" data-lucide="building-2" class="lucide lucide-building-2"><path d="M6 22V4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v18Z"></path><path d="M6 12H4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h2"></path><path d="M18 9h2a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2h-2"></path><path d="M10 6h4"></path><path d="M10 10h4"></path><path d="M10 14h4"></path><path d="M10 18h4"></path></svg></span><span class="m"><b>Brgy. Cogon Council</b><span>Mark Uy · Barangay secretary</span></span><span class="when">Yesterday</span></a>
+<a class="row" href="#"><span class="tile"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" data-lucide="building-2" class="lucide lucide-building-2"><path d="M6 22V4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v18Z"></path><path d="M6 12H4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h2"></path><path d="M18 9h2a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2h-2"></path><path d="M10 6h4"></path><path d="M10 10h4"></path><path d="M10 14h4"></path><path d="M10 18h4"></path></svg></span><span class="m"><b>Purok 3 Youth Volunteers</b><span>Ella Ramos · Coordinator</span></span><span class="when">Sep 26</span></a></div><div class="det">
+<div style="display:flex;align-items:center;gap:12px"><h2>City Health Office, Tagbilaran</h2><span class="pill p-warn"><i></i>Pending</span></div>
+<div class="card">
+<div class="kv"><span>Type</span><b>LGU office</b></div>
+<div class="kv"><span>Requested by</span><b>Rhea Bautista · Nurse, program coordinator</b></div>
+<div class="kv"><span>Account</span><b>0918 ••• 3141 · joined Sep 20 · 1 queue, 20 served, 0 reports</b></div>
+<div class="kv"><span>Office number given</span><b>(038) 411 2345</b></div>
+</div>
+<p class="sec">Before you approve</p>
+<div class="card">
+<div class="check"><span class="box on"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" data-lucide="check" class="lucide lucide-check"><path d="M20 6 9 17l-5-5"></path></svg></span><div><b>The number is the office's public number</b><span>Matches the LGU directory or the office's official page, not a personal mobile.</span></div></div>
+<div class="check"><span class="box on"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" data-lucide="check" class="lucide lucide-check"><path d="M20 6 9 17l-5-5"></path></svg></span><div><b>Called it; the office confirmed Rhea runs queues for them</b><span>Sep 28, 9:40 AM · spoke to the admin officer</span></div></div>
+<div class="check"><span class="box"></span><div><b>Organization name matches how the office names itself</b><span>Edit the name here if it doesn't, before approving.</span></div></div>
+</div>
+<textarea aria-label="Internal note">Confirmed by phone with the CHO admin officer.</textarea>
+<div class="acts"><button class="btn f" type="button"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" data-lucide="badge-check" class="lucide lucide-badge-check"><path d="M3.85 8.62a4 4 0 0 1 4.78-4.77 4 4 0 0 1 6.74 0 4 4 0 0 1 4.78 4.78 4 4 0 0 1 0 6.74 4 4 0 0 1-4.77 4.78 4 4 0 0 1-6.75 0 4 4 0 0 1-4.78-4.77 4 4 0 0 1 0-6.76Z"></path><path d="m9 12 2 2 4-4"></path></svg>Approve and add badge</button><button class="btn o" type="button">Reject…</button><span style="margin-left:auto;align-self:center;font-size:13px;color:var(--ink2)">Answers are deleted after a decision; only the result and your note are kept.</span></div>
+</div></div></div></div>
+</x-dc>
+
+</body>
+</html>

@@ -64,7 +64,7 @@ public final class TicketShapes {
 
     /** The espresso spotlight: 10dp corners, 9dp punches halfway down both sides. */
     public static ShapeAppearanceModel spotlight(@NonNull Context context) {
-        return sidePunched(context, R.dimen.radius_md, R.dimen.punch_radius, 0.5f);
+        return sidePunched(context, R.dimen.radius_card, R.dimen.punch_radius, 0.5f);
     }
 
     /** The punched selection on a nav tab or a selected chip: 5dp punches. */
@@ -86,18 +86,11 @@ public final class TicketShapes {
     }
 
     /**
-     * The tear-off stub dock (Queue detail, Join): raised paper with its top corners bitten out,
-     * square at the bottom where it meets the screen edge.
+     * A quiet dock for Queue detail and Join; the ticket itself carries the punched identity.
      */
     public static Drawable stubDockBackground(@NonNull Context context) {
-        float notch = px(context, R.dimen.stub_dock_notch);
-        ShapeAppearanceModel shape = ShapeAppearanceModel.builder()
-                .setTopLeftCorner(new NotchCornerTreatment())
-                .setTopRightCorner(new NotchCornerTreatment())
-                .setTopLeftCornerSize(notch)
-                .setTopRightCornerSize(notch)
-                .build();
-        return background(context, shape, ContextCompat.getColor(context, R.color.paper_raised));
+        return new android.graphics.drawable.ColorDrawable(
+                ContextCompat.getColor(context, R.color.paper_raised));
     }
 
     /**
@@ -106,7 +99,7 @@ public final class TicketShapes {
      */
     public static Drawable keptTicketBackground(@NonNull Context context, float widthPx) {
         MaterialShapeDrawable drawable = new MaterialShapeDrawable(
-                stub(context, R.dimen.radius_md, R.dimen.punch_radius, widthPx / 2f, widthPx));
+                stub(context, R.dimen.radius_card, R.dimen.punch_radius, widthPx / 2f, widthPx));
         drawable.setFillColor(ColorStateList.valueOf(
                 ContextCompat.getColor(context, R.color.paper_raised)));
         drawable.setStroke(px(context, R.dimen.hairline),

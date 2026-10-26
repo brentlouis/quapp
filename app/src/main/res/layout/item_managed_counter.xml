@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android" android:layout_width="match_parent" android:layout_height="wrap_content" android:minHeight="@dimen/touch_target_min" android:orientation="vertical" android:paddingTop="@dimen/space_ms" android:paddingBottom="@dimen/space_ms" android:background="?attr/selectableItemBackground" android:focusable="true" android:clickable="true">
+    <TextView android:id="@+id/managed_counter_row_name" android:layout_width="match_parent" android:layout_height="wrap_content" android:textAppearance="?attr/textAppearanceTitleMedium" />
+    <TextView android:id="@+id/managed_counter_row_state" android:layout_width="match_parent" android:layout_height="wrap_content" android:textAppearance="?attr/textAppearanceBodyMedium" />
+</LinearLayout>

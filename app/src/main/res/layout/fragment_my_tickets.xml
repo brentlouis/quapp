@@ -1,363 +1,314 @@
-<?xml version="1.0" encoding="utf-8"?>
-<!-- My tickets tab (canvas 12 and 12b). The ticket that matters most is the screen's one
-     spotlight: the called card (number, timer, I'm here) when a queue is calling you, otherwise
-     the espresso stub-and-body ticket. Everything else is a card in the list below it, grouped
-     under "In line now", "Coming up" and "Just finished". The stub ticket's shape is set in
-     MyTicketsFragment because the bottom punch needs the view's width. -->
-<androidx.core.widget.NestedScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+<?xml version='1.0' encoding='utf-8'?>
+<androidx.core.widget.NestedScrollView
+    xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:fillViewport="true">
-
-<androidx.constraintlayout.widget.ConstraintLayout
-    android:layout_width="match_parent"
-    android:layout_height="wrap_content"
-    android:paddingStart="@dimen/space_md"
-    android:paddingEnd="@dimen/space_md"
-    android:paddingBottom="@dimen/space_md">
-
-    <TextView
-        android:id="@+id/my_tickets_title"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="@dimen/space_md"
-        android:text="@string/my_tickets_title"
-        android:textAppearance="?attr/textAppearanceTitleMedium"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
-
-    <TextView
-        android:id="@+id/my_tickets_count"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:textAppearance="?attr/textAppearanceBodySmall"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/my_tickets_title"
-        tools:text="1 ticket" />
-
-    <!-- ===== With a ticket ===== -->
-
-    <TextView
-        android:id="@+id/my_tickets_section"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="@dimen/space_lg"
-        android:textAppearance="?attr/textAppearanceLabelSmall"
-        android:textColor="?attr/colorOnSurfaceVariant"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/my_tickets_count"
-        tools:text="@string/my_tickets_section_in_line" />
-
-    <!-- Being called (canvas 12): number, the grace timer and I'm here, right in the list -->
-    <LinearLayout
-        android:id="@+id/my_tickets_called"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="@dimen/space_sm"
-        android:accessibilityLiveRegion="polite"
-        android:orientation="vertical"
-        android:padding="@dimen/space_md"
-        android:theme="@style/ThemeOverlay.Quapp.Spotlight"
-        android:visibility="gone"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/my_tickets_section">
-
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:gravity="center_vertical"
-            android:orientation="horizontal">
-
-            <TextView
-                android:id="@+id/my_tickets_called_number"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:textAppearance="?attr/textAppearanceTicketNumber"
-                android:textColor="@color/signal"
-                tools:text="#12" />
-
-            <LinearLayout
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_marginStart="@dimen/space_md"
-                android:layout_weight="1"
-                android:orientation="vertical">
-
-                <TextView
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:text="@string/my_tickets_called"
-                    android:textAppearance="?attr/textAppearanceTitleSmall" />
-
-                <TextView
-                    android:id="@+id/my_tickets_called_queue"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:textAppearance="?attr/textAppearanceBodySmall"
-                    tools:text="Water District Bill Payment · BWUA Office" />
-            </LinearLayout>
-        </LinearLayout>
-
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="@dimen/space_ms"
-            android:background="@drawable/bg_note"
-            android:gravity="center_vertical"
-            android:orientation="horizontal"
-            android:paddingStart="@dimen/space_ms"
-            android:paddingTop="@dimen/space_sm"
-            android:paddingEnd="@dimen/space_ms"
-            android:paddingBottom="@dimen/space_sm">
-
-            <com.google.android.material.progressindicator.CircularProgressIndicator
-                android:id="@+id/my_tickets_called_ring"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:importantForAccessibility="no"
-                android:max="1000"
-                app:indicatorColor="@color/signal"
-                app:indicatorSize="@dimen/grace_ring_size"
-                app:trackColor="?attr/colorOutlineVariant"
-                app:trackThickness="@dimen/grace_ring_thickness" />
-
-            <LinearLayout
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_marginStart="@dimen/space_ms"
-                android:layout_weight="1"
-                android:orientation="vertical">
-
-                <TextView
-                    android:id="@+id/my_tickets_called_countdown"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:textAppearance="?attr/textAppearanceStat"
-                    tools:text="2:14" />
-
-                <TextView
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:text="@string/my_tickets_timer_hint"
-                    android:textAppearance="?attr/textAppearanceBodySmall" />
-            </LinearLayout>
-        </LinearLayout>
-
-        <com.google.android.material.button.MaterialButton
-            android:id="@+id/my_tickets_called_here"
-            style="@style/Widget.Quapp.Button.Call"
-            android:layout_width="match_parent"
-            android:layout_height="@dimen/button_height_xl"
-            android:layout_marginTop="@dimen/space_ms"
-            android:text="@string/ticket_here_action"
-            app:icon="@drawable/ic_check"
-            app:iconGravity="textStart" />
-
-        <!-- Not there yet: the same sheet as the Called screen (28). Gone once moved back. -->
-        <com.google.android.material.button.MaterialButton
-            android:id="@+id/my_tickets_called_move_back"
-            style="@style/Widget.Quapp.Button.Outlined"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="@dimen/space_ms"
-            android:text="@string/called_move_back_action" />
-    </LinearLayout>
-
+    android:fillViewport="true"
+    android:background="@color/paper" >
     <androidx.constraintlayout.widget.ConstraintLayout
-        android:id="@+id/my_tickets_ticket"
-        android:layout_width="0dp"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="@dimen/space_sm"
-        android:clickable="true"
-        android:focusable="true"
-        android:foreground="?attr/selectableItemBackground"
-        android:minHeight="136dp"
-        android:theme="@style/ThemeOverlay.Quapp.Spotlight"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/my_tickets_section">
-
-        <!-- Stub: your number -->
+        android:paddingStart="@dimen/space_md"
+        android:paddingEnd="@dimen/space_md"
+        android:paddingBottom="@dimen/space_md" >
         <TextView
-            android:id="@+id/my_tickets_stub_label"
-            android:layout_width="0dp"
+            android:id="@+id/my_tickets_title"
+            android:layout_width="@dimen/dimension_zero"
             android:layout_height="wrap_content"
-            android:layout_marginStart="18dp"
             android:layout_marginTop="@dimen/space_md"
-            android:text="@string/my_tickets_your_number"
-            android:textAppearance="?attr/textAppearanceLabelSmall"
-            android:textColor="?attr/colorOnSurfaceVariant"
-            app:layout_constraintEnd_toStartOf="@id/my_tickets_tear"
+            android:text="@string/my_tickets_title"
+            android:textAppearance="?attr/textAppearanceTitleMedium"
+            app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent" />
-
         <TextView
-            android:id="@+id/my_tickets_number"
-            android:layout_width="wrap_content"
+            android:id="@+id/my_tickets_count"
+            android:layout_width="@dimen/dimension_zero"
             android:layout_height="wrap_content"
-            android:layout_marginStart="18dp"
-            android:layout_marginBottom="@dimen/space_md"
-            android:textAppearance="?attr/textAppearanceTicketNumber"
-            app:layout_constraintBottom_toBottomOf="parent"
+            android:textAppearance="?attr/textAppearanceBodySmall"
+            app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            tools:text="#43" />
-
-        <!-- The tear line between stub and body; the punches sit at its ends -->
-        <com.example.quapp.TearLineView
-            android:id="@+id/my_tickets_tear"
-            android:layout_width="2dp"
-            android:layout_height="0dp"
-            android:layout_marginStart="@dimen/my_tickets_stub_width"
-            android:layout_marginTop="@dimen/space_ms"
-            android:layout_marginBottom="@dimen/space_ms"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent"
-            app:tearOrientation="vertical" />
-
-        <!-- Body: where you stand -->
+            app:layout_constraintTop_toBottomOf="@id/my_tickets_title"
+            tools:text="1 ticket" />
+        <!-- ===== With a ticket ===== -->
         <TextView
-            android:id="@+id/my_tickets_label"
-            android:layout_width="0dp"
+            android:id="@+id/my_tickets_section"
+            android:layout_width="@dimen/dimension_zero"
             android:layout_height="wrap_content"
-            android:layout_marginStart="18dp"
-            android:layout_marginTop="@dimen/space_md"
-            android:layout_marginEnd="@dimen/space_md"
+            android:layout_marginTop="@dimen/space_lg"
             android:textAppearance="?attr/textAppearanceLabelSmall"
             android:textColor="?attr/colorOnSurfaceVariant"
             app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toEndOf="@id/my_tickets_tear"
-            app:layout_constraintTop_toTopOf="parent"
-            tools:text="@string/my_tickets_label_in_line" />
-
-        <TextView
-            android:id="@+id/my_tickets_headline"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/my_tickets_count"
+            tools:text="@string/my_tickets_section_in_line" />
+        <!-- Being called (canvas 12): number, the grace timer and I'm here, right in the list -->
+        <LinearLayout
+            android:id="@+id/my_tickets_called"
+            android:layout_width="@dimen/dimension_zero"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/space_sm"
+            android:accessibilityLiveRegion="polite"
+            android:orientation="vertical"
+            android:padding="@dimen/space_md"
+            android:theme="@style/ThemeOverlay.Quapp.Spotlight"
+            android:visibility="gone"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/my_tickets_section" >
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center_vertical"
+                android:orientation="horizontal" >
+                <TextView
+                    android:id="@+id/my_tickets_called_number"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:textAppearance="?attr/textAppearanceTicketNumberSmall"
+                    android:textColor="@color/signal"
+                    tools:text="#12" />
+                <LinearLayout
+                    android:layout_width="@dimen/dimension_zero"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="@dimen/space_md"
+                    android:layout_weight="1"
+                    android:orientation="vertical" >
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="@string/my_tickets_called"
+                        android:textAppearance="?attr/textAppearanceTitleSmall" />
+                    <TextView
+                        android:id="@+id/my_tickets_called_queue"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:textAppearance="?attr/textAppearanceBodySmall"
+                        tools:text="Water District Bill Payment · BWUA Office" />
+                </LinearLayout>
+            </LinearLayout>
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/space_ms"
+                android:background="?attr/colorSurfaceVariant"
+                android:gravity="center_vertical"
+                android:orientation="horizontal"
+                android:paddingStart="@dimen/space_ms"
+                android:paddingTop="@dimen/space_sm"
+                android:paddingEnd="@dimen/space_ms"
+                android:paddingBottom="@dimen/space_sm" >
+                <com.google.android.material.progressindicator.CircularProgressIndicator
+                    android:id="@+id/my_tickets_called_ring"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:importantForAccessibility="no"
+                    android:max="1000"
+                    app:indicatorColor="@color/signal"
+                    app:indicatorSize="@dimen/grace_ring_size"
+                    app:trackColor="?attr/colorOutlineVariant"
+                    app:trackThickness="@dimen/grace_ring_thickness" />
+                <LinearLayout
+                    android:layout_width="@dimen/dimension_zero"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="@dimen/space_ms"
+                    android:layout_weight="1"
+                    android:orientation="vertical" >
+                    <TextView
+                        android:id="@+id/my_tickets_called_countdown"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:textAppearance="?attr/textAppearanceStat"
+                        tools:text="2:14" />
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="@string/my_tickets_timer_hint"
+                        android:textAppearance="?attr/textAppearanceBodySmall" />
+                </LinearLayout>
+            </LinearLayout>
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/my_tickets_called_here"
+                style="@style/Widget.Quapp.Button.Call"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/space_ms"
+                android:text="@string/ticket_here_action"
+                app:icon="@drawable/ic_check"
+                app:iconGravity="textStart"
+                android:minHeight="@dimen/button_height_xl" />
+            <!-- Not there yet: the same sheet as the Called screen (28). Gone once moved back. -->
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/my_tickets_called_move_back"
+                style="@style/Widget.Quapp.Button.Outlined"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/space_ms"
+                android:text="@string/called_move_back_action" />
+        </LinearLayout>
+        <LinearLayout
+            android:id="@+id/my_tickets_ticket"
+            android:layout_width="@dimen/dimension_zero"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/space_sm"
+            android:clickable="true"
+            android:focusable="true"
+            android:foreground="?attr/selectableItemBackground"
+            android:minHeight="@dimen/touch_target_min"
+            android:theme="@style/ThemeOverlay.Quapp.Spotlight"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/my_tickets_section"
+            android:orientation="vertical"
+            android:padding="@dimen/space_md" >
+            <!-- Stub: your number -->
+            <TextView
+                android:id="@+id/my_tickets_stub_label"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/space_sm"
+                android:text="@string/my_tickets_your_number"
+                android:textAppearance="?attr/textAppearanceLabelSmall"
+                android:textColor="?attr/colorOnSurfaceVariant" />
+            <TextView
+                android:id="@+id/my_tickets_number"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:textAppearance="?attr/textAppearanceTicketNumberSmall"
+                tools:text="#43"
+                android:layout_marginTop="@dimen/space_sm" />
+            <!-- The tear line between stub and body; the punches sit at its ends -->
+            <View
+                android:id="@+id/my_tickets_tear"
+                android:layout_width="match_parent"
+                android:layout_height="@dimen/dimension_zero"
+                android:layout_marginTop="@dimen/space_sm" />
+            <!-- Body: where you stand -->
+            <TextView
+                android:id="@+id/my_tickets_label"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/space_sm"
+                android:textAppearance="?attr/textAppearanceLabelSmall"
+                android:textColor="?attr/colorOnSurfaceVariant"
+                tools:text="@string/my_tickets_label_in_line" />
+            <TextView
+                android:id="@+id/my_tickets_headline"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/space_sm"
+                android:textAppearance="?attr/textAppearanceStat"
+                tools:text="41" />
+            <TextView
+                android:id="@+id/my_tickets_headline_suffix"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:textAppearance="?attr/textAppearanceBodySmall"
+                tools:text="@string/my_tickets_ahead"
+                android:layout_marginTop="@dimen/space_sm" />
+            <TextView
+                android:id="@+id/my_tickets_queue"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/space_sm"
+                android:textAppearance="?attr/textAppearanceBodySmall"
+                tools:text="Barangay Relief Distribution · Brgy. Poblacion Hall" />
+            <TextView
+                android:id="@+id/my_tickets_detail"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/space_sm"
+                android:textAppearance="?attr/textAppearanceLabelMedium"
+                android:textColor="?attr/colorOnSurface"
+                tools:text="About 55 min" />
+        </LinearLayout>
+        <!-- Both spotlights sit in one slot; the list goes below whichever is showing -->
+        <androidx.constraintlayout.widget.Barrier
+            android:id="@+id/my_tickets_spotlight_bottom"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginStart="18dp"
+            app:barrierDirection="bottom"
+            app:constraint_referenced_ids="my_tickets_ticket,my_tickets_called" />
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/my_tickets_list"
+            android:layout_width="@dimen/dimension_zero"
+            android:layout_height="wrap_content"
             android:layout_marginTop="@dimen/space_xs"
-            android:textAppearance="?attr/textAppearanceStat"
-            app:layout_constraintStart_toEndOf="@id/my_tickets_tear"
-            app:layout_constraintTop_toBottomOf="@id/my_tickets_label"
-            tools:text="41" />
-
-        <TextView
-            android:id="@+id/my_tickets_headline_suffix"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="@dimen/space_sm"
-            android:layout_marginEnd="@dimen/space_md"
-            android:textAppearance="?attr/textAppearanceBodySmall"
-            app:layout_constraintBaseline_toBaselineOf="@id/my_tickets_headline"
+            android:nestedScrollingEnabled="false"
             app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toEndOf="@id/my_tickets_headline"
-            tools:text="@string/my_tickets_ahead" />
-
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/my_tickets_spotlight_bottom" />
         <TextView
-            android:id="@+id/my_tickets_queue"
-            android:layout_width="0dp"
+            android:id="@+id/my_tickets_rule_note"
+            android:layout_width="@dimen/dimension_zero"
             android:layout_height="wrap_content"
-            android:layout_marginStart="18dp"
-            android:layout_marginTop="@dimen/space_sm"
-            android:layout_marginEnd="@dimen/space_md"
+            android:layout_marginTop="@dimen/space_ms"
+            android:drawablePadding="@dimen/space_sm"
+            android:text="@string/my_tickets_rule_note"
             android:textAppearance="?attr/textAppearanceBodySmall"
+            android:textColor="?attr/colorOnSurfaceVariant"
+            app:drawableStartCompat="@drawable/ic_info"
+            app:drawableTint="?attr/colorOnSurfaceVariant"
             app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toEndOf="@id/my_tickets_tear"
-            app:layout_constraintTop_toBottomOf="@id/my_tickets_headline"
-            tools:text="Barangay Relief Distribution · Brgy. Poblacion Hall" />
-
-        <TextView
-            android:id="@+id/my_tickets_detail"
-            android:layout_width="0dp"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/my_tickets_list" />
+        <!-- ===== No ticket ===== -->
+        <LinearLayout
+            android:id="@+id/my_tickets_empty"
+            android:layout_width="@dimen/dimension_zero"
             android:layout_height="wrap_content"
-            android:layout_marginStart="18dp"
-            android:layout_marginTop="@dimen/space_xs"
-            android:layout_marginEnd="@dimen/space_md"
-            android:layout_marginBottom="@dimen/space_md"
-            android:textAppearance="?attr/textAppearanceLabelMedium"
-            android:textColor="?attr/colorOnSurface"
+            android:layout_marginTop="@dimen/space_xl"
+            android:orientation="vertical"
+            android:visibility="gone"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/my_tickets_count" >
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/my_tickets_empty_title"
+                android:textAppearance="?attr/textAppearanceTitleLarge" />
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/space_sm"
+                android:text="@string/my_tickets_empty_body"
+                android:textAppearance="?attr/textAppearanceBodyLarge"
+                android:textColor="?attr/colorOnSurfaceVariant" />
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/my_tickets_empty_button"
+                style="@style/Widget.Quapp.Button.Tonal"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/space_md"
+                android:text="@string/my_tickets_empty_action" />
+        </LinearLayout>
+        <androidx.constraintlayout.widget.Barrier android:id="@+id/my_tickets_content_bottom" android:layout_width="wrap_content" android:layout_height="wrap_content"
+            app:barrierDirection="bottom" app:constraint_referenced_ids="my_tickets_empty,my_tickets_rule_note,my_tickets_list" />
+        <include android:id="@+id/my_tickets_family" layout="@layout/view_list_row"
+            android:layout_width="0dp" android:layout_height="wrap_content"
+            app:layout_constraintTop_toBottomOf="@id/my_tickets_content_bottom" app:layout_constraintStart_toStartOf="parent" app:layout_constraintEnd_toEndOf="parent" />
+        <!-- Loading state -->
+        <include
+            android:id="@+id/my_tickets_loading"
+            layout="@layout/view_loading_state"
+            android:layout_width="@dimen/dimension_zero"
+            android:layout_height="wrap_content"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toEndOf="@id/my_tickets_tear"
-            app:layout_constraintTop_toBottomOf="@id/my_tickets_queue"
-            app:layout_constraintVertical_bias="0"
-            tools:text="About 55 min" />
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/my_tickets_count" />
+        <!-- Error state -->
+        <include
+            android:id="@+id/my_tickets_error"
+            layout="@layout/view_error_state"
+            android:layout_width="@dimen/dimension_zero"
+            android:layout_height="wrap_content"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/my_tickets_count" />
     </androidx.constraintlayout.widget.ConstraintLayout>
-
-    <!-- Both spotlights sit in one slot; the list goes below whichever is showing -->
-    <androidx.constraintlayout.widget.Barrier
-        android:id="@+id/my_tickets_spotlight_bottom"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        app:barrierDirection="bottom"
-        app:constraint_referenced_ids="my_tickets_ticket,my_tickets_called" />
-
-    <androidx.recyclerview.widget.RecyclerView
-        android:id="@+id/my_tickets_list"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="@dimen/space_xs"
-        android:nestedScrollingEnabled="false"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/my_tickets_spotlight_bottom" />
-
-    <TextView
-        android:id="@+id/my_tickets_rule_note"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="@dimen/space_ms"
-        android:drawablePadding="@dimen/space_sm"
-        android:text="@string/my_tickets_rule_note"
-        android:textAppearance="?attr/textAppearanceBodySmall"
-        android:textColor="?attr/colorOnSurfaceVariant"
-        app:drawableStartCompat="@drawable/ic_info"
-        app:drawableTint="?attr/colorOnSurfaceVariant"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/my_tickets_list" />
-
-    <!-- ===== No ticket ===== -->
-
-    <LinearLayout
-        android:id="@+id/my_tickets_empty"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="@dimen/space_xl"
-        android:orientation="vertical"
-        android:visibility="gone"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/my_tickets_count">
-
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="@string/my_tickets_empty_title"
-            android:textAppearance="?attr/textAppearanceTitleLarge" />
-
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="@dimen/space_sm"
-            android:text="@string/my_tickets_empty_body"
-            android:textAppearance="?attr/textAppearanceBodyLarge"
-            android:textColor="?attr/colorOnSurfaceVariant" />
-
-        <com.google.android.material.button.MaterialButton
-            android:id="@+id/my_tickets_empty_button"
-            style="@style/Widget.Quapp.Button.Tonal"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="@dimen/space_md"
-            android:text="@string/my_tickets_empty_action" />
-    </LinearLayout>
-
-</androidx.constraintlayout.widget.ConstraintLayout>
 </androidx.core.widget.NestedScrollView>

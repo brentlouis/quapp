@@ -18,6 +18,9 @@ import java.util.List;
 
 /** Read-only list of finished tickets, so unlike the other adapters it has no click listener. */
 public class HistoryAdapter extends RecyclerView.Adapter<HistoryAdapter.HistoryViewHolder> {
+    private final java.util.function.Consumer<Ticket> onOpen;
+    public HistoryAdapter() { this(null); }
+    public HistoryAdapter(java.util.function.Consumer<Ticket> onOpen) { this.onOpen = onOpen; }
 
     private final List<Ticket> tickets = new ArrayList<>();
 
@@ -38,7 +41,10 @@ public class HistoryAdapter extends RecyclerView.Adapter<HistoryAdapter.HistoryV
     @Override
     public void onBindViewHolder(@NonNull HistoryViewHolder holder, int position) {
         // The dashed rule separates rows, so the first row has none above it.
-        holder.bind(tickets.get(position), position > 0);
+        Ticket bound = tickets.get(position);
+        holder.bind(bound, position > 0);
+        holder.itemView.setOnClickListener(onOpen == null ? null : view -> onOpen.accept(bound));
+        holder.itemView.setFocusable(onOpen != null);
     }
 
     @Override

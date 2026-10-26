@@ -2,41 +2,18 @@ plugins {
     alias(libs.plugins.android.application)
 }
 
-// Where the Quapp server is. The default, 127.0.0.1, is the phone itself: run
-//     adb reverse tcp:8000 tcp:8000
-// once per connection and adb forwards it to port 8000 on this PC. That works for the emulator
-// and for a phone on USB, whatever the PC's Wi-Fi address is. (The emulator's 10.0.2.2 shortcut
-// doesn't reach apps on newer emulators: apps use its virtual Wi-Fi, where it doesn't work.)
-// For a phone on its own network, set quapp.apiUrl in local.properties (not committed), e.g.
-//     quapp.apiUrl=http://192.168.1.16:8000/
-def localProperties = new Properties()
-def localPropertiesFile = rootProject.file('local.properties')
-if (localPropertiesFile.exists()) {
-    localPropertiesFile.withInputStream { localProperties.load(it) }
-}
-def apiUrl = localProperties.getProperty('quapp.apiUrl', 'http://127.0.0.1:8000/')
-
 android {
     namespace 'com.example.quapp'
-    compileSdk {
-        version = release(37)
-    }
+    compileSdk 36
 
     defaultConfig {
         applicationId "com.example.quapp"
         minSdk 24
-        targetSdk 37
+        targetSdk 36
         versionCode 1
         versionName "1.0"
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
-
-        // BuildConfig.API_URL in Java (ApiClient)
-        buildConfigField "String", "API_URL", "\"${apiUrl}\""
-    }
-
-    buildFeatures {
-        buildConfig true
     }
 
     buildTypes {
@@ -57,7 +34,6 @@ android {
 
 dependencies {
     coreLibraryDesugaring libs.desugar.jdk.libs
-    implementation 'com.google.android.material:material:1.12.0'
     implementation 'androidx.recyclerview:recyclerview:1.3.2'
     implementation libs.activity.ktx
     implementation libs.appcompat
@@ -65,11 +41,6 @@ dependencies {
     implementation libs.material
     // QR codes for Share queue and the counter display (encoding only: pure Java, no camera)
     implementation libs.zxing.core
-    // The server: Retrofit turns QuappApi's methods into HTTP calls, Gson reads the JSON,
-    // OkHttp's logger prints each request to Logcat while developing
-    implementation libs.retrofit
-    implementation libs.retrofit.gson
-    implementation libs.okhttp.logging
     testImplementation libs.junit
     androidTestImplementation libs.espresso.core
     androidTestImplementation libs.ext.junit

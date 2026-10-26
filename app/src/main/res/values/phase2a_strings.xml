@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+<string name="phase2a_welcome_eyebrow">LOCAL SERVICES. LESS GUESSWORK.</string>
+<string name="phase2a_welcome_heading">Your day,\nwithout the wait.</string>
+<string name="phase2a_welcome_body">Find services, know what to bring and plan your visit with confidence.</string>
+<string name="phase2a_guide_title">A clearer way to go</string>
+<string name="phase2a_guide_body">Find a service.\nPrepare what you need.\nJoin when you are ready.</string>
+<string name="phase2a_demo_notice">Authentication is not connected. Use sample information only, never real passwords.</string>
+<string name="phase2a_login_heading">Sign in</string>
+<string name="phase2a_login_body">Demo build: use sample details. Never enter a real password.</string>
+<string name="phase2a_register_heading">Create account</string>
+<string name="phase2a_register_body">Demo only. No real account is created.</string>
+</resources>

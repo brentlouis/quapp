@@ -31,9 +31,10 @@
 
     <TextView
         android:id="@+id/slip_value"
-        android:layout_width="wrap_content"
+        android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:maxLines="1"
+        android:layout_weight="3"
+        android:gravity="end"
         android:textAppearance="?attr/textAppearanceStatSmall"
         tools:text="20" />
 </LinearLayout>

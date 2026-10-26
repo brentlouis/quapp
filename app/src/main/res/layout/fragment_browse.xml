@@ -14,7 +14,8 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:layout_height="match_parent"
+    android:background="@color/paper">
 
     <!-- Opaque paper: the pinned part covers the cards scrolling under it. The textured ground,
          lined up with the window's, is set in code (Grain.groundBehind) -->
@@ -22,8 +23,8 @@
         android:id="@+id/browse_app_bar"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:background="?android:attr/colorBackground"
-        app:elevation="0dp"
+        android:background="@color/paper"
+        app:elevation="@dimen/dimension_zero"
         app:liftOnScroll="false">
 
         <!-- ===== Scrolls away ===== -->
@@ -41,7 +42,7 @@
                 android:layout_marginTop="@dimen/space_md"
                 android:layout_marginEnd="@dimen/space_md"
                 android:accessibilityHeading="true"
-                android:text="@string/browse_title"
+                android:text="@string/phase2b_explore_heading"
                 android:textAppearance="?attr/textAppearanceHeadlineMedium" />
 
             <TextView
@@ -81,44 +82,39 @@
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:gravity="bottom"
-                    android:orientation="horizontal"
+                    android:orientation="vertical"
                     android:padding="@dimen/space_md">
 
-                    <LinearLayout
-                        android:layout_width="0dp"
+                    <TextView
+                        android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:layout_weight="1"
-                        android:orientation="vertical">
+                        android:text="@string/browse_shortest_wait"
+                        android:textAppearance="?attr/textAppearanceBodySmall"
+                        android:textColor="?attr/colorOnSurfaceVariant" />
 
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="@string/browse_shortest_wait"
-                            android:textAppearance="?attr/textAppearanceBodySmall" />
+                    <TextView
+                        android:id="@+id/browse_highlight_name"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="@dimen/space_xs"
+                        android:textAppearance="?attr/textAppearanceTitleSmall"
+                        tools:text="Free Medical Mission" />
 
-                        <TextView
-                            android:id="@+id/browse_highlight_name"
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:layout_marginTop="@dimen/space_xs"
-                            android:textAppearance="?attr/textAppearanceTitleMedium"
-                            tools:text="Free Medical Mission" />
-
-                        <TextView
-                            android:id="@+id/browse_highlight_where"
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:fontFeatureSettings="tnum"
-                            android:textAppearance="?attr/textAppearanceBodySmall"
-                            tools:text="Tagbilaran City Gym · 8 in line" />
-                    </LinearLayout>
+                    <TextView
+                        android:id="@+id/browse_highlight_where"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="@dimen/space_xs"
+                        android:fontFeatureSettings="tnum"
+                        android:textAppearance="?attr/textAppearanceBodySmall"
+                        android:textColor="?attr/colorOnSurfaceVariant"
+                        tools:text="Tagbilaran City Gym · 8 in line" />
 
                     <TextView
                         android:id="@+id/browse_highlight_wait"
-                        android:layout_width="wrap_content"
+                        android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:layout_marginStart="@dimen/space_ms"
+                        android:layout_marginTop="@dimen/space_ms"
                         android:textAppearance="?attr/textAppearanceStatHero"
                         tools:text="11 min" />
                 </LinearLayout>
@@ -179,7 +175,8 @@
             <LinearLayout
                 android:id="@+id/browse_search_bar"
                 android:layout_width="match_parent"
-                android:layout_height="@dimen/search_height"
+                android:layout_height="wrap_content"
+                android:minHeight="@dimen/field_height"
                 android:layout_marginStart="@dimen/space_md"
                 android:layout_marginTop="@dimen/space_ms"
                 android:layout_marginEnd="@dimen/space_md"
@@ -198,8 +195,9 @@
 
                 <EditText
                     android:id="@+id/browse_search_input"
-                    android:layout_width="0dp"
-                    android:layout_height="match_parent"
+                    android:layout_width="@dimen/dimension_zero"
+                    android:layout_height="wrap_content"
+                    android:minHeight="@dimen/field_height"
                     android:layout_marginStart="@dimen/space_sm"
                     android:layout_weight="1"
                     android:autofillHints=""
@@ -256,7 +254,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginStart="@dimen/space_md"
-                android:layout_marginTop="@dimen/space_md"
+                android:layout_marginTop="@dimen/space_sm"
                 android:layout_marginEnd="@dimen/space_md"
                 android:layout_marginBottom="@dimen/space_sm"
                 android:textAppearance="?attr/textAppearanceLabelSmall"
@@ -285,54 +283,25 @@
         android:visibility="gone"
         app:layout_behavior="@string/appbar_scrolling_view_behavior">
 
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="@dimen/space_md"
-            android:layout_marginTop="@dimen/space_sm"
-            android:layout_marginEnd="@dimen/space_md"
-            android:orientation="vertical">
-
-            <TextView
-                android:id="@+id/browse_empty_title"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:textAppearance="?attr/textAppearanceTitleLarge"
-                tools:text="No queues in Dauis yet" />
-
-            <TextView
-                android:id="@+id/browse_empty_body"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="@dimen/space_sm"
-                android:textAppearance="?attr/textAppearanceBodyMedium"
-                android:textColor="?attr/colorOnSurfaceVariant"
-                tools:text="Queues show up here when an organizer in Dauis opens one. Try a nearby town for now." />
-
-            <com.google.android.material.button.MaterialButton
-                android:id="@+id/browse_empty_button"
-                style="@style/Widget.Quapp.Button.Tonal"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="@dimen/space_md"
-                tools:text="Change town" />
-
-            <!-- Empty town: the nearest town that has something open -->
-            <TextView
-                android:id="@+id/browse_nearby_label"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="@dimen/space_lg"
-                android:text="@string/browse_nearby"
-                android:textAppearance="?attr/textAppearanceLabelSmall"
-                android:textColor="?attr/colorOnSurfaceVariant" />
-
-            <include
-                android:id="@+id/browse_nearby_row"
-                layout="@layout/view_list_row"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content" />
-        </LinearLayout>
+        <include layout="@layout/view_empty_state" />
     </androidx.core.widget.NestedScrollView>
+
+    <!-- Loading state -->
+    <include
+        android:id="@+id/browse_loading"
+        layout="@layout/view_loading_state"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_gravity="top"
+        app:layout_behavior="@string/appbar_scrolling_view_behavior" />
+
+    <!-- Error state -->
+    <include
+        android:id="@+id/browse_error"
+        layout="@layout/view_error_state"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_gravity="top"
+        app:layout_behavior="@string/appbar_scrolling_view_behavior" />
 
 </androidx.coordinatorlayout.widget.CoordinatorLayout>

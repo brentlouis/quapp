@@ -3,22 +3,22 @@ package com.example.quapp;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.LinearLayout;
-import android.widget.TextView;
 
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
-import com.google.android.material.button.MaterialButton;
-
 import java.util.List;
 
-/** Queue history (canvas 11): the account's finished tickets, from the server. */
 public class HistoryActivity extends AppCompatActivity {
 
+    private RecyclerView list;
     private HistoryAdapter adapter;
+    private View emptyView;
+    private View slipView;
+    private View sectionView;
+    private LoadingStateHelper loadingStateHelper;
+    private List<Ticket> cachedTickets;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -33,80 +33,84 @@ public class HistoryActivity extends AppCompatActivity {
             }
         });
 
-        RecyclerView list = findViewById(R.id.history_list);
-        list.setLayoutManager(new LinearLayoutManager(this));
-        adapter = new HistoryAdapter();
-        list.setAdapter(adapter);
-
-        load();
-    }
-
-    private void load() {
-        showOnly(R.id.history_loading);
-        ApiClient.api(this).myTickets(false).enqueue(new ApiCallback<List<Ticket>>(this) {
-            @Override
-            protected void onSuccess(@Nullable List<Ticket> tickets) {
-                if (tickets == null || tickets.isEmpty()) {
-                    showEmpty();
-                    return;
-                }
-                adapter.submitTickets(tickets);
-                bindTotals(tickets);
-                showOnly(R.id.history_list, R.id.history_slip, R.id.history_section);
-            }
-
-            @Override
-            protected void onError(@NonNull ApiError error) {
-                showError(error);
-            }
-        });
-    }
-
-    /** Nothing finished yet: point to Browse. */
-    private void showEmpty() {
-        ((TextView) findViewById(R.id.history_empty_title)).setText(R.string.history_empty_title);
-        ((TextView) findViewById(R.id.history_empty_body)).setText(R.string.history_empty_body);
-        MaterialButton button = findViewById(R.id.history_empty_button);
-        button.setText(R.string.history_empty_action);
-        button.setOnClickListener(new View.OnClickListener() {
+        findViewById(R.id.history_empty_button).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                // The queuer home is already further down the stack. intent() uses CLEAR_TOP to
-                // return to that instance (closing History) and switch it to the Browse tab.
                 startActivity(QueuerHomeActivity.intent(HistoryActivity.this,
                         QueuerHomeActivity.TAB_BROWSE));
             }
         });
-        showOnly(R.id.history_empty);
-    }
 
-    /** The same block as empty, saying what went wrong, with Try again. */
-    private void showError(ApiError error) {
-        ((TextView) findViewById(R.id.history_empty_title)).setText(R.string.history_error_title);
-        ((TextView) findViewById(R.id.history_empty_body)).setText(error.is(ApiError.OFFLINE)
-                ? getString(R.string.api_offline) : error.message);
-        MaterialButton button = findViewById(R.id.history_empty_button);
-        button.setText(R.string.history_error_retry);
-        button.setOnClickListener(new View.OnClickListener() {
+        list = findViewById(R.id.history_list);
+        emptyView = findViewById(R.id.history_empty);
+        slipView = findViewById(R.id.history_slip);
+        sectionView = findViewById(R.id.history_section);
+
+        list.setLayoutManager(new LinearLayoutManager(this));
+        ((android.widget.TextView) findViewById(R.id.history_title)).setText(R.string.profile_past_visits);
+        adapter = new HistoryAdapter(ticket -> startActivity(ProfileSettingsActivity.intent(this, "receipt").putExtra("receipt_ticket_id", ticket.getId())));
+        list.setAdapter(adapter);
+
+        loadingStateHelper = new LoadingStateHelper(
+                null,
+                emptyView,
+                findViewById(R.id.history_loading),
+                findViewById(R.id.history_error)
+        );
+        loadingStateHelper.setOnRetryListener(new LoadingStateHelper.OnRetryListener() {
             @Override
-            public void onClick(View view) {
-                load();
+            public void onRetry() {
+                loadHistory();
             }
         });
-        showOnly(R.id.history_empty);
+
+        loadHistory();
     }
 
-    /** Shows these views and hides the rest of the states. */
-    private void showOnly(int... shown) {
-        int[] all = {R.id.history_loading, R.id.history_empty, R.id.history_list,
-                R.id.history_slip, R.id.history_section};
-        for (int id : all) {
-            boolean visible = false;
-            for (int s : shown) {
-                visible |= s == id;
-            }
-            findViewById(id).setVisibility(visible ? View.VISIBLE : View.GONE);
+    private void loadHistory() {
+        if (cachedTickets == null) {
+            loadingStateHelper.showLoading(getString(R.string.loading_tickets));
+            list.setVisibility(View.GONE);
+            slipView.setVisibility(View.GONE);
+            sectionView.setVisibility(View.GONE);
+            emptyView.setVisibility(View.GONE);
         }
+
+        FakeData.getHistoryAsync(new FakeData.Callback<List<Ticket>>() {
+            @Override
+            public void onSuccess(List<Ticket> tickets) {
+                if (isFinishing() || isDestroyed()) {
+                    return;
+                }
+                cachedTickets = tickets;
+                loadingStateHelper.showContent();
+                boolean empty = tickets.isEmpty();
+                list.setVisibility(empty ? View.GONE : View.VISIBLE);
+                slipView.setVisibility(empty ? View.GONE : View.VISIBLE);
+                sectionView.setVisibility(empty ? View.GONE : View.VISIBLE);
+                emptyView.setVisibility(empty ? View.VISIBLE : View.GONE);
+                adapter.submitTickets(tickets);
+                bindTotals(tickets);
+            }
+
+            @Override
+            public void onError(Throwable error) {
+                if (isFinishing() || isDestroyed()) {
+                    return;
+                }
+                if (cachedTickets == null) {
+                    loadingStateHelper.showError(getString(R.string.error_default_message));
+                    list.setVisibility(View.GONE);
+                    slipView.setVisibility(View.GONE);
+                    sectionView.setVisibility(View.GONE);
+                    emptyView.setVisibility(View.GONE);
+                } else {
+                    QuappMotion.snackbar(
+                            findViewById(R.id.history_root), R.string.error_default_message,
+                            com.google.android.material.snackbar.Snackbar.LENGTH_SHORT).show();
+                }
+            }
+        });
     }
 
     /** Queues joined, served, no-show on the receipt slip. */

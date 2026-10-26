@@ -65,10 +65,15 @@
         </LinearLayout>
 
         <ImageView
+            android:id="@+id/open_now_chevron"
             android:layout_width="@dimen/icon_size"
             android:layout_height="@dimen/icon_size"
             android:importantForAccessibility="no"
             android:src="@drawable/ic_chevron_right"
             app:tint="?attr/colorOnSurfaceVariant" />
+        <ImageButton android:id="@+id/open_now_save" android:layout_width="@dimen/touch_target_min"
+            android:layout_height="@dimen/touch_target_min" android:layout_marginStart="@dimen/space_sm"
+            android:background="?attr/selectableItemBackgroundBorderless" android:src="@drawable/ic_bookmark_filled"
+            android:contentDescription="@string/saved_remove" android:visibility="gone" app:tint="?attr/colorPrimary" />
     </LinearLayout>
 </LinearLayout>

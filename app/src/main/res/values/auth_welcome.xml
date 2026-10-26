@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="welcome_steps">Find a service.\n\nCheck what to bring.\n\nKeep your ticket handy.</string>
+    <string name="welcome_title">Your queue, in one place</string>
+    <string name="welcome_body">Find local services and prepare for your visit.</string>
+    <string name="welcome_browse">Browse services first</string>
+    <string name="auth_sign_in">Sign in</string>
+    <string name="auth_sign_in_demo">Continue in demo</string>
+    <string name="auth_create_demo">Create demo profile</string>
+    <string name="auth_demo_error">Demo action failed. Try again.</string>
+    <string name="family_draft_hint">Prepare labels only · no group issued</string>
+    <string name="family_planning_only">Planning only. No group ticket or membership will be created.</string>
+</resources>

@@ -17,9 +17,15 @@ public class OpenNowAdapter extends RecyclerView.Adapter<OpenNowAdapter.OpenNowV
 
     private final List<Queue> queues = new ArrayList<>();
     private final QueueAdapter.OnQueueClickListener clickListener;
+    private final Runnable onSavedChanged;
 
     public OpenNowAdapter(QueueAdapter.OnQueueClickListener clickListener) {
+        this(clickListener, null);
+    }
+
+    public OpenNowAdapter(QueueAdapter.OnQueueClickListener clickListener, Runnable onSavedChanged) {
         this.clickListener = clickListener;
+        this.onSavedChanged = onSavedChanged;
     }
 
     public void submitQueues(List<Queue> newQueues) {
@@ -38,7 +44,31 @@ public class OpenNowAdapter extends RecyclerView.Adapter<OpenNowAdapter.OpenNowV
 
     @Override
     public void onBindViewHolder(@NonNull OpenNowViewHolder holder, int position) {
-        holder.bind(queues.get(position), position > 0, clickListener);
+        Queue queue = queues.get(position);
+        holder.bind(queue, position > 0, clickListener);
+        View save = holder.itemView.findViewById(R.id.open_now_save);
+        boolean bookmarks = onSavedChanged != null;
+        save.setVisibility(bookmarks ? View.VISIBLE : View.GONE);
+        holder.itemView.findViewById(R.id.open_now_chevron).setVisibility(bookmarks ? View.GONE : View.VISIBLE);
+        holder.name.setMaxLines(bookmarks ? Integer.MAX_VALUE : 1);
+        if (bookmarks) {
+            boolean saved = new SavedServices(save.getContext()).contains(queue.getId());
+            save.setSelected(saved);
+            ((ImageView) save).setImageResource(saved ? R.drawable.ic_bookmark_filled : R.drawable.ic_bookmark);
+            save.setContentDescription(holder.itemView.getContext().getString(
+                    saved ? R.string.saved_remove_named : R.string.saved_save_named, queue.getName()));
+            save.setOnClickListener(v -> {
+                new SavedServices(v.getContext()).toggle(queue.getId());
+                notifyItemChanged(holder.getBindingAdapterPosition());
+                onSavedChanged.run();
+            });
+            android.content.Context context = holder.itemView.getContext();
+            if (queue.acceptsJoins()) holder.detail.setText(context.getString(R.string.saved_service_detail,
+                    queue.getVenue(), queue.getEstimatedWaitMinutes()));
+            else holder.detail.setText(context.getString(R.string.saved_service_status, queue.getVenue(),
+                    context.getString(queue.getStatus() == Queue.Status.CLOSED ? R.string.detail_status_closed
+                            : queue.getStatus() == Queue.Status.PAUSED ? R.string.detail_status_paused : R.string.detail_status_upcoming)));
+        }
     }
 
     @Override

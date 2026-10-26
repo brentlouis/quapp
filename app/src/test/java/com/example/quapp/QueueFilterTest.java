@@ -37,6 +37,23 @@ public class QueueFilterTest {
     }
 
     @Test
+    public void allCategoriesPreservesTownScopeWithoutInventingAvailability() {
+        List<Queue> local = new java.util.ArrayList<>();
+        for (Category category : Category.values()) {
+            local.add(queue(category.name(), "Local fixture 王秀英", "", "Valencia", category));
+        }
+        local.add(queue("elsewhere", "Other town", "", "Dauis", Category.MEDICAL));
+        assertEquals(Category.values().length, QueueFilter.apply(local, "", null, "Valencia").size());
+        for (Category category : Category.values()) {
+            List<Queue> filtered = QueueFilter.apply(local, "", category, "Valencia");
+            assertEquals(1, filtered.size());
+            assertEquals(category, filtered.get(0).getCategory());
+        }
+        assertEquals(0, QueueFilter.apply(local, "", null, "Ubay").size());
+        assertEquals(Category.values().length, QueueFilter.apply(local, "王秀英", null, "Valencia").size());
+    }
+
+    @Test
     public void searchIsCaseInsensitiveAndTrimmed() {
         List<Queue> result = QueueFilter.apply(queues, "  MEDICAL ", null, null);
         // Matches q2 by name and q6 by category.

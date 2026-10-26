@@ -1,298 +1,225 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Live console (canvas 15). The Now serving panel is the spotlight: the number in marigold,
-     a tear line, the name in Title. Under it, the line on plain paper. The dock acts on the
-     person being served: No-show, or Served and call the next number. -->
-<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.constraintlayout.widget.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/console_root"
     android:layout_width="match_parent"
-    android:layout_height="match_parent">
-
-    <!-- ===== App bar ===== -->
-
-    <ImageButton
-        android:id="@+id/console_back"
-        android:layout_width="@dimen/touch_target_min"
-        android:layout_height="@dimen/touch_target_min"
-        android:layout_marginStart="@dimen/space_xs"
-        android:layout_marginTop="@dimen/space_xs"
-        android:background="?attr/selectableItemBackgroundBorderless"
-        android:contentDescription="@string/console_back_description"
-        android:src="@drawable/ic_arrow_back"
-        app:layout_constraintStart_toStartOf="parent"
+    android:layout_height="match_parent"
+    android:background="@color/paper">
+    <androidx.core.widget.NestedScrollView
+        android:layout_width="@dimen/dimension_zero"
+        android:layout_height="@dimen/dimension_zero"
+        android:fillViewport="true"
         app:layout_constraintTop_toTopOf="parent"
-        app:tint="?attr/colorOnSurface" />
-
-    <LinearLayout
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="@dimen/space_xs"
-        android:orientation="vertical"
-        app:layout_constraintBottom_toBottomOf="@id/console_back"
-        app:layout_constraintEnd_toStartOf="@id/console_menu"
-        app:layout_constraintStart_toEndOf="@id/console_back"
-        app:layout_constraintTop_toTopOf="@id/console_back">
-
-        <TextView
-            android:id="@+id/console_queue_name"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:accessibilityHeading="true"
-            android:ellipsize="end"
-            android:maxLines="1"
-            android:textAppearance="?attr/textAppearanceTitleMedium"
-            tools:text="Free Medical Mission" />
-
-        <TextView
-            android:id="@+id/console_status"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:ellipsize="end"
-            android:maxLines="1"
-            android:textAppearance="?attr/textAppearanceBodySmall"
-            tools:text="Open · accepting joins" />
-    </LinearLayout>
-
-    <ImageButton
-        android:id="@+id/console_menu"
-        android:layout_width="@dimen/touch_target_min"
-        android:layout_height="@dimen/touch_target_min"
-        android:layout_marginEnd="@dimen/space_xs"
-        android:background="?attr/selectableItemBackgroundBorderless"
-        android:contentDescription="@string/console_menu_description"
-        android:src="@drawable/ic_more_vert"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toTopOf="@id/console_back"
-        app:tint="?attr/colorOnSurface" />
-
-    <!-- ===== Now serving: the spotlight ===== -->
-
-    <androidx.constraintlayout.widget.ConstraintLayout
-        android:id="@+id/console_now_serving"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="@dimen/space_md"
-        android:layout_marginTop="@dimen/space_sm"
-        android:layout_marginEnd="@dimen/space_md"
-        android:paddingStart="@dimen/space_md"
-        android:paddingTop="@dimen/space_md"
-        android:paddingEnd="@dimen/space_md"
-        android:paddingBottom="@dimen/space_md"
-        android:theme="@style/ThemeOverlay.Quapp.Spotlight"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/console_back">
-
-        <TextView
-            android:id="@+id/console_serving_label"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:text="@string/console_now_serving_label"
-            android:textAppearance="?attr/textAppearanceLabelSmall"
-            android:textColor="?attr/colorOnSurfaceVariant"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent" />
-
-        <TextView
-            android:id="@+id/console_serving_number"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="@dimen/space_xs"
-            android:textAppearance="?attr/textAppearanceTicketNumber"
-            android:textColor="@color/signal"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/console_serving_label"
-            tools:text="#23" />
-
-        <!-- Dashed crema line between the number and who holds it -->
-        <com.example.quapp.TearLineView
-            android:id="@+id/console_serving_tear"
-            android:layout_width="2dp"
-            android:layout_height="0dp"
-            android:layout_marginStart="@dimen/space_md"
-            app:layout_constraintBottom_toBottomOf="@id/console_serving_number"
-            app:layout_constraintStart_toEndOf="@id/console_serving_number"
-            app:layout_constraintTop_toTopOf="@id/console_serving_number"
-            app:tearOrientation="vertical" />
-
-        <TextView
-            android:id="@+id/console_serving_name"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="@dimen/space_md"
-            android:ellipsize="end"
-            android:maxLines="2"
-            android:textAppearance="?attr/textAppearanceTitleLarge"
-            app:layout_constraintBottom_toTopOf="@id/console_serving_phone"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toEndOf="@id/console_serving_tear"
-            app:layout_constraintTop_toTopOf="@id/console_serving_number"
-            app:layout_constraintVertical_chainStyle="packed"
-            tools:text="Ana Lopez" />
-
-        <TextView
-            android:id="@+id/console_serving_phone"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:fontFeatureSettings="tnum"
-            android:textAppearance="?attr/textAppearanceBodySmall"
-            app:layout_constraintBottom_toBottomOf="@id/console_serving_number"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="@id/console_serving_name"
-            app:layout_constraintTop_toBottomOf="@id/console_serving_name"
-            tools:text="0917 ••• 0002" />
-
-        <!-- The grace period from the counter: counting down, or timed out -->
-        <com.google.android.material.divider.MaterialDivider
-            android:id="@+id/console_serving_rule"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="@dimen/space_ms"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/console_serving_number" />
-
-        <TextView
-            android:id="@+id/console_serving_wait"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="@dimen/space_ms"
-            android:drawablePadding="@dimen/space_sm"
-            android:fontFeatureSettings="tnum"
-            android:gravity="center_vertical"
-            android:textAppearance="?attr/textAppearanceLabelMedium"
-            app:drawableStartCompat="@drawable/ic_timer"
-            app:drawableTint="?attr/colorOnSurfaceVariant"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/console_serving_rule"
-            tools:text="Awaiting &quot;I'm here&quot; · 2:14 left" />
-
-        <!-- Nobody called yet: the number and name are replaced by one line -->
-        <TextView
-            android:id="@+id/console_serving_none"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="@dimen/space_sm"
-            android:text="@string/console_none_serving"
-            android:textAppearance="?attr/textAppearanceTitleLarge"
-            android:visibility="gone"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/console_serving_label" />
-    </androidx.constraintlayout.widget.ConstraintLayout>
-
-    <!-- ===== Up next ===== -->
-
-    <TextView
-        android:id="@+id/console_waiting_header"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="@dimen/space_md"
-        android:fontFeatureSettings="tnum"
-        android:textAppearance="?attr/textAppearanceTitleSmall"
-        app:layout_constraintBottom_toBottomOf="@id/console_walk_in"
-        app:layout_constraintEnd_toStartOf="@id/console_walk_in"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="@id/console_walk_in"
-        tools:text="Up next · 8 waiting" />
-
-    <com.google.android.material.button.MaterialButton
-        android:id="@+id/console_walk_in"
-        style="@style/Widget.Quapp.Button.Text"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="@dimen/space_sm"
-        android:layout_marginEnd="@dimen/space_xs"
-        android:text="@string/console_walk_in_label"
-        app:icon="@drawable/ic_user_plus"
-        app:iconSize="@dimen/icon_small"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/console_now_serving" />
-
-    <androidx.recyclerview.widget.RecyclerView
-        android:id="@+id/console_list"
-        android:layout_width="0dp"
-        android:layout_height="0dp"
-        android:clipToPadding="false"
-        android:paddingStart="@dimen/space_md"
-        android:paddingEnd="@dimen/space_xs"
-        android:paddingBottom="@dimen/space_md"
-        app:layout_constraintBottom_toTopOf="@id/console_tear"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/console_walk_in"
-        tools:itemCount="4"
-        tools:listitem="@layout/item_waiting_ticket" />
-
-    <LinearLayout
-        android:id="@+id/console_empty"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="@dimen/space_md"
-        android:layout_marginTop="@dimen/space_lg"
-        android:layout_marginEnd="@dimen/space_md"
-        android:orientation="vertical"
-        android:visibility="gone"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/console_walk_in">
-
-        <TextView
-            android:id="@+id/console_empty_title"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:textAppearance="?attr/textAppearanceTitleLarge"
-            tools:text="@string/console_empty_title" />
-
-        <TextView
-            android:id="@+id/console_empty_body"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="@dimen/space_sm"
-            android:textAppearance="?attr/textAppearanceBodyLarge"
-            android:textColor="?attr/colorOnSurfaceVariant"
-            tools:text="@string/console_empty_body" />
-    </LinearLayout>
-
-    <!-- ===== Dock ===== -->
-
-    <com.example.quapp.TearLineView
-        android:id="@+id/console_tear"
-        android:layout_width="0dp"
-        android:layout_height="@dimen/tear_line_width"
-        android:layout_marginStart="@dimen/space_md"
-        android:layout_marginEnd="@dimen/space_md"
-        app:layout_constraintBottom_toTopOf="@id/console_dock"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent" />
-
-    <LinearLayout
-        android:id="@+id/console_dock"
-        style="@style/Widget.Quapp.Dock"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:orientation="horizontal"
         app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent">
-
-        <com.google.android.material.button.MaterialButton
-            android:id="@+id/console_no_show"
-            style="@style/Widget.Quapp.Button.Outlined"
-            android:layout_width="wrap_content"
-            android:layout_height="@dimen/button_height_lg"
-            android:layout_marginEnd="@dimen/space_ms"
-            android:text="@string/console_no_show_action" />
-
-        <com.google.android.material.button.MaterialButton
-            android:id="@+id/console_call_next"
-            android:layout_width="0dp"
-            android:layout_height="@dimen/button_height_lg"
-            android:layout_weight="1"
-            tools:text="Served · call #24" />
-    </LinearLayout>
-
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent">
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:paddingBottom="@dimen/space_lg">
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="top">
+                <ImageButton
+                    android:id="@+id/console_back"
+                    android:layout_width="@dimen/touch_target_min"
+                    android:layout_height="@dimen/touch_target_min"
+                    android:layout_marginStart="@dimen/space_xs"
+                    android:layout_marginTop="@dimen/space_xs"
+                    android:background="?attr/selectableItemBackgroundBorderless"
+                    android:contentDescription="@string/console_back_description"
+                    android:src="@drawable/ic_arrow_back"
+                    app:tint="?attr/colorOnSurface" />
+                <LinearLayout
+                    android:layout_width="@dimen/dimension_zero"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:orientation="vertical"
+                    android:paddingTop="@dimen/space_sm"
+                    android:paddingBottom="@dimen/space_sm">
+                    <TextView
+                        android:id="@+id/console_queue_name"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:accessibilityHeading="true"
+                        android:textAppearance="?attr/textAppearanceTitleMedium"
+                        tools:text="Free Medical Mission" />
+                    <TextView
+                        android:id="@+id/console_status"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:textAppearance="?attr/textAppearanceBodySmall"
+                        tools:text="Open · accepting joins" />
+                </LinearLayout>
+                <ImageButton
+                    android:id="@+id/console_menu"
+                    android:layout_width="@dimen/touch_target_min"
+                    android:layout_height="@dimen/touch_target_min"
+                    android:layout_marginEnd="@dimen/space_xs"
+                    android:background="?attr/selectableItemBackgroundBorderless"
+                    android:contentDescription="@string/console_menu_description"
+                    android:src="@drawable/ic_more_vert"
+                    app:tint="?attr/colorOnSurface" />
+            </LinearLayout>
+            <LinearLayout
+                android:id="@+id/console_now_serving"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="@dimen/space_md"
+                android:layout_marginTop="@dimen/space_sm"
+                android:layout_marginEnd="@dimen/space_md"
+                android:paddingStart="@dimen/space_md"
+                android:paddingTop="@dimen/space_md"
+                android:paddingEnd="@dimen/space_md"
+                android:paddingBottom="@dimen/space_md"
+                android:theme="@style/ThemeOverlay.Quapp.Spotlight"
+                android:orientation="vertical">
+                <TextView
+                    android:id="@+id/console_serving_label"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="@string/console_now_serving_label"
+                    android:textAppearance="?attr/textAppearanceLabelSmall"
+                    android:textColor="?attr/colorOnSurfaceVariant" />
+                <TextView
+                    android:id="@+id/console_serving_number"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="@dimen/space_xs"
+                    android:textAppearance="?attr/textAppearanceTicketNumberSmall"
+                    android:textColor="@color/signal"
+                    tools:text="#23" />
+                <View
+                    android:id="@+id/console_serving_tear"
+                    android:layout_width="match_parent"
+                    android:layout_height="@dimen/space_xs" />
+                <TextView
+                    android:id="@+id/console_serving_name"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:textAppearance="?attr/textAppearanceTitleLarge"
+                    tools:text="Ana Lopez" />
+                <TextView
+                    android:id="@+id/console_serving_phone"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:fontFeatureSettings="tnum"
+                    android:textAppearance="?attr/textAppearanceBodySmall"
+                    tools:text="0917 ••• 0002" />
+                <com.google.android.material.divider.MaterialDivider
+                    android:id="@+id/console_serving_rule"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="@dimen/space_ms" />
+                <TextView
+                    android:id="@+id/console_serving_wait"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="@dimen/space_ms"
+                    android:drawablePadding="@dimen/space_sm"
+                    android:fontFeatureSettings="tnum"
+                    android:gravity="center_vertical"
+                    android:textAppearance="?attr/textAppearanceLabelMedium"
+                    app:drawableStartCompat="@drawable/ic_timer"
+                    app:drawableTint="?attr/colorOnSurfaceVariant"
+                    tools:text="Awaiting &quot;I'm here&quot; · 2:14 left" />
+                <TextView
+                    android:id="@+id/console_serving_none"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="@dimen/space_sm"
+                    android:text="@string/console_none_serving"
+                    android:textAppearance="?attr/textAppearanceTitleLarge"
+                    android:visibility="gone" />
+            </LinearLayout>
+            <View
+                android:id="@+id/console_tear"
+                android:layout_width="match_parent"
+                android:layout_height="@dimen/space_sm"
+                android:layout_marginStart="@dimen/space_md"
+                android:layout_marginEnd="@dimen/space_md" />
+            <LinearLayout
+                android:id="@+id/console_dock"
+                style="@style/Widget.Quapp.Dock"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical">
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/console_call_next"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:minHeight="@dimen/button_height_lg"
+                    tools:text="Served · call #24" />
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/console_no_show"
+                    style="@style/Widget.Quapp.Button.Outlined"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:minHeight="@dimen/button_height_lg"
+                    android:layout_marginTop="@dimen/space_sm"
+                    android:text="@string/console_no_show_action" />
+            </LinearLayout>
+            <TextView
+                android:id="@+id/console_waiting_header"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="@dimen/space_md"
+                android:fontFeatureSettings="tnum"
+                android:textAppearance="?attr/textAppearanceTitleSmall"
+                tools:text="Up next · 8 waiting"
+                android:layout_marginTop="@dimen/space_md"
+                android:layout_marginEnd="@dimen/space_md" />
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/console_walk_in"
+                style="@style/Widget.Quapp.Button.Text"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/space_sm"
+                android:layout_marginEnd="@dimen/space_md"
+                android:text="@string/console_walk_in_label"
+                app:icon="@drawable/ic_user_plus"
+                app:iconSize="@dimen/icon_small"
+                android:layout_marginStart="@dimen/space_md" />
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/console_list"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:clipToPadding="false"
+                android:paddingStart="@dimen/space_md"
+                android:paddingEnd="@dimen/space_md"
+                android:paddingBottom="@dimen/space_md"
+                tools:itemCount="4"
+                tools:listitem="@layout/item_waiting_ticket"
+                android:nestedScrollingEnabled="false" />
+            <LinearLayout
+                android:id="@+id/console_empty"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="@dimen/space_md"
+                android:layout_marginTop="@dimen/space_lg"
+                android:layout_marginEnd="@dimen/space_md"
+                android:orientation="vertical"
+                android:visibility="gone">
+                <TextView
+                    android:id="@+id/console_empty_title"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:textAppearance="?attr/textAppearanceTitleLarge"
+                    tools:text="@string/console_empty_title" />
+                <TextView
+                    android:id="@+id/console_empty_body"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="@dimen/space_sm"
+                    android:textAppearance="?attr/textAppearanceBodyLarge"
+                    android:textColor="?attr/colorOnSurfaceVariant"
+                    tools:text="@string/console_empty_body" />
+            </LinearLayout>
+        </LinearLayout>
+    </androidx.core.widget.NestedScrollView>
 </androidx.constraintlayout.widget.ConstraintLayout>

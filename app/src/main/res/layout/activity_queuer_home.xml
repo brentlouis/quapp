@@ -30,6 +30,7 @@
          nav's notched corners (the nav's background is set in code: TicketShapes.stubDockBackground) -->
     <com.example.quapp.TearLineView
         android:id="@+id/queuer_home_tear"
+        android:visibility="gone"
         android:layout_width="0dp"
         android:layout_height="@dimen/tear_line_width"
         android:layout_marginStart="@dimen/space_md"

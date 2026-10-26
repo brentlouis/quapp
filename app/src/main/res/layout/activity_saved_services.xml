@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/saved_root" android:layout_width="match_parent" android:layout_height="match_parent"
+    android:background="?attr/colorSurface">
+    <ImageButton android:id="@+id/saved_back" android:layout_width="@dimen/touch_target_min"
+        android:layout_height="@dimen/touch_target_min" android:background="?attr/selectableItemBackgroundBorderless"
+        android:contentDescription="@string/detail_back_description" android:src="@drawable/ic_arrow_back"
+        app:tint="?attr/colorOnSurface" app:layout_constraintStart_toStartOf="parent" app:layout_constraintTop_toTopOf="parent" />
+    <TextView android:layout_width="@dimen/dimension_zero" android:layout_height="wrap_content"
+        android:text="@string/saved_title" android:textAppearance="?attr/textAppearanceTitleMedium" android:accessibilityHeading="true"
+        app:layout_constraintStart_toEndOf="@id/saved_back" app:layout_constraintEnd_toStartOf="@id/saved_clear"
+        app:layout_constraintTop_toTopOf="@id/saved_back" app:layout_constraintBottom_toBottomOf="@id/saved_back" />
+    <ImageButton android:id="@+id/saved_clear" android:layout_width="@dimen/touch_target_min" android:layout_height="@dimen/touch_target_min"
+        android:background="?attr/selectableItemBackgroundBorderless" android:contentDescription="@string/saved_clear_action"
+        android:src="@drawable/ic_more_vert" app:tint="?attr/colorOnSurface" app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="@id/saved_back" />
+    <androidx.core.widget.NestedScrollView android:layout_width="@dimen/dimension_zero" android:layout_height="@dimen/dimension_zero"
+        android:fillViewport="true" app:layout_constraintStart_toStartOf="parent" app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/saved_back" app:layout_constraintBottom_toBottomOf="parent">
+        <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:orientation="vertical" android:padding="@dimen/space_md">
+            <TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="@dimen/space_sm"
+                android:text="@string/saved_scope" android:textAppearance="?attr/textAppearanceBodyMedium" />
+            <androidx.recyclerview.widget.RecyclerView android:id="@+id/saved_list" android:layout_width="match_parent"
+                android:layout_height="wrap_content" android:nestedScrollingEnabled="false" android:layout_marginTop="@dimen/space_md" />
+            <LinearLayout android:id="@+id/saved_empty" android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:orientation="vertical" android:layout_marginTop="@dimen/space_xl" android:visibility="gone">
+                <ImageView android:layout_width="@dimen/touch_target_min" android:layout_height="@dimen/touch_target_min"
+                    android:layout_gravity="center_horizontal" android:src="@drawable/ic_search" app:tint="?attr/colorPrimary"
+                    android:importantForAccessibility="no" />
+                <TextView android:id="@+id/saved_empty_title" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="@dimen/space_md"
+                    android:gravity="center" android:text="@string/saved_empty_title" android:textAppearance="?attr/textAppearanceTitleMedium" />
+                <TextView android:layout_width="match_parent" android:layout_height="wrap_content"
+                    android:layout_marginTop="@dimen/space_sm" android:gravity="center" android:text="@string/saved_empty" android:textAppearance="?attr/textAppearanceBodyMedium" />
+                <com.google.android.material.button.MaterialButton android:id="@+id/saved_browse" style="@style/Widget.Quapp.Button.Outlined"
+                    android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="@dimen/space_md"
+                    android:text="@string/saved_browse" />
+            </LinearLayout>
+            <include android:id="@+id/saved_loading" layout="@layout/view_loading_state" android:layout_width="match_parent" android:layout_height="wrap_content" />
+            <include android:id="@+id/saved_error" layout="@layout/view_error_state" android:layout_width="match_parent" android:layout_height="wrap_content" />
+        </LinearLayout>
+    </androidx.core.widget.NestedScrollView>
+</androidx.constraintlayout.widget.ConstraintLayout>

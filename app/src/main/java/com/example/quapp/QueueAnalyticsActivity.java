@@ -10,7 +10,6 @@ import android.view.View;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
-import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.ContextCompat;
 
@@ -25,6 +24,8 @@ public class QueueAnalyticsActivity extends AppCompatActivity {
     public static final String EXTRA_QUEUE_ID = "com.example.quapp.EXTRA_ANALYTICS_QUEUE_ID";
 
     private String queueId;
+    private LoadingStateHelper loadingStateHelper;
+    private QueueStats cachedStats;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -40,38 +41,87 @@ public class QueueAnalyticsActivity extends AppCompatActivity {
                 finish();
             }
         });
+
+        loadingStateHelper = new LoadingStateHelper(
+                findViewById(R.id.analytics_content),
+                null,
+                findViewById(R.id.analytics_loading),
+                findViewById(R.id.analytics_error)
+        );
+        loadingStateHelper.setOnRetryListener(new LoadingStateHelper.OnRetryListener() {
+            @Override
+            public void onRetry() {
+                loadAnalytics();
+            }
+        });
     }
 
     @Override
     protected void onResume() {
         super.onResume();
+        loadAnalytics();
+    }
 
-        Queue queue = Queues.get(queueId);  // opened from the console or Today, which loaded it
-        if (queue == null) {
-            finish();
-            return;
+    private void loadAnalytics() {
+        if (cachedStats == null) {
+            loadingStateHelper.showLoading(getString(R.string.loading_analytics));
         }
-        TextView queueName = findViewById(R.id.analytics_queue_name);
-        queueName.setText(getString(R.string.analytics_subtitle_format, queue.getName()));
 
-        // The last numbers Today or Your queues loaded, if any, then the latest
-        QueueStats last = MyQueues.lastStats().get(queueId);
-        if (last != null) {
-            bind(last);
-        }
-        ApiClient.api(this).stats(queueId).enqueue(new ApiCallback<QueueStats>(this) {
+        FakeData.getQueueByIdAsync(queueId, new FakeData.Callback<Queue>() {
             @Override
-            protected void onSuccess(@Nullable QueueStats stats) {
-                if (stats != null) {
-                    bind(stats);
+            public void onSuccess(final Queue queue) {
+                if (isFinishing() || isDestroyed()) {
+                    return;
                 }
+                if (queue == null) {
+                    finish();
+                    return;
+                }
+                FakeData.getStatsAsync(queueId, new FakeData.Callback<QueueStats>() {
+                    @Override
+                    public void onSuccess(QueueStats stats) {
+                        if (isFinishing() || isDestroyed()) {
+                            return;
+                        }
+                        cachedStats = stats;
+                        loadingStateHelper.showContent();
+                        bindQueueName(queue.getName());
+                        bindForecast(stats);
+                        bindToday(stats);
+                    }
+
+                    @Override
+                    public void onError(Throwable error) {
+                        handleError();
+                    }
+                });
+            }
+
+            @Override
+            public void onError(Throwable error) {
+                handleError();
             }
         });
     }
 
-    private void bind(QueueStats stats) {
-        bindForecast(stats);
-        bindToday(stats);
+    private void bindQueueName(String name) {
+        TextView queueName = findViewById(R.id.analytics_queue_name);
+        queueName.setText(name == null || name.trim().isEmpty()
+                ? getString(R.string.analytics_today_label)
+                : getString(R.string.analytics_subtitle_format, name));
+    }
+
+    private void handleError() {
+        if (isFinishing() || isDestroyed()) {
+            return;
+        }
+        if (cachedStats == null) {
+            loadingStateHelper.showError(getString(R.string.error_default_message));
+        } else {
+            QuappMotion.snackbar(
+                    findViewById(R.id.analytics_root), R.string.error_default_message,
+                    com.google.android.material.snackbar.Snackbar.LENGTH_SHORT).show();
+        }
     }
 
     private void bindForecast(QueueStats stats) {
@@ -112,13 +162,20 @@ public class QueueAnalyticsActivity extends AppCompatActivity {
     private void bindToday(QueueStats stats) {
         LinearLayout slip = findViewById(R.id.analytics_slip);
         ReceiptSlip.clear(slip);
-        ReceiptSlip.addRow(slip, getString(R.string.analytics_served_label),
+        addTodayRow(slip, getString(R.string.analytics_served_label),
                 String.valueOf(stats.getServedToday()));
-        ReceiptSlip.addRow(slip, getString(R.string.analytics_waiting_label),
+        addTodayRow(slip, getString(R.string.analytics_waiting_label),
                 String.valueOf(stats.getWaitingNow()));
-        ReceiptSlip.addRow(slip, getString(R.string.analytics_no_shows_label),
+        addTodayRow(slip, getString(R.string.analytics_no_shows_label),
                 String.valueOf(stats.getNoShowsToday()));
-        ReceiptSlip.addRow(slip, getString(R.string.analytics_no_show_rate_label),
+        addTodayRow(slip, getString(R.string.analytics_no_show_rate_label),
                 getString(R.string.analytics_percent_format, stats.getNoShowRatePercent()));
+    }
+
+    private void addTodayRow(LinearLayout slip, CharSequence label, CharSequence value) {
+        View row = getLayoutInflater().inflate(R.layout.view_analytics_slip_row, slip, false);
+        ((TextView) row.findViewById(R.id.slip_label)).setText(label);
+        ((TextView) row.findViewById(R.id.slip_value)).setText(value);
+        slip.addView(row);
     }
 }

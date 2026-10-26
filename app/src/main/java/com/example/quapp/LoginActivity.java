@@ -4,34 +4,27 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
 
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.textfield.TextInputEditText;
-import com.google.android.material.textfield.TextInputLayout;
 
 public class LoginActivity extends AppCompatActivity {
-
-    private MaterialButton submitButton;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_login);
-        // The dock sits above the keyboard instead of behind it.
+        // The form and actions scroll above the keyboard.
         SystemBars.applyPaddingWithKeyboard(findViewById(R.id.login_root));
+        androidx.core.view.ViewCompat.setAccessibilityHeading(findViewById(R.id.login_heading), true);
 
-        submitButton = findViewById(R.id.login_submit_button);
+        MaterialButton submitButton = findViewById(R.id.login_submit_button);
         MaterialButton registerButton = findViewById(R.id.login_register_button);
         MaterialButton forgotButton = findViewById(R.id.login_forgot_button);
-
-        // The last number used on this phone, so logging back in is just the password
-        TextInputEditText phoneInput = findViewById(R.id.login_phone_input);
-        if (savedInstanceState == null && !new Session(this).getPhone().isEmpty()) {
-            phoneInput.setText(new Session(this).getPhone());
-        }
+        findViewById(R.id.login_back).setOnClickListener(v -> finish());
+        AuthForms.bind(this, new int[]{R.id.login_phone_layout, R.id.login_password_layout},
+                new int[]{R.id.login_password_input}, this::submitLogin);
 
         forgotButton.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -56,52 +49,60 @@ public class LoginActivity extends AppCompatActivity {
     }
 
     private void submitLogin() {
+        if (!findViewById(R.id.login_submit_button).isEnabled()) return;
         TextInputEditText phoneInput = findViewById(R.id.login_phone_input);
         TextInputEditText passwordInput = findViewById(R.id.login_password_input);
-        final TextInputLayout passwordLayout = findViewById(R.id.login_password_layout);
 
-        final String phone = Validation.normalizePhone(Forms.text(phoneInput));
-        String password = Forms.text(passwordInput);
+        String phone = Validation.normalizePhone(Forms.text(phoneInput));
+        String password = AuthForms.password(passwordInput);
 
-        // Checked here first, so a typo doesn't need a round trip to the server
         boolean valid = Forms.check(findViewById(R.id.login_phone_layout),
                 Validation.isValidPhone(phone), getString(R.string.login_phone_error));
-        valid &= Forms.check(passwordLayout,
+        valid &= Forms.check(findViewById(R.id.login_password_layout),
                 !Validation.isBlank(password), getString(R.string.login_password_error));
+
         if (!valid) {
+            AuthForms.revealError(this, R.id.login_phone_layout, R.id.login_password_layout);
             return;
         }
 
-        setBusy(true);
-        ApiClient.api(this).login(new QuappApi.LoginBody(phone, password))
-                .enqueue(new ApiCallback<QuappApi.AuthResponse>(this) {
-                    @Override
-                    protected void onSuccess(@Nullable QuappApi.AuthResponse auth) {
-                        Session session = new Session(LoginActivity.this);
-                        session.signIn(auth.token, auth.user);
-                        startActivity(session.homeIntent(LoginActivity.this));
-                    }
+        final MaterialButton submitButton = findViewById(R.id.login_submit_button);
+        submitButton.setEnabled(false);
+        submitButton.setText(R.string.signing_in);
 
-                    @Override
-                    protected void onError(@NonNull ApiError error) {
-                        setBusy(false);
-                        if (error.is("WRONG_CREDENTIALS")) {
-                            passwordLayout.setError(getString(R.string.login_wrong));
-                        } else if (error.is("SUSPENDED")) {
-                            // A suspended account doesn't get in; it sees why (canvas 55)
-                            startActivity(AccountSuspendedActivity.intent(LoginActivity.this, phone,
-                                    error.extraString("suspended_reason"),
-                                    error.extraString("suspended_at")));
-                        } else {
-                            super.onError(error);
-                        }
-                    }
-                });
+        final String finalPhone = phone;
+        FakeData.loginAsync(this, phone, password, new FakeData.Callback<User>() {
+            @Override
+            public void onSuccess(User user) {
+                if (isFinishing() || isDestroyed()) {
+                    return;
+                }
+                if (user.getStatus() == User.Status.SUSPENDED) {
+                    submitButton.setEnabled(true);
+                    submitButton.setText(R.string.auth_sign_in_demo);
+                    startActivity(AccountSuspendedActivity.intent(LoginActivity.this, finalPhone));
+                    return;
+                }
+                Session session = new Session(LoginActivity.this);
+                startActivity(session.homeIntent(LoginActivity.this));
+            }
+
+            @Override
+            public void onError(Throwable error) {
+                if (isFinishing() || isDestroyed()) {
+                    return;
+                }
+                submitButton.setEnabled(true);
+                submitButton.setText(R.string.auth_sign_in_demo);
+                QuappMotion.snackbar(
+                        findViewById(R.id.login_root), R.string.auth_demo_error,
+                        com.google.android.material.snackbar.Snackbar.LENGTH_SHORT).show();
+            }
+        });
     }
 
-    /** While waiting for the server: the button says so and can't be tapped twice. */
-    private void setBusy(boolean busy) {
-        submitButton.setEnabled(!busy);
-        submitButton.setText(busy ? R.string.login_busy : R.string.login_action);
+    @Override protected void onStop() {
+        AuthForms.clearPasswords(this, R.id.login_password_input);
+        super.onStop();
     }
 }

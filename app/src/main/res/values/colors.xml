@@ -3,37 +3,43 @@
      Layouts use ?attr/ roles; these are referenced directly only by the theme,
      the status colours, crema tear lines and signal (inside the spotlight). -->
 <resources>
+    <!-- Civic Paper Evolution: teal action, espresso identity, warm neutral surfaces. -->
+    <color name="primary">#2DBBAE</color>
+    <color name="on_primary">#0F2220</color>
+    <color name="primary_container">#DFF1EC</color>
+    <color name="on_primary_container">#0B4F4A</color>
+    <color name="primary_text">#0B4F4A</color>
     <!-- Paper -->
-    <color name="paper">#F2EDE3</color>
-    <color name="paper_raised">#FBF8F2</color>
-    <color name="paper_sunk">#E9E2D4</color>
+    <color name="paper">#EEF6F4</color>
+    <color name="paper_raised">#FFFFFF</color>
+    <color name="paper_sunk">#E2F0EC</color>
     <!-- Queue cards: catalogue card stock, whiter than paper_raised so it lifts off the ground -->
-    <color name="index_card">#FEFCF8</color>
-    <color name="index_card_edge">#E6DCCB</color>
+    <color name="index_card">#FFFFFF</color>
+    <color name="index_card_edge">#CADCD7</color>
     <!-- The ruled lines on a card: roast at 16% -->
-    <color name="index_card_rule">#296B4A2F</color>
-    <color name="index_card_hole_rim">#C9BCA6</color>
-    <color name="line">#D8CFBE</color>
-    <color name="outline">#8C8474</color>
+    <color name="index_card_rule">#CADCD7</color>
+    <color name="index_card_hole_rim">#CADCD7</color>
+    <color name="line">#CADCD7</color>
+    <color name="outline">#48605C</color>
 
     <!-- Ink -->
-    <color name="ink">#17150F</color>
-    <color name="ink_muted">#4F4A40</color>
-    <color name="ink_faint">#6E6859</color>
+    <color name="ink">#0F2220</color>
+    <color name="ink_muted">#48605C</color>
+    <color name="ink_faint">#48605C</color>
 
     <!-- The spotlight: the one espresso ticket per screen -->
-    <color name="spotlight">#2B211C</color>
-    <color name="on_spotlight">#F6EFE6</color>
-    <color name="on_spotlight_muted">#D2C4B4</color>
-    <color name="spotlight_line">#4A3A30</color>
+    <color name="spotlight">#0B4F4A</color>
+    <color name="on_spotlight">#FFFFFF</color>
+    <color name="on_spotlight_muted">#DFF1EC</color>
+    <color name="spotlight_line">#0B4F4A</color>
 
     <!-- Coffee accents -->
-    <color name="crema">#C8A27A</color>
-    <color name="roast">#6B4A2F</color>
+    <color name="crema">#CADCD7</color>
+    <color name="roast">#0B4F4A</color>
 
     <!-- Signal (marigold): only on the spotlight, only for called / now serving -->
-    <color name="signal">#F2C14E</color>
-    <color name="on_signal">#1C140E</color>
+    <color name="signal">#F5B83D</color>
+    <color name="on_signal">#0F2220</color>
 
     <!-- Status on paper -->
     <color name="ok">#2F6B47</color>

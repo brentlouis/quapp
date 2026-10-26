@@ -23,6 +23,11 @@ final class Support {
      */
     static void email(Activity activity, String subject, String body) {
         String address = activity.getString(R.string.forgot_support_email);
+        if (address.trim().isEmpty()) {
+            QuappMotion.snackbar(activity.findViewById(android.R.id.content),
+                    R.string.support_unavailable, Snackbar.LENGTH_LONG).show();
+            return;
+        }
         Intent intent = new Intent(Intent.ACTION_SENDTO, Uri.parse("mailto:" + address));
         intent.putExtra(Intent.EXTRA_SUBJECT, subject);
         intent.putExtra(Intent.EXTRA_TEXT, body);
@@ -31,7 +36,7 @@ final class Support {
             activity.startActivity(intent);
         } catch (ActivityNotFoundException e) {
             // No email app installed: show the address so they can write from anywhere.
-            Snackbar.make(activity.findViewById(android.R.id.content),
+            QuappMotion.snackbar(activity.findViewById(android.R.id.content),
                     activity.getString(R.string.forgot_no_email_app, address),
                     Snackbar.LENGTH_LONG).show();
         }

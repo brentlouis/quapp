@@ -1,12 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Insights (canvas 16): the rolling-average wait forecast first, then today's counts on a
-     receipt slip. -->
+<!-- Insights: daily snapshot first; retain the native queue forecast and bindings. -->
 <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/analytics_root"
     android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:layout_height="match_parent"
+    android:background="@color/paper">
 
     <!-- App bar: title with the queue name under it -->
     <ImageButton
@@ -24,12 +24,13 @@
 
     <LinearLayout
         android:id="@+id/analytics_titles"
-        android:layout_width="0dp"
+        android:layout_width="@dimen/dimension_zero"
         android:layout_height="wrap_content"
         android:layout_marginStart="@dimen/space_xs"
         android:layout_marginEnd="@dimen/space_md"
         android:orientation="vertical"
-        app:layout_constraintBottom_toBottomOf="@id/analytics_back"
+        android:paddingTop="@dimen/space_sm"
+        android:paddingBottom="@dimen/space_sm"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toEndOf="@id/analytics_back"
         app:layout_constraintTop_toTopOf="@id/analytics_back">
@@ -39,26 +40,20 @@
             android:layout_height="wrap_content"
             android:accessibilityHeading="true"
             android:text="@string/analytics_title"
-            android:textAppearance="?attr/textAppearanceTitleMedium" />
+            android:textAppearance="?attr/textAppearanceTitleLarge" />
 
-        <TextView
-            android:id="@+id/analytics_queue_name"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:ellipsize="end"
-            android:maxLines="1"
-            android:textAppearance="?attr/textAppearanceBodySmall"
-            tools:text="Free Medical Mission · today" />
     </LinearLayout>
 
     <androidx.core.widget.NestedScrollView
-        android:layout_width="0dp"
-        android:layout_height="0dp"
-        android:layout_marginTop="@dimen/space_sm"
+        android:id="@+id/analytics_content"
+        android:layout_width="@dimen/dimension_zero"
+        android:layout_height="@dimen/dimension_zero"
+        android:layout_marginTop="@dimen/space_md"
+        android:fillViewport="true"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/analytics_back">
+        app:layout_constraintTop_toBottomOf="@id/analytics_titles">
 
         <LinearLayout
             android:layout_width="match_parent"
@@ -68,9 +63,42 @@
             android:paddingEnd="@dimen/space_md"
             android:paddingBottom="@dimen/space_lg">
 
-            <!-- The forecast -->
+            <TextView
+                android:id="@+id/analytics_queue_name"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="@dimen/space_md"
+                android:textAppearance="?attr/textAppearanceBodySmall"
+                tools:text="Free Medical Mission · today" />
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:accessibilityHeading="true"
+                android:text="@string/analytics_today_label"
+                android:textAppearance="?attr/textAppearanceTitleMedium"
+                android:textColor="?attr/colorOnSurfaceVariant" />
+
+            <!-- Today's counts: filled by ReceiptSlip -->
+            <LinearLayout
+                android:id="@+id/analytics_slip"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/space_sm"
+                android:background="@drawable/bg_note"
+                android:divider="@drawable/divider_slip"
+                android:orientation="vertical"
+                android:paddingStart="@dimen/space_md"
+                android:paddingTop="@dimen/space_sm"
+                android:paddingEnd="@dimen/space_md"
+                android:paddingBottom="@dimen/space_sm"
+                android:showDividers="middle" />
+
+            <!-- Native forecast remains below the daily snapshot. -->
             <com.google.android.material.card.MaterialCardView
                 style="@style/Widget.Quapp.Card"
+                android:layout_marginTop="@dimen/space_lg"
+                app:cardBackgroundColor="@color/paper_raised"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content">
 
@@ -87,23 +115,22 @@
                         android:textAppearance="?attr/textAppearanceTitleSmall" />
 
                     <LinearLayout
-                        android:layout_width="wrap_content"
+                        android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="@dimen/space_sm"
-                        android:baselineAligned="true"
-                        android:orientation="horizontal">
+                        android:baselineAligned="false"
+                        android:orientation="vertical">
 
                         <TextView
                             android:id="@+id/analytics_projected_value"
-                            android:layout_width="wrap_content"
+                            android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:textAppearance="?attr/textAppearanceStatDisplay"
+                            android:textAppearance="?attr/textAppearanceStat"
                             tools:text="~11" />
 
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:layout_marginStart="@dimen/space_sm"
                             android:text="@string/analytics_minutes_unit"
                             android:textAppearance="?attr/textAppearanceTitleSmall" />
                     </LinearLayout>
@@ -128,29 +155,29 @@
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
 
-            <TextView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="@dimen/space_lg"
-                android:text="@string/analytics_today_label"
-                android:textAppearance="?attr/textAppearanceLabelSmall"
-                android:textColor="?attr/colorOnSurfaceVariant" />
-
-            <!-- Today's counts: filled by ReceiptSlip -->
-            <LinearLayout
-                android:id="@+id/analytics_slip"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="@dimen/space_sm"
-                android:background="@drawable/bg_note"
-                android:divider="@drawable/divider_slip"
-                android:orientation="vertical"
-                android:paddingStart="@dimen/space_md"
-                android:paddingTop="@dimen/space_xs"
-                android:paddingEnd="@dimen/space_md"
-                android:paddingBottom="@dimen/space_xs"
-                android:showDividers="middle" />
         </LinearLayout>
     </androidx.core.widget.NestedScrollView>
+
+    <!-- Loading state -->
+    <include
+        android:id="@+id/analytics_loading"
+        layout="@layout/view_loading_state"
+        android:layout_width="@dimen/dimension_zero"
+        android:layout_height="wrap_content"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/analytics_titles" />
+
+    <!-- Error state -->
+    <include
+        android:id="@+id/analytics_error"
+        layout="@layout/view_error_state"
+        android:layout_width="@dimen/dimension_zero"
+        android:layout_height="wrap_content"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/analytics_titles" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

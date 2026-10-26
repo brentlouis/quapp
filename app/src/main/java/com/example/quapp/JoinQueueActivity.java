@@ -4,14 +4,9 @@ import android.os.Bundle;
 import android.view.View;
 import android.widget.TextView;
 
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 
-import com.google.android.material.button.MaterialButton;
-import com.google.android.material.snackbar.Snackbar;
 import com.google.android.material.textfield.TextInputEditText;
-import com.google.android.material.textfield.TextInputLayout;
 
 /**
  * Join confirm (canvas 07). Shows the number you'll be handed and who you're joining as.
@@ -21,9 +16,6 @@ import com.google.android.material.textfield.TextInputLayout;
 public class JoinQueueActivity extends AppCompatActivity {
 
     public static final String EXTRA_QUEUE_ID = "com.example.quapp.EXTRA_JOIN_QUEUE_ID";
-    /** Where Queue detail's proximity check found the queuer; absent when the queue doesn't check. */
-    public static final String EXTRA_LATITUDE = "com.example.quapp.EXTRA_JOIN_LATITUDE";
-    public static final String EXTRA_LONGITUDE = "com.example.quapp.EXTRA_JOIN_LONGITUDE";
 
     private static final String STATE_EDITING = "editing";
 
@@ -38,7 +30,7 @@ public class JoinQueueActivity extends AppCompatActivity {
         SystemBars.applyPaddingWithKeyboard(findViewById(R.id.join_root));
 
         String queueId = getIntent().getStringExtra(EXTRA_QUEUE_ID);
-        queue = Queues.get(queueId);  // Queue detail loaded it just before
+        queue = FakeData.queueById(queueId);
 
         if (queue == null) {
             finish();
@@ -94,7 +86,7 @@ public class JoinQueueActivity extends AppCompatActivity {
         // Joining puts you at the back: everyone waiting now is ahead of you.
         int ahead = queue.getPeopleWaiting();
         ((TextView) findViewById(R.id.join_number)).setText(
-                getString(R.string.ticket_number_format, queue.getNextTicketNumber()));
+                getString(R.string.ticket_number_format, FakeData.nextTicketNumber(queue.getId())));
         ((TextView) findViewById(R.id.join_ahead)).setText(ahead > 0
                 ? getString(R.string.join_ahead_format, ahead, queue.getEstimatedWaitMinutes())
                 : getString(R.string.join_ahead_next_format, queue.getEstimatedWaitMinutes()));
@@ -132,12 +124,18 @@ public class JoinQueueActivity extends AppCompatActivity {
         fields.setVisibility(View.VISIBLE);
     }
 
+    private boolean isSubmitting;
+
     private void submitJoin() {
+        if (isSubmitting) {
+            return;
+        }
+
         TextInputEditText nameInput = findViewById(R.id.join_name_input);
         TextInputEditText phoneInput = findViewById(R.id.join_phone_input);
 
-        String holderName = Forms.text(nameInput);
-        String holderPhone = Validation.normalizePhone(Forms.text(phoneInput));
+        final String holderName = Forms.text(nameInput);
+        final String holderPhone = Validation.normalizePhone(Forms.text(phoneInput));
 
         boolean valid = Forms.check(findViewById(R.id.join_name_layout),
                 !Validation.isBlank(holderName), getString(R.string.join_name_error));
@@ -150,62 +148,38 @@ public class JoinQueueActivity extends AppCompatActivity {
             return;
         }
 
-        Double latitude = getIntent().hasExtra(EXTRA_LATITUDE)
-                ? getIntent().getDoubleExtra(EXTRA_LATITUDE, 0) : null;
-        Double longitude = getIntent().hasExtra(EXTRA_LONGITUDE)
-                ? getIntent().getDoubleExtra(EXTRA_LONGITUDE, 0) : null;
+        isSubmitting = true;
+        final com.google.android.material.button.MaterialButton submitButton = findViewById(R.id.join_submit_button);
+        submitButton.setEnabled(false);
+        submitButton.setText(R.string.joining_queue);
 
-        // The server puts the ticket at the back of the line, or says why it can't
-        setBusy(true);
-        ActiveTicketStore.join(this, queue.getId(), latitude, longitude, holderName, holderPhone,
-                new ActiveTicketStore.Done<Ticket>() {
-                    @Override
-                    public void onDone(@Nullable Ticket ticket) {
-                        startActivity(ActiveTicketActivity.intent(JoinQueueActivity.this, ticket.getId()));
-                        // Once, on Android 13+: ask for notifications on top of the new ticket (canvas 20).
-                        if (NotificationPermissionActivity.shouldAsk(JoinQueueActivity.this)) {
-                            startActivity(NotificationPermissionActivity.intent(
-                                    JoinQueueActivity.this, ticket.getId()));
-                        }
-                        finish();
-                    }
+        FakeData.joinAsync(queue.getId(), holderName, holderPhone, new FakeData.Callback<Ticket>() {
+            @Override
+            public void onSuccess(Ticket ticket) {
+                isSubmitting = false;
+                if (isFinishing() || isDestroyed()) {
+                    return;
+                }
+                startActivity(ActiveTicketActivity.intent(JoinQueueActivity.this, ticket.getId()));
+                if (NotificationPermissionActivity.shouldAsk(JoinQueueActivity.this)) {
+                    startActivity(NotificationPermissionActivity.intent(JoinQueueActivity.this, ticket.getId()));
+                }
+                finish();
+            }
 
-                    @Override
-                    public void onFailed(@NonNull ApiError error) {
-                        setBusy(false);
-                        refused(error);
-                    }
-                });
-    }
-
-    /**
-     * Why the server said no. Most reasons are also checked on Queue detail before this screen
-     * opens, so these are the rare cases where something changed in between (the queue paused,
-     * a cooldown started): say so, and go back to Queue detail, which now shows it.
-     */
-    private void refused(ApiError error) {
-        String ticketId = error.extraString("ticket_id");
-        if (error.is("ALREADY_IN_LINE") && ticketId != null) {
-            startActivity(ActiveTicketActivity.intent(this, ticketId));
-            finish();
-            return;
-        }
-        if (error.is("INVALID_INPUT") && error.fieldMessage("holder_phone") != null) {
-            showFields();
-            ((TextInputLayout) findViewById(R.id.join_phone_layout))
-                    .setError(error.fieldMessage("holder_phone"));
-            return;
-        }
-        Snackbar.make(findViewById(R.id.join_root), error.is(ApiError.OFFLINE)
-                        ? getString(R.string.api_offline) : error.message, Snackbar.LENGTH_LONG)
-                .setAnchorView(R.id.join_dock)
-                .show();
-    }
-
-    /** While waiting for the server: the button says so and can't be tapped twice. */
-    private void setBusy(boolean busy) {
-        MaterialButton submit = findViewById(R.id.join_submit_button);
-        submit.setEnabled(!busy);
-        submit.setText(busy ? R.string.join_busy : R.string.join_action);
+            @Override
+            public void onError(Throwable error) {
+                isSubmitting = false;
+                if (isFinishing() || isDestroyed()) {
+                    return;
+                }
+                submitButton.setEnabled(true);
+                submitButton.setText(R.string.join_action);
+                QuappMotion.snackbar(
+                        findViewById(R.id.join_root), error instanceof IllegalStateException
+                                ? R.string.join_eligibility_changed : R.string.error_default_message,
+                        com.google.android.material.snackbar.Snackbar.LENGTH_SHORT).show();
+            }
+        });
     }
 }

@@ -35,6 +35,9 @@ public class Report {
     @Nullable
     private final String details;
     private final Instant createdAt;
+    private String reporterPhone;
+    public String getReporterPhone() { return reporterPhone; }
+    void setReporterPhone(String phone) { reporterPhone = phone; }
 
     public Report(String id, String queueId, Reason reason, @Nullable String details,
                   Instant createdAt) {

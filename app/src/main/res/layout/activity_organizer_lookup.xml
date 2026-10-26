@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto" android:id="@+id/lookup_root" android:layout_width="match_parent" android:layout_height="match_parent" android:background="?attr/colorSurface">
+    <androidx.core.widget.NestedScrollView android:id="@+id/lookup_scroll" android:layout_width="@dimen/dimension_zero" android:layout_height="@dimen/dimension_zero" android:fillViewport="true" app:layout_constraintStart_toStartOf="parent" app:layout_constraintEnd_toEndOf="parent" app:layout_constraintTop_toTopOf="parent" app:layout_constraintBottom_toBottomOf="parent">
+        <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:padding="@dimen/space_md">
+            <com.google.android.material.button.MaterialButton android:id="@+id/lookup_back" style="@style/Widget.Quapp.Button.Text" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/analytics_back_description" />
+            <TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:text="@string/lookup_title" android:textAppearance="?attr/textAppearanceTitleLarge" android:accessibilityHeading="true" />
+            <TextView android:id="@+id/lookup_queue" android:layout_width="match_parent" android:layout_height="wrap_content" android:textAppearance="?attr/textAppearanceBodyLarge" />
+            <TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="@dimen/space_sm" android:text="@string/lookup_scope" android:textAppearance="?attr/textAppearanceBodySmall" />
+            <TextView android:id="@+id/lookup_field_label" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="@dimen/space_md" android:labelFor="@id/lookup_input" android:text="@string/lookup_number_label" android:textAppearance="?attr/textAppearanceFieldLabel" />
+            <com.google.android.material.textfield.TextInputLayout android:id="@+id/lookup_input_layout" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="@dimen/space_sm">
+                <com.google.android.material.textfield.TextInputEditText android:id="@+id/lookup_input" android:layout_width="match_parent" android:layout_height="wrap_content" android:inputType="number" android:maxLines="1" />
+            </com.google.android.material.textfield.TextInputLayout>
+            <com.google.android.material.button.MaterialButton android:id="@+id/lookup_search" style="@style/Widget.Quapp.Button" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="@dimen/space_md" android:text="@string/lookup_search" />
+            <TextView android:id="@+id/lookup_message" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="@dimen/space_md" android:textAppearance="?attr/textAppearanceBodyMedium" android:visibility="gone" />
+            <LinearLayout android:id="@+id/lookup_result" android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:layout_marginTop="@dimen/space_lg" android:visibility="gone">
+                <TextView android:id="@+id/lookup_number" android:layout_width="match_parent" android:layout_height="wrap_content" android:textAppearance="?attr/textAppearanceStat" />
+                <TextView android:id="@+id/lookup_name" android:layout_width="match_parent" android:layout_height="wrap_content" android:textAppearance="?attr/textAppearanceBodyLarge" />
+                <TextView android:id="@+id/lookup_phone" android:layout_width="match_parent" android:layout_height="wrap_content" android:textAppearance="?attr/textAppearanceBodyMedium" />
+                <TextView android:id="@+id/lookup_status" android:layout_width="match_parent" android:layout_height="wrap_content" android:textAppearance="?attr/textAppearanceBodyMedium" />
+            </LinearLayout>
+        </LinearLayout>
+    </androidx.core.widget.NestedScrollView>
+</androidx.constraintlayout.widget.ConstraintLayout>

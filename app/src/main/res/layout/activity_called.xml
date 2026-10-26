@@ -1,14 +1,11 @@
-<?xml version="1.0" encoding="utf-8"?>
-<!-- Called (canvas 09): the one loud moment. The Activity runs in Theme.Quapp.Called, so the
-     whole ground is espresso and every ?attr colour below resolves to its spotlight version.
-     The number and "I'm here" are marigold (signal), which only ever appears on espresso. -->
-<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<?xml version='1.0' encoding='utf-8'?>
+<androidx.constraintlayout.widget.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/called_root"
     android:layout_width="match_parent"
-    android:layout_height="match_parent">
-
+    android:layout_height="match_parent" >
     <!-- App bar -->
     <ImageButton
         android:id="@+id/called_back"
@@ -22,174 +19,127 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
         app:tint="?attr/colorOnSurface" />
-
-    <LinearLayout
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="@dimen/space_xs"
-        android:layout_marginEnd="@dimen/space_md"
-        android:orientation="vertical"
-        app:layout_constraintBottom_toBottomOf="@id/called_back"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toEndOf="@id/called_back"
-        app:layout_constraintTop_toTopOf="@id/called_back">
-
-        <TextView
-            android:id="@+id/called_queue_name"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:ellipsize="end"
-            android:maxLines="1"
-            android:textAppearance="?attr/textAppearanceTitleMedium"
-            tools:text="Barangay Relief Distribution" />
-
-        <TextView
-            android:id="@+id/called_venue"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:ellipsize="end"
-            android:maxLines="1"
-            android:textAppearance="?attr/textAppearanceBodySmall"
-            tools:text="Brgy. Poblacion Hall" />
-    </LinearLayout>
-
-    <!-- The call -->
-    <TextView
-        android:id="@+id/called_heading"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="@dimen/space_md"
-        android:layout_marginTop="@dimen/space_sm"
-        android:layout_marginEnd="@dimen/space_md"
-        android:accessibilityLiveRegion="assertive"
-        android:text="@string/called_heading"
-        android:textAppearance="?attr/textAppearanceHeadlineMedium"
-        app:layout_constraintEnd_toEndOf="parent"
+    <androidx.core.widget.NestedScrollView
+        android:layout_width="@dimen/dimension_zero"
+        android:layout_height="@dimen/dimension_zero"
+        android:fillViewport="true"
+        app:layout_constraintTop_toBottomOf="@id/called_back"
+        app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/called_back" />
-
-    <TextView
-        android:id="@+id/called_instruction"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="@dimen/space_md"
-        android:layout_marginTop="@dimen/space_sm"
-        android:layout_marginEnd="@dimen/space_md"
-        android:text="@string/called_instruction"
-        android:textAppearance="?attr/textAppearanceBodyLarge"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/called_heading" />
-
-    <TextView
-        android:id="@+id/called_number"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="@dimen/space_md"
-        android:layout_marginTop="@dimen/space_sm"
-        android:layout_marginEnd="@dimen/space_md"
-        android:maxLines="1"
-        android:textAppearance="?attr/textAppearanceTicketNumberCalled"
-        android:textColor="@color/signal"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/called_instruction"
-        tools:text="#43" />
-
-    <!-- ===== Bottom: the timer and "I'm here" ===== -->
-
-    <LinearLayout
-        android:id="@+id/called_timer"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="@dimen/space_md"
-        android:layout_marginEnd="@dimen/space_md"
-        android:layout_marginBottom="@dimen/space_ms"
-        android:background="@drawable/bg_note"
-        android:gravity="center_vertical"
-        android:orientation="horizontal"
-        android:paddingStart="@dimen/space_md"
-        android:paddingTop="@dimen/space_ms"
-        android:paddingEnd="@dimen/space_md"
-        android:paddingBottom="@dimen/space_ms"
-        app:layout_constraintBottom_toTopOf="@id/called_here_button"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent">
-
-        <com.google.android.material.progressindicator.CircularProgressIndicator
-            android:id="@+id/called_ring"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:importantForAccessibility="no"
-            android:max="1000"
-            app:indicatorColor="@color/signal"
-            app:indicatorSize="@dimen/grace_ring_size"
-            app:trackColor="?attr/colorSurfaceVariant"
-            app:trackThickness="@dimen/grace_ring_thickness" />
-
+        app:layout_constraintEnd_toEndOf="parent" >
         <LinearLayout
-            android:layout_width="0dp"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginStart="@dimen/space_ms"
-            android:layout_weight="1"
-            android:orientation="vertical">
-
-            <TextView
-                android:id="@+id/called_countdown"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:textAppearance="?attr/textAppearanceStatHero"
-                tools:text="2:14" />
-
-            <TextView
+            android:orientation="vertical"
+            android:padding="@dimen/space_md" >
+            <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="@string/called_timer_hint"
+                android:orientation="vertical"
+                android:layout_marginTop="@dimen/space_ms" >
+                <TextView
+                    android:id="@+id/called_queue_name"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:textAppearance="?attr/textAppearanceTitleMedium"
+                    tools:text="Barangay Relief Distribution" />
+                <TextView
+                    android:id="@+id/called_venue"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:textAppearance="?attr/textAppearanceBodySmall"
+                    tools:text="Brgy. Poblacion Hall" />
+            </LinearLayout>
+            <TextView
+                android:id="@+id/called_heading"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/space_ms"
+                android:accessibilityLiveRegion="assertive"
+                android:text="@string/called_heading"
+                android:textAppearance="?attr/textAppearanceHeadlineMedium" />
+            <TextView
+                android:id="@+id/called_instruction"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/space_ms"
+                android:text="@string/called_instruction"
+                android:textAppearance="?attr/textAppearanceBodyLarge" />
+            <TextView
+                android:id="@+id/called_number"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/space_ms"
+                android:textAppearance="?attr/textAppearanceTicketNumberSmall"
+                android:textColor="@color/signal"
+                tools:text="#43" />
+            <LinearLayout
+                android:id="@+id/called_timer"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="?attr/colorSurfaceVariant"
+                android:gravity="center_vertical"
+                android:orientation="horizontal"
+                android:paddingStart="@dimen/space_md"
+                android:paddingTop="@dimen/space_ms"
+                android:paddingEnd="@dimen/space_md"
+                android:paddingBottom="@dimen/space_ms"
+                android:layout_marginTop="@dimen/space_ms" >
+                <com.google.android.material.progressindicator.CircularProgressIndicator
+                    android:id="@+id/called_ring"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:importantForAccessibility="no"
+                    android:max="1000"
+                    app:indicatorColor="@color/signal"
+                    app:indicatorSize="@dimen/grace_ring_size"
+                    app:trackColor="?attr/colorSurfaceVariant"
+                    app:trackThickness="@dimen/grace_ring_thickness" />
+                <LinearLayout
+                    android:layout_width="@dimen/dimension_zero"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="@dimen/space_ms"
+                    android:layout_weight="1"
+                    android:orientation="vertical" >
+                    <TextView
+                        android:id="@+id/called_countdown"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:textAppearance="?attr/textAppearanceStatHero"
+                        tools:text="2:14" />
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="@string/called_timer_hint"
+                        android:textAppearance="?attr/textAppearanceBodySmall" />
+                </LinearLayout>
+            </LinearLayout>
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/called_here_button"
+                style="@style/Widget.Quapp.Button.Call"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:minHeight="@dimen/button_height_xl"
+                android:text="@string/ticket_here_action"
+                app:icon="@drawable/ic_check"
+                app:iconGravity="textStart"
+                android:layout_marginTop="@dimen/space_ms" />
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/called_move_back"
+                android:textColor="?attr/colorOnSurface"
+                style="@style/Widget.Quapp.Button.Outlined"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/called_move_back_action"
+                android:layout_marginTop="@dimen/space_ms" />
+            <TextView
+                android:id="@+id/called_move_back_hint"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/space_ms"
+                android:gravity="center_horizontal"
+                android:text="@string/called_move_back_hint"
                 android:textAppearance="?attr/textAppearanceBodySmall" />
         </LinearLayout>
-    </LinearLayout>
-
-    <com.google.android.material.button.MaterialButton
-        android:id="@+id/called_here_button"
-        style="@style/Widget.Quapp.Button.Call"
-        android:layout_width="0dp"
-        android:layout_height="@dimen/button_height_xl"
-        android:layout_marginStart="@dimen/space_md"
-        android:layout_marginEnd="@dimen/space_md"
-        android:text="@string/ticket_here_action"
-        app:icon="@drawable/ic_check"
-        android:layout_marginBottom="@dimen/space_ms"
-        app:iconGravity="textStart"
-        app:layout_constraintBottom_toTopOf="@id/called_move_back"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent" />
-
-    <!-- Not there yet: move back instead of losing the slot (canvas 09, opens the sheet from 28) -->
-    <com.google.android.material.button.MaterialButton
-        android:id="@+id/called_move_back"
-        style="@style/Widget.Quapp.Button.Outlined"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="@dimen/space_md"
-        android:layout_marginEnd="@dimen/space_md"
-        android:text="@string/called_move_back_action"
-        app:layout_constraintBottom_toTopOf="@id/called_move_back_hint"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent" />
-
-    <TextView
-        android:id="@+id/called_move_back_hint"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="@dimen/space_md"
-        android:layout_marginTop="@dimen/space_sm"
-        android:layout_marginEnd="@dimen/space_md"
-        android:layout_marginBottom="@dimen/space_md"
-        android:gravity="center_horizontal"
-        android:text="@string/called_move_back_hint"
-        android:textAppearance="?attr/textAppearanceBodySmall"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent" />
-
+    </androidx.core.widget.NestedScrollView>
 </androidx.constraintlayout.widget.ConstraintLayout>

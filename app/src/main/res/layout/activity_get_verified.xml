@@ -196,7 +196,8 @@
         <com.google.android.material.button.MaterialButton
             android:id="@+id/verify_submit"
             android:layout_width="match_parent"
-            android:layout_height="@dimen/button_height_lg"
+            android:layout_height="wrap_content"
+            android:minHeight="@dimen/button_height_lg"
             android:text="@string/verify_submit" />
 
         <TextView

@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android" android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:paddingBottom="@dimen/space_md">
+    <TextView android:id="@+id/public_profile_name" android:layout_width="match_parent" android:layout_height="wrap_content" android:textAppearance="?attr/textAppearanceTitleLarge" android:accessibilityHeading="true" />
+    <TextView android:id="@+id/public_profile_note" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="@dimen/space_sm" android:textAppearance="?attr/textAppearanceBodySmall" />
+    <com.google.android.material.button.MaterialButton android:id="@+id/public_profile_badge" style="@style/Widget.Quapp.Button.Text" android:layout_width="match_parent" android:layout_height="wrap_content" />
+    <com.google.android.material.button.MaterialButton android:id="@+id/public_profile_related" style="@style/Widget.Quapp.Button.Outlined" android:layout_width="match_parent" android:layout_height="wrap_content" />
+    <TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="@dimen/space_md" android:text="@string/public_profile_queues" android:textAppearance="?attr/textAppearanceTitleMedium" android:accessibilityHeading="true" />
+    <TextView android:id="@+id/public_profile_empty" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="@dimen/space_sm" android:text="@string/public_profile_empty" android:textAppearance="?attr/textAppearanceBodyMedium" android:visibility="gone" />
+</LinearLayout>

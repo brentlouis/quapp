@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="google_continue">Continue with Google</string>
+    <string name="google_unavailable">Google sign-in is not available in this build. A connected authentication service is required.</string>
+    <string name="create_generated_name">%1$s · %2$s</string>
+    <string name="create_simplified_note">The queue title uses your category and municipality. Add service instructions below. Existing queue details remain editable.</string>
+</resources>

@@ -4,5 +4,5 @@
     android:shape="rectangle">
     <solid android:color="?attr/colorSurfaceContainer" />
     <stroke android:width="2dp" android:color="?attr/colorError" />
-    <corners android:radius="@dimen/radius_sm" />
+    <corners android:radius="@dimen/radius_card" />
 </shape>

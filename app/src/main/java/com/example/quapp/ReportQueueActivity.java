@@ -9,7 +9,6 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 
@@ -30,6 +29,7 @@ public class ReportQueueActivity extends AppCompatActivity {
     private static final String STATE_REASON = "reason";
 
     private String queueId;
+    private boolean submitting;
     @Nullable
     private Report.Reason reason;
     private final List<View> reasonRows = new ArrayList<>();
@@ -47,7 +47,7 @@ public class ReportQueueActivity extends AppCompatActivity {
         SystemBars.applyPaddingWithKeyboard(findViewById(R.id.report_root));
 
         queueId = getIntent().getStringExtra(EXTRA_QUEUE_ID);
-        Queue queue = Queues.get(queueId);  // Opened from Queue detail or Join, which loaded it
+        Queue queue = FakeData.queueById(queueId);
         if (queue == null) {
             finish();
             return;
@@ -118,6 +118,7 @@ public class ReportQueueActivity extends AppCompatActivity {
     }
 
     private void send() {
+        if (submitting) return;
         String details = Forms.text(findViewById(R.id.report_details_input));
 
         // Both problems show at once.
@@ -131,23 +132,33 @@ public class ReportQueueActivity extends AppCompatActivity {
             return;
         }
 
-        final View button = findViewById(R.id.report_send);
-        button.setEnabled(false);
-        ApiClient.api(this).report(queueId,
-                new QuappApi.ReportBody(reason, details.isEmpty() ? null : details))
-                .enqueue(new ApiCallback<Void>(this) {
-                    @Override
-                    protected void onSuccess(@Nullable Void nothing) {
-                        Toast.makeText(ReportQueueActivity.this, R.string.report_sent,
-                                Toast.LENGTH_LONG).show();
-                        finish();
-                    }
+        submitting = true;
+        final com.google.android.material.button.MaterialButton sendButton = findViewById(R.id.report_send);
+        sendButton.setEnabled(false);
+        sendButton.setText(R.string.submitting_report);
 
-                    @Override
-                    protected void onError(@NonNull ApiError error) {
-                        button.setEnabled(true);
-                        super.onError(error);  // the Snackbar
-                    }
-                });
+        FakeData.reportAsync(this, queueId, reason, details.isEmpty() ? null : details, new FakeData.Callback<Void>() {
+            @Override
+            public void onSuccess(Void result) {
+                if (isFinishing() || isDestroyed()) {
+                    return;
+                }
+                Toast.makeText(ReportQueueActivity.this, R.string.report_sent, Toast.LENGTH_LONG).show();
+                finish();
+            }
+
+            @Override
+            public void onError(Throwable error) {
+                submitting = false;
+                if (isFinishing() || isDestroyed()) {
+                    return;
+                }
+                sendButton.setEnabled(true);
+                sendButton.setText(R.string.report_send);
+                QuappMotion.snackbar(
+                        findViewById(R.id.report_root), R.string.error_default_message,
+                        com.google.android.material.snackbar.Snackbar.LENGTH_SHORT).show();
+            }
+        });
     }
 }

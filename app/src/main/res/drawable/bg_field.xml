@@ -5,14 +5,14 @@
         <shape android:shape="rectangle">
             <solid android:color="?attr/colorSurfaceContainer" />
             <stroke android:width="2dp" android:color="?attr/colorOnSurface" />
-            <corners android:radius="@dimen/radius_sm" />
+            <corners android:radius="@dimen/radius_card" />
         </shape>
     </item>
     <item>
         <shape android:shape="rectangle">
             <solid android:color="?attr/colorSurfaceContainer" />
             <stroke android:width="@dimen/hairline" android:color="?attr/colorOutline" />
-            <corners android:radius="@dimen/radius_sm" />
+            <corners android:radius="@dimen/radius_card" />
         </shape>
     </item>
 </selector>

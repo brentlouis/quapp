@@ -162,7 +162,8 @@
         <com.google.android.material.button.MaterialButton
             android:id="@+id/more_time_confirm"
             android:layout_width="match_parent"
-            android:layout_height="@dimen/button_height_lg"
+            android:layout_height="wrap_content"
+            android:minHeight="@dimen/button_height_lg"
             android:layout_marginTop="@dimen/space_md"
             tools:text="Move me back 5 places" />
 

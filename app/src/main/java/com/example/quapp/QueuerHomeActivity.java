@@ -53,11 +53,11 @@ public class QueuerHomeActivity extends AppCompatActivity {
         SystemBars.applyPaddingExceptBottom(findViewById(R.id.queuer_home_root));
 
         nav = findViewById(R.id.queuer_home_nav);
-        // The notched ticket shape for the active tab (DESIGN.md section 5, punched selection)
+        // Keep the navigation frame quiet; punched shapes identify queue tickets.
         nav.setItemActiveIndicatorShapeAppearance(
-                TicketShapes.selection(this, R.dimen.radius_selection));
-        // The nav is a tear-off stub like the join dock: raised paper, top corners bitten out
-        nav.setBackground(TicketShapes.stubDockBackground(this));
+                com.google.android.material.shape.ShapeAppearanceModel.builder()
+                        .setAllCornerSizes(getResources().getDimension(R.dimen.radius_selection)).build());
+        nav.setBackgroundColor(getColor(R.color.paper_raised));
 
         nav.setOnItemSelectedListener(new NavigationBarView.OnItemSelectedListener() {
             @Override

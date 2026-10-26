@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android" android:layout_width="match_parent" android:layout_height="wrap_content"
+    android:orientation="horizontal" android:gravity="center_vertical" android:paddingTop="@dimen/space_xs" android:paddingBottom="@dimen/space_ms">
+    <TextView android:id="@+id/profile_initials" android:layout_width="@dimen/touch_target_min" android:layout_height="@dimen/touch_target_min"
+        android:gravity="center" android:background="@drawable/bg_avatar" android:textAppearance="?attr/textAppearanceTitleMedium" android:importantForAccessibility="no" />
+    <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="vertical" android:layout_marginStart="@dimen/space_ms">
+        <TextView android:id="@+id/profile_name" android:layout_width="match_parent" android:layout_height="wrap_content" android:textAppearance="?attr/textAppearanceHeadlineSmall" android:accessibilityHeading="true" />
+        <TextView android:id="@+id/profile_summary_status" android:layout_width="match_parent" android:layout_height="wrap_content" android:textAppearance="?attr/textAppearanceBodyMedium" android:textColor="?attr/colorOnSurfaceVariant" />
+    </LinearLayout>
+    <com.google.android.material.button.MaterialButton android:id="@+id/profile_details" style="@style/Widget.Quapp.Button.Text"
+        android:layout_width="wrap_content" android:layout_height="wrap_content" android:minWidth="@dimen/touch_target_min" android:text="@string/profile_details" />
+</LinearLayout>

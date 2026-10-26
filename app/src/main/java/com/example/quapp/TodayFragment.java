@@ -15,6 +15,7 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.google.android.material.divider.MaterialDividerItemDecoration;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -32,6 +33,9 @@ public class TodayFragment extends Fragment implements TodayQueueAdapter.OnToday
     private TextView noShowRateText;
     private View[] populatedViews;
     private View emptyState;
+    private LoadingStateHelper loadingStateHelper;
+    private List<Queue> cachedQueues;
+    private boolean isRequestInFlight;
 
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container,
@@ -42,6 +46,11 @@ public class TodayFragment extends Fragment implements TodayQueueAdapter.OnToday
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
+
+        view.findViewById(R.id.today_manage_queues).setOnClickListener(v ->
+                ((com.google.android.material.bottomnavigation.BottomNavigationView)
+                        requireActivity().findViewById(R.id.owner_home_nav))
+                        .setSelectedItemId(R.id.nav_queues));
 
         servedText = view.findViewById(R.id.today_served);
         waitingText = view.findViewById(R.id.today_waiting);
@@ -66,6 +75,19 @@ public class TodayFragment extends Fragment implements TodayQueueAdapter.OnToday
                 view.findViewById(R.id.today_section),
                 list
         };
+
+        loadingStateHelper = new LoadingStateHelper(
+                null,
+                emptyState,
+                view.findViewById(R.id.today_loading),
+                view.findViewById(R.id.today_error)
+        );
+        loadingStateHelper.setOnRetryListener(new LoadingStateHelper.OnRetryListener() {
+            @Override
+            public void onRetry() {
+                refresh();
+            }
+        });
     }
 
     @Override
@@ -82,64 +104,73 @@ public class TodayFragment extends Fragment implements TodayQueueAdapter.OnToday
         }
     }
 
-    /** Shows the last copy straight away (shared with Your queues), then the latest. */
     private void refresh() {
-        render(null);
-        MyQueues.load(requireContext(), new MyQueues.Loaded() {
+        if (getView() == null || isRequestInFlight) {
+            return;
+        }
+
+        if (cachedQueues == null) {
+            loadingStateHelper.showLoading(getString(R.string.loading_queues));
+            for (View v : populatedViews) {
+                v.setVisibility(View.GONE);
+            }
+            emptyState.setVisibility(View.GONE);
+        }
+
+        isRequestInFlight = true;
+        FakeData.getOwnedQueuesAsync(new FakeData.Callback<List<Queue>>() {
             @Override
-            public void onLoaded(List<Queue> queues, Map<String, QueueStats> stats) {
-                if (isAdded()) {
-                    render(null);
+            public void onSuccess(List<Queue> queues) {
+                isRequestInFlight = false;
+                if (getView() == null) {
+                    return;
                 }
+                cachedQueues = queues;
+                loadingStateHelper.showContent();
+                renderWithData(queues);
             }
 
             @Override
-            public void onFailed(ApiError error) {
-                if (isAdded()) {
-                    render(error);
+            public void onError(Throwable error) {
+                isRequestInFlight = false;
+                if (getView() == null) {
+                    return;
+                }
+                if (cachedQueues == null) {
+                    loadingStateHelper.showError(getString(R.string.error_default_message));
+                    for (View v : populatedViews) {
+                        v.setVisibility(View.GONE);
+                    }
+                    emptyState.setVisibility(View.GONE);
+                } else {
+                    if (getContext() != null) {
+                        QuappMotion.snackbar(
+                                requireView(), R.string.error_default_message,
+                                com.google.android.material.snackbar.Snackbar.LENGTH_SHORT).show();
+                    }
+                    renderWithData(cachedQueues);
                 }
             }
         });
     }
 
-    /** Loading, couldn't load, no queues yet (all in the empty block), or the numbers. */
-    private void render(@Nullable ApiError error) {
-        View view = getView();
-        if (view == null) {
-            return;
-        }
-        List<Queue> queues = MyQueues.last();
-        boolean empty = queues == null || queues.isEmpty();
+    private void renderWithData(List<Queue> queues) {
+        boolean empty = queues.isEmpty();
         for (View v : populatedViews) {
             v.setVisibility(empty ? View.GONE : View.VISIBLE);
         }
         emptyState.setVisibility(empty ? View.VISIBLE : View.GONE);
         if (empty) {
-            TextView title = view.findViewById(R.id.today_empty_title);
-            TextView body = view.findViewById(R.id.today_empty_body);
-            if (queues != null) {
-                title.setText(R.string.today_empty_title);
-                body.setText(R.string.today_empty_body);
-            } else if (error == null) {
-                title.setText(R.string.today_loading_title);
-                body.setText(null);
-            } else {
-                title.setText(R.string.today_error_title);
-                body.setText(error.is(ApiError.OFFLINE)
-                        ? getString(R.string.api_offline) : error.message);
-            }
             return;
         }
 
         int served = 0;
         int noShows = 0;
         int waiting = 0;
-        Map<String, QueueStats> statsById = MyQueues.lastStats();
+        Map<String, QueueStats> statsById = new HashMap<>();
         for (Queue queue : queues) {
-            QueueStats stats = statsById.get(queue.getId());
-            if (stats == null) {
-                continue;
-            }
+            QueueStats stats = FakeData.stats(queue.getId());
+            statsById.put(queue.getId(), stats);
             served += stats.getServedToday();
             noShows += stats.getNoShowsToday();
             waiting += stats.getWaitingNow();

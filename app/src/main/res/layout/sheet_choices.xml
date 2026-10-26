@@ -6,7 +6,8 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
-    android:layout_height="wrap_content">
+    android:layout_height="wrap_content"
+    android:background="?attr/colorSurfaceContainer">
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -45,14 +46,12 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="@dimen/space_ms"
             android:layout_marginBottom="@dimen/space_sm"
-            android:background="@drawable/bg_rules_top_bottom"
-            android:orientation="horizontal"
+            android:orientation="vertical"
             android:visibility="gone">
 
             <LinearLayout
-                android:layout_width="0dp"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_weight="1"
                 android:orientation="vertical"
                 android:paddingTop="@dimen/space_ms"
                 android:paddingBottom="@dimen/space_ms">
@@ -61,29 +60,22 @@
                     android:id="@+id/choices_before_label"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:textAppearance="?attr/textAppearanceBodySmall"
+                    android:textAppearance="?attr/textAppearanceBodyMedium"
                     tools:text="Now closes" />
 
                 <TextView
                     android:id="@+id/choices_before"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:textAppearance="?attr/textAppearanceStat"
+                    android:textAppearance="?attr/textAppearanceTitleLarge"
                     android:textColor="?attr/colorOnSurfaceVariant"
                     tools:text="4 PM" />
             </LinearLayout>
 
-            <View
-                android:layout_width="@dimen/hairline"
-                android:layout_height="match_parent"
-                android:background="?attr/colorOutlineVariant" />
-
             <LinearLayout
-                android:layout_width="0dp"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_weight="1"
                 android:orientation="vertical"
-                android:paddingStart="@dimen/space_md"
                 android:paddingTop="@dimen/space_ms"
                 android:paddingBottom="@dimen/space_ms">
 
@@ -91,14 +83,14 @@
                     android:id="@+id/choices_after_label"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:textAppearance="?attr/textAppearanceBodySmall"
+                    android:textAppearance="?attr/textAppearanceBodyMedium"
                     tools:text="Will close" />
 
                 <TextView
                     android:id="@+id/choices_after"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:textAppearance="?attr/textAppearanceStat"
+                    android:textAppearance="?attr/textAppearanceTitleLarge"
                     tools:text="5 PM" />
             </LinearLayout>
         </LinearLayout>
@@ -107,9 +99,8 @@
             android:id="@+id/choices_rows"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:divider="@drawable/divider_line"
             android:orientation="vertical"
-            android:showDividers="middle" />
+            android:showDividers="none" />
 
         <TextView
             android:id="@+id/choices_note"
@@ -117,7 +108,7 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="@dimen/space_ms"
             android:drawablePadding="@dimen/space_sm"
-            android:textAppearance="?attr/textAppearanceBodySmall"
+            android:textAppearance="?attr/textAppearanceBodyMedium"
             android:textColor="?attr/colorOnSurfaceVariant"
             android:visibility="gone"
             app:drawableStartCompat="@drawable/ic_bell_ring"
@@ -127,7 +118,7 @@
         <com.google.android.material.button.MaterialButton
             android:id="@+id/choices_primary"
             android:layout_width="match_parent"
-            android:layout_height="@dimen/button_height_lg"
+            android:layout_height="wrap_content"
             android:layout_marginTop="@dimen/space_md"
             android:visibility="gone"
             tools:text="Extend to 5 PM" />
@@ -136,7 +127,7 @@
             android:id="@+id/choices_danger"
             style="@style/Widget.Quapp.Button.Danger"
             android:layout_width="match_parent"
-            android:layout_height="@dimen/button_height_lg"
+            android:layout_height="wrap_content"
             android:layout_marginTop="@dimen/space_md"
             android:visibility="gone"
             tools:text="Remove from line" />

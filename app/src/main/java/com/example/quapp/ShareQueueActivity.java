@@ -38,7 +38,7 @@ public class ShareQueueActivity extends AppCompatActivity {
         SystemBars.applyPadding(findViewById(R.id.share_root));
 
         queueId = getIntent().getStringExtra(EXTRA_QUEUE_ID);
-        final Queue queue = Queues.get(queueId);  // the screen that opened Share had loaded it
+        final Queue queue = FakeData.queueById(queueId);
         if (queue == null) {
             finish();
             return;
@@ -89,7 +89,7 @@ public class ShareQueueActivity extends AppCompatActivity {
         clipboard.setPrimaryClip(ClipData.newPlainText(queue.getName(), QueueLink.url(queue)));
         // Android 13+ shows its own "Copied" preview, so only older versions need a message.
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) {
-            Snackbar.make(findViewById(R.id.share_root), R.string.share_copied, Snackbar.LENGTH_SHORT)
+            QuappMotion.snackbar(findViewById(R.id.share_root), R.string.share_copied, Snackbar.LENGTH_SHORT)
                     .setAnchorView(R.id.share_dock)
                     .show();
         }

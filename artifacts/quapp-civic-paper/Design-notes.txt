@@ -1,0 +1,195 @@
+Sign in vs monochrome
+
+
+Login: “Register” link is now “Create account”. The guest bar's “Sign up” is also “Create account”. Pick one label for both designs and strings.xml.
+Create account is shown in its error state; the error adds “Retype it to confirm.”
+Splash: loading bar instead of a spinner.
+Role select, Forgot password, Notification permission: same content.
+Browse vs monochrome
+
+
+Greeting sits under the heading on every home screen (monochrome: above).
+Cards show the join rule on the venue line when a queue has one (“Within 2 km”). New field in the Browse response.
+Cards reworked (see orange note below): wait is the lead number, status on the schedule row, paused cards faded.
+“Ends in …” removed unless closing within the hour; pension paused 10:05 AM (monochrome 10:15, later than the clock).
+Serving #23 and 41 in line. Monochrome says #3 and 42: the new rule never counts the person being served.
+Empty town keeps Maria's ticket card (monochrome drops it).
+No results adds a “Show IDs & Registration” button.
+Queue detail & joining vs monochrome
+
+
+The checks use the four Create queue names with ON / PLANNED, SMS included. Monochrome says “Join within 1 km” and “Confirm within 3 minutes” and leaves SMS out.
+“Service hours” label gone: hours and dates moved into the stats row. Dates Sep 27–28 (monochrome still says Aug 30–31).
+Guest gate and Join after signup use Free Medical Mission #32, the queue the guest tapped. Monochrome shows Barangay Relief.
+Location “Not now” goes back to Queue detail (monochrome: to “too far”).
+✓ Fixed: new Location declined screen (48). “Turn on location” opens Android settings; “Browse other queues” as the way out. Monochrome still needs one.
+✓ Fixed: Too far keeps Directions next to the venue; the dock is one full-width Check again.
+Cooldown shows the end time (“at 10:36 AM”) instead of a progress bar.
+Join after signup keeps “Edit” on the profile row (monochrome removed it for a brand-new account).
+Ticket vs monochrome
+
+
+✓ Fixed: Called now says “Move me back”, with “Not there yet?” as helper text below, matching monochrome. The waiting ticket keeps “I need more time”, as in monochrome.
+Waiting: a spotlight ticket. The stub holds Your number #43, the body holds “41 ahead of you”, the progress ticks and Now serving.
+My tickets list moved to Sat Oct 3 (Water District called, PESO later) so the no-overlap rule holds. Monochrome had Water District at 1:00 PM, outside its 7–11 AM hours.
+Served: status reads “Served” (monochrome “Completed”).
+Slot released: neutral note (monochrome red line).
+Offline adds “Your spot is kept. Show #43 to staff at the counter.”
+Leave queue is a Material dialog; same copy.
+Profile vs monochrome
+
+
+The “Queuer · Role” row is gone.
+✓ Fixed: new Help and support screen (49): how queues work, the checks, moving back and leaving, email support, report a queue. Monochrome has neither the row nor the screen.
+“Queue history” row shows “5 queues joined”.
+History rows add dates and category icons. The closed label is “CLOSED”; DECISIONS.md says “Queue closed”.
+Organizer vs monochrome
+
+
+“New queue” moved from the header to an extended FAB, bottom right.
+✓ Fixed: on Owner home the “All queues” label is gone and the date, category and sort chips joined the status row, so the first card clears the FAB. The chip row scrolls sideways.
+Console: Served / No-show moved off the Now Serving card into a docked bar, with an Undo snackbar after each serve.
+Phone numbers masked (0917 ••• 0003); tickets #23–#27 (monochrome #3–#7).
+New screen: Close queue confirm (“Close and release 8”). Monochrome has none.
+Queue options: “Close queue now” separated and in red.
+Counter display adds a QR code.
+Totals: 20 served, 1 no-show, 85 today (monochrome 31 / 4 / 96). The new set is consistent across screens.
+Water District closed 10:00 AM (monochrome 11:00).
+Create queue: radius map preview; dates as “Sun, Sep 27”.
+Before this direction is ready to code
+
+
+✓ 1. Called screen says “Move me back”.
+✓ 2. Help and support screen added (49).
+✓ 3. Location declined screen added (48).
+✓ 4. Owner home: first card clears the FAB.
+✓ 5. Too far: one Directions button.
+
+
+Still your call:
+Outcome color: settled. The Called screen is the one loud screen (whole ground espresso, number 132 in marigold); every other outcome keeps colour to its stamp.
+DECISIONS.md: log Civic Paper when coding starts. Colours, fonts (DM Serif Display, IBM Plex Sans / Mono), shapes, light-only theme, the logo and the ticket details replace the monochrome entries.
+Design system: Civic Paper (candidate)
+
+
+Theme: light only for v1. Paper #F2EDE3 with a 5% printed grain on the ground only; cards #FBF8F2, flat, 1px line #D8CFBE. Espresso dark theme deferred.
+Type: DM Serif Display for headlines and ticket numbers (never below 20px, no bold). IBM Plex Sans for reading. IBM Plex Mono for anything that ticks: waits, counts, times, labels.
+One spotlight per screen: an espresso #2B211C ticket (was olive-tinted #2E2A23) with real punched holes. It holds your ticket, the console's Now serving, the live queue on Owner home, and the You're in line banner.
+Signal: marigold #F2C14E (was olive #C9D48A), only on the spotlight, only for called / now serving. On paper a Called label is an espresso pill with marigold text, so it never reads as the amber Paused.
+Status: Open ok, Upcoming neutral (ink-muted on paper-sunk), Paused warn, No-show err, Closed outline. Always with a word.
+Shape: 10px cards and buttons, 6px fields and notes, pill chips, search and status. The active nav tab, the nav badge and a selected chip are small punched tickets. Round Lucide caps.
+Logo: one espresso ticket mark with a serif Q (see Brand · the Quapp mark).
+Android work for Civic Paper
+
+
+Paper grain: one 256×256 tinted PNG in drawable-nodpi, a repeat bitmap in a layer-list over paper, set as windowBackground.
+Punches: a MaterialShapeDrawable with a small custom EdgeTreatment (inward 9dp arc), ~15 lines of Java, like TriangleEdgeTreatment. The ticket screen uses top/bottom punches at the perforation.
+ThemeOverlay.Quapp.Spotlight (surface = spotlight, onSurface = on-spotlight) on each spotlight card and on the Called Activity root.
+Fonts bundled in res/font (all SIL OFL): dm_serif_display, ibm_plex_sans 400–700, ibm_plex_mono 500/600. TextAppearance.Quapp.* per style.
+Perforation: 1.5dp dashed crema line (4 on, 4 off), a shape drawable with android:dashWidth / dashGap.
+The same punched EdgeTreatment, smaller, draws the active nav tab, the nav badge and selected chips.
+Launcher icon: replace the teal wordmark with the ticket mark on paper (ic_launcher_foreground.xml + background colour); status-bar icon is the one-colour cut-out.
+Numbers are one plain TextView each: no ghost digits, glow or gauze.
+Fixes this design made that monochrome still needs
+
+
+Queue detail dates: Aug 30–31 → Sep 27–28.
+“In line” never counts the person being served (42 → 41).
+Guest gate shows the queue the guest tapped.
+My tickets list: Water District hours clash.
+“Completed” → “Served”.
+History rows get dates.
+Close queue confirm dialog.
+Undo after Served on the console.
+Location declined screen.
+Help and support row and screen.
+Compared with monochrome
+Queue card v7 (Oct 12): aligned catalogue cards
+
+
+Cards match the Android catalogue-card implementation: a record header, serif queue name, double rule, and ruled Where / What / When / Wait details. Cards stay straight in scrolling lists. The paper grain remains on the screen ground; each card uses a quiet index-card surface, one status stamp, and one punched hole.
+
+
+For an open queue, estimated wait is the primary comparison value. “In line” and “Now serving” are smaller supporting facts. Upcoming, paused, closed, and organizer cards use compact status-specific details instead of forcing a wait estimate.
+
+
+The list limits decoration: no per-card tilt, extra perforations, or competing hero treatments. Paused and closed cards are faded. Card times use the short form (“8 AM – 4 PM”). Numbers stay ink; only a number being called or served on a spotlight turns marigold. “Closes in 40 min” in warn replaces the schedule in a queue's last hour.
+
+
+Browse states: loading, empty, and error transitions are announced to assistive technology. Error icons are decorative. If refresh fails while saved queues remain visible, a persistent message includes Retry and last-updated information.
+
+
+Validation still required: normal and 200% font size on Pixel and Xiaomi hardware, including TalkBack and the centered splash logo.
+
+
+API: Browse needs each queue's join radius and closing time.
+Trust & safety
+Trust & safety rules (Sep 28)
+
+
+Organizers
+One account type. Anyone managing queues can ask to be verified from Profile: organization, type, position, the office's public number. No ID photos.
+Admin (you) calls that number. Approve → badge on every queue they post.
+Unverified: may post, no badge, “Unverified organizer” note on Queue detail, 1 live queue at a time, not in “Open now across Bohol”.
+Badge promise: Quapp confirmed who runs the account. It does not vouch for each queue's details.
+
+
+Queuers
+No ID checks. Max 2 accounts per device (install ID), 1 active ticket per time slot.
+Organizers can remove a ticket: prank (counts as no-show, goes to admin), duplicate, asked to leave.
+Anyone can report a queue; reporters stay anonymous.
+
+
+Accounts
+Suspended users are blocked at login and see the reason. Their live queues close (QUEUE_CLOSED, never a no-show) and their tickets are released.
+Revoke = badge removed, queues keep running. Suspend = account blocked.
+
+
+User behaviour: people usually know which queue they want from the organizer's own announcement. The design leans on that: the unverified note tells them to check it, and Share link / QR is the main way in.
+Admin (web)
+Data model for trust & safety
+
+
+User: phone (unique), phone_verified (false until SMS), password_hash, device_install_id, status ACTIVE | SUSPENDED, suspended_reason, suspended_at.
+
+
+Organizer fields on User: org_name, org_type, verification_status NONE | PENDING | VERIFIED | REJECTED | REVOKED, verified_at, verified_by, admin_note.
+
+
+VerificationRequest: user_id, org_name, org_type, position, office_phone, status, submitted_at, reviewed_at, reviewed_by. Answers deleted after a decision; the result and note stay.
+
+
+Report: queue_id, reporter_id (never shown to the organizer), reason, note, status OPEN | DISMISSED | ACTIONED, created_at.
+
+
+TicketRemoval: ticket_id, by_organizer_id, reason PRANK | DUPLICATE | ASKED_TO_LEAVE. PRANK adds a no-show.
+
+
+Queue: no badge field. The app reads the organizer's verification_status, so a revoke shows everywhere at once.
+
+
+Admin is a small web page on the FastAPI server, not an Android screen.
+Civic Paper layout changes (everything else is a straight restyle)
+
+
+My ticket (08, 25, 26, 28): a spotlight ticket. Stub = Your number #43 (serif 56), perforation, body = 41 ahead of you (mono 34), progress ticks, Now serving.
+Called (09): whole screen goes spotlight. Number 132 in signal, signal ring, signal I'm here, Move me back outlined.
+Live console (15, 29, 30, 57): Now serving panel is the spotlight, the number in signal while it's being served.
+Owner home (13, 58): the live queue card is the spotlight.
+Counter display (32): full spotlight ground, serving number 160 in signal, QR on a paper plate.
+Home (05, 39–42): You're in line banner is a slim spotlight. On 21 the heads-up notification takes the spotlight instead, so the banner is a normal card.
+My tickets (12): the called card is the spotlight. Notification permission (20): the notification preview is.
+
+
+Printed-ticket details (Sep 28), at most one per screen besides the spotlight:
+Tear-off stub: the "You'll be #43" join bar (06, 38, 44, 52, 53), the Confirm and join bar (07, 43) and the kept ticket on outcomes (22, 23, 24).
+Tear line: a dashed crema line above every bottom button bar (dock) on every screen, and along the top of the bottom nav.
+Rubber stamp: one headline status on outcomes only (SERVED, SLOT RELEASED, QUEUE CLOSED).
+Receipt slip with dotted leaders: stats on detail screens, Insights (16), Queue history (11).
+Serial line: category on detail screens. Barcode: your ticket stub only (08, 25, 26, 28).
+Bottom nav: a crema tear line along its top edge on every screen that has it.
+Punched selection: the active bottom-nav tab, the #43 badge and selected filter chips are tiny tickets with side notches (admin sidebar and chips too).
+History rows split by dashed tear lines. Forms, console, lists and settings stay plain paper.
+
+
+Copy kept word for word, including “You're being called” (the Civic Paper spec suggests “It's your turn!”).

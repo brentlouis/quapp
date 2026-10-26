@@ -1,0 +1,12 @@
+<resources>
+    <style name="ThemeOverlay.Quapp.ProfileSwitch" parent="">
+        <item name="materialSwitchStyle">@style/Widget.Quapp.ProfileSwitch</item>
+        <item name="colorPrimary">@color/spotlight</item>
+        <item name="colorOnPrimary">@color/paper_raised</item>
+        <item name="colorSurfaceContainerHighest">@color/paper_raised</item>
+    </style>
+    <style name="Widget.Quapp.ProfileSwitch" parent="Widget.Material3.CompoundButton.MaterialSwitch">
+        <item name="android:minHeight">@dimen/touch_target_min</item>
+        <item name="android:textAppearance">@style/TextAppearance.Quapp.Body</item>
+    </style>
+</resources>

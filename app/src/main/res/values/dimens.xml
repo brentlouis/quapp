@@ -9,10 +9,12 @@
     <dimen name="space_xl">32dp</dimen>
 
     <!-- Civic Paper radii -->
-    <dimen name="radius_index_card">3dp</dimen> <!-- queue cards: catalogue cards -->
-    <dimen name="radius_sm">6dp</dimen>       <!-- fields, notes, snackbar, tiles -->
-    <dimen name="radius_md">10dp</dimen>      <!-- cards, buttons, dialogs, the spotlight -->
-    <dimen name="radius_sheet">16dp</dimen>   <!-- top corners of bottom sheets -->
+    <dimen name="radius_card">16dp</dimen>
+    <dimen name="radius_button">12dp</dimen>
+    <fraction name="radius_full">50%</fraction>
+    <dimen name="radius_sheet">24dp</dimen>
+    <dimen name="screen_margin">24dp</dimen>
+    <dimen name="card_gap">16dp</dimen>
     <dimen name="radius_selection">8dp</dimen> <!-- the punched nav tab and selected chip -->
 
     <!-- Ticket details (DESIGN.md section 5) -->
@@ -25,7 +27,7 @@
     <dimen name="card_row_height">28dp</dimen>
     <dimen name="card_hole">10dp</dimen>
     <dimen name="double_rule_height">4dp</dimen>
-    <dimen name="card_elevation">2dp</dimen>
+    <dimen name="card_elevation">0dp</dimen>
     <dimen name="banner_min_height">72dp</dimen>
     <dimen name="search_height">48dp</dimen>
     <dimen name="owner_list_bottom_padding">88dp</dimen> <!-- room for the New queue button -->
@@ -56,9 +58,15 @@
     <dimen name="my_tickets_stub_width">118dp</dimen> <!-- where the tear line and punches sit on a compact ticket -->
     <dimen name="brand_mark_width">34dp</dimen>   <!-- the ticket mark next to the wordmark; 4:5 -->
     <dimen name="brand_mark_height">42.5dp</dimen>
+    <dimen name="splash_mark_width">112dp</dimen>
+    <dimen name="splash_mark_height">140dp</dimen>
     <dimen name="tile_size">40dp</dimen>          <!-- icon tile in a list row or card -->
     <dimen name="forgot_step_size">32dp</dimen>
-    <dimen name="field_height">52dp</dimen>        <!-- a text field's box (DESIGN.md section 9) -->
+    <dimen name="field_height">56dp</dimen>        <!-- minimum; fields grow with system text -->
+    <dimen name="control_padding_horizontal">24dp</dimen>
+    <dimen name="control_padding_vertical">12dp</dimen>
+    <dimen name="control_icon_gap">8dp</dimen>
+    <dimen name="card_label_width">56dp</dimen>
     <dimen name="share_qr_size">200dp</dimen>      <!-- Share queue's QR (canvas 31) -->
     <dimen name="counter_qr_size">168dp</dimen>    <!-- the counter display's QR (canvas 32) -->
 
@@ -70,7 +78,30 @@
     <!-- Centers a 24dp icon in a 48dp touch target. -->
     <dimen name="icon_inset">12dp</dimen>
 
-    <!-- Still used by screens that haven't been rebuilt yet; removed as each one moves to Civic Paper -->
-    <dimen name="corner_radius">12dp</dimen>
-    <dimen name="corner_radius_lg">28dp</dimen>
+<dimen name="space_xxl">48dp</dimen><dimen name="space_xxxl">64dp</dimen>
+    <dimen name="dimension_zero">0dp</dimen>
+    <dimen name="nav_icon_size">24dp</dimen>
+    <dimen name="nav_indicator_width">64dp</dimen>
+    <dimen name="nav_indicator_height">48dp</dimen>
+    <dimen name="focus_stroke_width">2dp</dimen>
+    <dimen name="type_104_sp">104sp</dimen>
+    <dimen name="type_112_sp">112sp</dimen>
+    <dimen name="type_119_sp">119sp</dimen>
+    <dimen name="type_132_sp">132sp</dimen>
+    <dimen name="type_144_sp">144sp</dimen>
+    <dimen name="type_16_sp">16sp</dimen>
+    <dimen name="type_160_sp">160sp</dimen>
+    <dimen name="type_17_sp">17sp</dimen>
+    <dimen name="type_18_sp">18sp</dimen>
+    <dimen name="type_20_sp">20sp</dimen>
+    <dimen name="type_21_sp">21sp</dimen>
+    <dimen name="type_22_sp">22sp</dimen>
+    <dimen name="type_24_sp">24sp</dimen>
+    <dimen name="type_26_sp">26sp</dimen>
+    <dimen name="type_29_sp">29sp</dimen>
+    <dimen name="type_36_sp">36sp</dimen>
+    <dimen name="type_44_sp">44sp</dimen>
+    <dimen name="type_53_sp">53sp</dimen>
+    <dimen name="type_54_sp">54sp</dimen>
+    <dimen name="type_56_sp">56sp</dimen>
 </resources>

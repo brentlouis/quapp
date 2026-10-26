@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.core.widget.NestedScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/onboarding_root" android:layout_width="match_parent"
+    android:layout_height="match_parent" android:fillViewport="true">
+    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+        android:padding="24dp" android:orientation="vertical">
+        <include layout="@layout/view_brand" />
+        <TextView android:id="@+id/onboarding_art" android:layout_width="match_parent"
+            android:layout_height="wrap_content" android:layout_marginTop="32dp"
+            android:background="@drawable/bg_card" android:backgroundTint="@color/paper_sunk" android:padding="24dp"
+            android:text="@string/welcome_steps" android:textAppearance="@style/TextAppearance.Quapp.HeadingSmall" />
+        <TextView android:id="@+id/onboarding_title" android:layout_width="match_parent"
+            android:layout_height="wrap_content" android:layout_marginTop="32dp"
+            android:accessibilityHeading="true" android:text="@string/welcome_title"
+            android:textAppearance="@style/TextAppearance.Quapp.Display" />
+        <TextView android:id="@+id/onboarding_body" android:layout_width="match_parent"
+            android:layout_height="wrap_content" android:layout_marginTop="16dp"
+            android:text="@string/welcome_body" android:textAppearance="?attr/textAppearanceBodyLarge" />
+        <com.google.android.material.button.MaterialButton android:id="@+id/onboarding_next"
+            style="@style/Widget.Quapp.Button" android:layout_width="match_parent"
+            android:layout_height="wrap_content" android:layout_marginTop="32dp" android:text="@string/login_create_account" />
+        <com.google.android.material.button.MaterialButton android:id="@+id/onboarding_sign_in"
+            style="@style/Widget.Quapp.Button.Outlined" android:layout_width="match_parent"
+            android:layout_height="wrap_content" android:layout_marginTop="8dp" android:text="@string/auth_sign_in" />
+        <com.google.android.material.button.MaterialButton android:id="@+id/onboarding_skip"
+            style="@style/Widget.Quapp.Button.Text" android:layout_width="match_parent"
+            android:layout_height="wrap_content" android:layout_marginTop="8dp" android:text="@string/welcome_browse" />
+    </LinearLayout>
+</androidx.core.widget.NestedScrollView>

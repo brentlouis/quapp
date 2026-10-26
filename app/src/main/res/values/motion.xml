@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <integer name="motion_duration_short">150</integer>
+    <integer name="motion_duration_medium">200</integer>
+    <integer name="motion_duration_long">250</integer>
+    <integer name="motion_duration_press">100</integer>
+    <dimen name="motion_translation_small">8dp</dimen>
+    <!-- A nonzero style prevents Dialog.show() restoring its default window animation. -->
+    <style name="Animation.Quapp.None" parent="">
+        <item name="android:windowEnterAnimation">@null</item>
+        <item name="android:windowExitAnimation">@null</item>
+    </style>
+    <style name="Animation.Quapp.Sheet" parent="">
+        <item name="android:windowEnterAnimation">@anim/quapp_sheet_enter</item>
+        <item name="android:windowExitAnimation">@anim/quapp_sheet_exit</item>
+    </style>
+    <style name="ThemeOverlay.Quapp.Motion" parent="ThemeOverlay.Material3">
+        <item name="motionDurationLong2">@integer/motion_duration_short</item>
+        <item name="motionDurationMedium1">@integer/motion_duration_short</item>
+        <item name="motionDurationShort2">@integer/motion_duration_short</item>
+        <item name="motionDurationShort3">@integer/motion_duration_short</item>
+    </style>
+    <style name="ThemeOverlay.Quapp.ReducedMotion" parent="ThemeOverlay.Material3">
+        <item name="motionDurationLong2">0</item>
+        <item name="motionDurationMedium1">0</item>
+        <item name="motionDurationShort2">0</item>
+        <item name="motionDurationShort3">0</item>
+    </style>
+    <style name="MotionSpec.Quapp.Fade" parent=""><item name="quappMotionSpec">@animator/quapp_fade</item></style>
+    <style name="MotionSpec.Quapp.Slide" parent=""><item name="quappMotionSpec">@animator/quapp_slide</item></style>
+    <style name="MotionSpec.Quapp.Scale" parent=""><item name="quappMotionSpec">@animator/quapp_scale</item></style>
+</resources>

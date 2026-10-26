@@ -36,9 +36,10 @@ public class OwnerHomeActivity extends AppCompatActivity {
 
         nav = findViewById(R.id.owner_home_nav);
         nav.setItemActiveIndicatorShapeAppearance(
-                TicketShapes.selection(this, R.dimen.radius_selection));
-        // The nav is a tear-off stub like the join dock: raised paper, top corners bitten out
-        nav.setBackground(TicketShapes.stubDockBackground(this));
+                com.google.android.material.shape.ShapeAppearanceModel.builder()
+                        .setAllCornerSizes(getResources().getDimension(R.dimen.radius_selection)).build());
+        // Match the participant frame; ticket decoration belongs to queue identity.
+        nav.setBackgroundColor(getColor(R.color.paper_raised));
 
         nav.setOnItemSelectedListener(new NavigationBarView.OnItemSelectedListener() {
             @Override
@@ -57,7 +58,9 @@ public class OwnerHomeActivity extends AppCompatActivity {
         getOnBackPressedDispatcher().addCallback(this, backToQueues);
 
         if (savedInstanceState == null) {
-            showTab(R.id.nav_queues);
+            String requested = getIntent().getStringExtra("owner_tab");
+            int initial = "today".equals(requested) ? R.id.nav_today : "profile".equals(requested) ? R.id.nav_profile : R.id.nav_queues;
+            nav.setSelectedItemId(initial);
         } else {
             backToQueues.setEnabled(nav.getSelectedItemId() != R.id.nav_queues);
         }

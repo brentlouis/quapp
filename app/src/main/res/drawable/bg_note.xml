@@ -6,5 +6,5 @@
     <stroke
         android:width="@dimen/hairline"
         android:color="?attr/colorOutlineVariant" />
-    <corners android:radius="@dimen/radius_sm" />
+    <corners android:radius="@dimen/radius_card" />
 </shape>

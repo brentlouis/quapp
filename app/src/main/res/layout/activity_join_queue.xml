@@ -6,6 +6,7 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/join_root"
+    android:background="@color/paper"
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
@@ -38,7 +39,7 @@
         app:tint="?attr/colorOnSurfaceVariant" />
 
     <TextView
-        android:layout_width="0dp"
+        android:layout_width="@dimen/dimension_zero"
         android:layout_height="wrap_content"
         android:layout_marginStart="@dimen/space_xs"
         android:layout_marginEnd="@dimen/space_md"
@@ -50,8 +51,8 @@
         app:layout_constraintTop_toTopOf="@id/join_back" />
 
     <androidx.core.widget.NestedScrollView
-        android:layout_width="0dp"
-        android:layout_height="0dp"
+        android:layout_width="@dimen/dimension_zero"
+        android:layout_height="@dimen/dimension_zero"
         app:layout_constraintBottom_toTopOf="@id/join_dock"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
@@ -86,9 +87,8 @@
                 android:id="@+id/join_number"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:maxLines="1"
                 android:includeFontPadding="false"
-                android:textAppearance="?attr/textAppearanceTicketNumberLarge"
+                android:textAppearance="?attr/textAppearanceTicketNumberSmall"
                 android:textColor="?attr/colorOnSurface"
                 tools:text="#43" />
 
@@ -138,7 +138,7 @@
                         tools:text="MS" />
 
                     <LinearLayout
-                        android:layout_width="0dp"
+                        android:layout_width="@dimen/dimension_zero"
                         android:layout_height="wrap_content"
                         android:layout_marginStart="@dimen/space_ms"
                         android:layout_weight="1"
@@ -231,7 +231,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="@dimen/space_md"
-                android:background="@drawable/bg_note"
+                android:background="@color/paper_sunk"
                 android:orientation="horizontal"
                 android:paddingStart="@dimen/space_md"
                 android:paddingTop="@dimen/space_ms"
@@ -246,7 +246,7 @@
                     app:tint="?attr/colorOnSurfaceVariant" />
 
                 <TextView
-                    android:layout_width="0dp"
+                    android:layout_width="@dimen/dimension_zero"
                     android:layout_height="wrap_content"
                     android:layout_marginStart="@dimen/space_ms"
                     android:layout_weight="1"
@@ -261,14 +261,14 @@
 
     <LinearLayout
         android:id="@+id/join_dock"
-        android:layout_width="0dp"
+        android:layout_width="@dimen/dimension_zero"
         android:layout_height="wrap_content"
         android:orientation="vertical"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent">
 
-        <com.example.quapp.TearLineView
+        <View
             android:layout_width="match_parent"
             android:layout_height="@dimen/tear_line_width"
             android:layout_marginStart="@dimen/space_md"
@@ -282,7 +282,8 @@
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/join_submit_button"
                 android:layout_width="match_parent"
-                android:layout_height="@dimen/button_height_lg"
+                android:layout_height="wrap_content"
+            android:minHeight="@dimen/button_height_lg"
                 android:text="@string/join_action" />
         </FrameLayout>
     </LinearLayout>

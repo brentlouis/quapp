@@ -1,4 +1,16 @@
-# DESIGN.md — Quapp visual system: Civic Paper
+# Current visual authority — Slate & Mint
+
+The current user-approved identity is Civic Slate & Mint. The historical Civic Paper specification below is preserved for context; its cream/espresso palette, bundled-font requirements, pervasive texture and decorative navigation do not override the current system.
+
+Current authority: the user's full-app redesign brief and the live vault's `Projects/Quapp/DESIGN.md` (Slate & Mint foundation recorded 2026-10-17, with subsequent screen decisions). The Android implementation uses existing color names as compatibility aliases: ground `#EEF6F4`, white surfaces, ink `#0F2220`, muted `#48605C`, teal spotlight `#0B4F4A`, mint action `#2DBBAE`, amber call signal `#F5B83D`, line `#CADCD7`.
+
+The professional UI pass retains system sans and condensed display type, 16sp body text, native Material controls and 48dp minimum targets. Screen headings use 29/36sp; section titles 24/29sp; supporting prose 16/22sp. Routine labels use sentence case with normal tracking. Numeric statistics use tabular figures. Buttons use their own 12dp radius; cards retain 16dp and sheets 24dp. Large labels grow vertically. Both roles share a plain white navigation bar with a quiet rounded selection. Ticket shapes and receipt details identify queue information; routine headers stay flat.
+
+Runtime coverage, limitations and evidence for this pass are tracked in `docs/professional-ui-review.md`. This is a frontend design update, not production/backend acceptance.
+
+---
+
+# Historical specification — Civic Paper
 
 The one visual reference for building Quapp's screens. It describes **what things look like**. **Why** they look that way is in `DECISIONS.md`, and the screen-by-screen mockups are on the design canvas.
 
@@ -6,7 +18,7 @@ The one visual reference for building Quapp's screens. It describes **what thing
 - **Design system (tokens and components):** "Civic Paper", https://claude.ai/artifact/Q1Z2kpJEZpDPKCnaH8HMjn
 - **Earlier directions, reference only:** "Quapp Now Serving" (dark board) and the monochrome canvas. Don't build from them.
 
-Content, flows, states and copy on the canvas are final. Where this file and the canvas disagree, the canvas wins; fix this file.
+The canvas is the original reference. Later confirmed changes in this file and DECISIONS.md take precedence where they explicitly supersede it. Treat unconfirmed modernization ideas as proposals; do not implement them automatically.
 
 Last updated: 2026-09-29 (catalogue cards, aged ground, notched nav).
 
@@ -266,15 +278,15 @@ Never in marigold or teal, never outlined, no shadow, no bold Q.
 - **Selected:** `ink` fill, `paper_raised` text, a check, and the punched ticket shape (radius 8, 5dp side notches).
 - **Town dropdown:** stays a `paper_sunk` pill and is sticky.
 
-**Queue card (v6): a catalogue card.** Like an old library catalogue card, laid on the table by hand. Same card on Browse and on the organizer's Queues tab.
-- **Card:** `index_card` (whiter than `paper_raised`, so it lifts off the aged ground), a 1dp `index_card_edge`, `radius_index_card` (3dp), 2dp elevation, 16dp between cards. The card stock texture on top. Each card is turned a fraction of a degree (−0.5°, 0.4°, −0.3°, 0.5° in turn; `QueueAdapter`).
+**Queue card (v7): a catalogue card with a clear wait estimate.** Shared by Browse and the organizer's Queues tab. This replaces v6's combined wait line and rotating cards.
+- **Card:** `index_card`, a 1dp edge, 3dp corners, 2dp elevation, and 16dp between cards. Cards stay straight in scrolling lists. Keep the existing stock texture, stamp, and hole; add no extra ticket decoration.
 - **Top line:** the category and the queue's number in `Label`, `ink_faint` ("RELIEF · NO. 001"). At the end, the status as a small rubber stamp (`Widget.Quapp.Stamp.Small`, tilted −5°, double-ruled outline): OPEN `ok`, PAUSED `warn` (with the time, for organizers), UPCOMING and CLOSED `ink_muted`.
 - **Name:** `Title` (DM Serif 22), `ink_muted` when paused or closed, with the verified badge after it. Under it a thin double `crema` rule (`bg_double_rule`).
 - **Details, one per ruled line** (`view_card_row`: the label in `ink_muted` on the left, the value on the right, a faint roast hairline under it):
   - Where: the venue, plus "Within 1 km" when a radius applies.
   - What: the one-line description (hidden when there's none).
   - When: the schedule in mono ("Day 1 of 2 · 8 AM – 8 PM"), or "Closes in 40 min" in `warn`.
-  - Wait (queuers): "55 min · 42 in line · serving #21" in mono. Paused: "Paused since 10:05 AM · 12 in line". Closed: "Closed at 4 PM". Upcoming: the label is Opens, "1 PM · 5 joined early".
+  - Wait (open queues): "55 min" is a separate 26sp mono value. "42 in line · serving #21" appears below in smaller mono text and can wrap. Paused: "Paused since 10:05 AM · 12 in line". Closed: "Closed at 4 PM". Upcoming: the label is Opens, "1 PM · 5 joined early".
   - Today (organizers): "42 waiting · 18 served · 3 no-shows". Closed: "Closed at 4 PM · 45 served".
 - **Hole:** a 10dp punched hole at the bottom centre (`bg_card_hole`).
 
@@ -342,3 +354,53 @@ Never in marigold or teal, never outlined, no shadow, no bold Q.
 - Add torn edges or sepia. The ground is old paper, but the things on it (cards, tickets, buttons) are clean new stock.
 - Give Upcoming and Paused the same colour.
 - Add a ticket detail where section 5 doesn't list one.
+
+### 2026-10-13 03:57 UTC+08:00 | Model: Model unknown
+
+Project: Quapp. Source: current Codex conversation; chat title/link unavailable. Backfill recorded now from accessible chat history and current files. Earlier changes occurred before this entry; exact event times and writer model are unavailable.
+
+Current implemented design update:
+- Open queuer catalogue cards: estimated wait is the main 26sp value; people in line and serving number sit below as wrapping supporting text. Owner/non-open cards use compact metrics.
+- Queue lists use straight cards. Texture was not removed across the design system.
+- Loading, empty, and error states trigger explicit accessibility announcements; redundant error artwork is decorative. Spoken behavior still needs TalkBack verification.
+- Cached Browse errors retain content and show Retry and last-updated text; the Snackbar allows multiple lines for large text.
+- Six queue-list artboards in the 64-screen export were updated and the offline gallery/ZIP rebuilt. These are a visual reference, not proof of Android behavior.
+
+Implementation and verification evidence is tracked in [PROGRESS.md](PROGRESS.md). The HTML export is a visual approximation; its older ground-only grain wording does not establish that Android component textures were removed. The Android texture rules above remain current.
+
+### 2026-10-13 04:10 UTC+08:00 | Model: Model unknown
+
+Project: Quapp. Source: current Codex conversation; title/link unavailable.
+
+User request: save the UI feedback for later only. Do not implement it now.
+
+Proposal for later review:
+- Keep the Civic Paper visual direction.
+- Give each screen one clear focus: wait time in Browse, ticket status while waiting, and Call next for organizers.
+- Use texture, holes, stamps, and ruled lines selectively to reduce clutter.
+- Review small labels and muted text for readability.
+- Keep primary actions consistent across the flow.
+- Finish normal/200% text and TalkBack checks.
+
+Status: saved feedback, not an approved implementation task. No app code or UI changed. Review scope is based on previously inspected screens, not a complete audit of the latest build.
+
+### 2026-10-13 05:28 UTC+08:00 | Model: Model unknown
+
+Project: Quapp. Source: current Codex conversation; title/link unavailable.
+
+Clarification: Civic Paper remains the current implementation baseline. The user is considering a more modern future UI; no replacement direction or redesign implementation is approved by saving feedback or installing skills. Earlier suggestions to keep Civic Paper are recommendations, not a permanent user commitment. No visual rules were changed in this documentation correction.
+
+### 2026-10-13 21:40 UTC+08:00 | Model: Model unknown
+
+Project: Quapp. Source: current Civic Paper refinement chat; title/link unavailable. Exact writer model unavailable.
+
+Confirmed direction: professional real-world UI while preserving Civic Paper. First pass retains cream/espresso/marigold, bundled serif/sans/mono and ticket identity; standardizes controls, softens component grain and improves large-text layout. This replaces full-strength component texture and tilted small card stamps where changed; preserve earlier specifications as history.
+
+User considers the visible improvement insufficient. A substantial representative-screen redesign remains unresolved and must be shown before expanding the implementation. Modern Civic remains a separate earlier proposal. Latest source changes have not completed final visual validation. [[Projects/Quapp/PROGRESS]].
+
+### 2026-10-13 21:43 UTC+08:00 | Model: Model unknown
+
+Project: Quapp. Source: current Codex chat; title/link unavailable. Exact writer model unavailable.
+
+Deferred scope: full renovation of Browse, My Tickets and Profile preserving Civic Paper. Canonical prompt: [[Projects/Quapp/DESIGN#Deferred renovation — Browse, My Tickets, Profile]]. No implementation scheduled; resume when the user requests it.
+

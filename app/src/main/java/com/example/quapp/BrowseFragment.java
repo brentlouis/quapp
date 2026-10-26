@@ -8,7 +8,6 @@ import android.text.TextWatcher;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.CompoundButton;
 import android.widget.EditText;
 import android.widget.TextView;
 
@@ -23,8 +22,10 @@ import com.google.android.material.button.MaterialButton;
 import com.google.android.material.chip.Chip;
 import com.google.android.material.chip.ChipGroup;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
-import com.google.android.material.shape.ShapeAppearanceModel;
+import com.google.android.material.snackbar.Snackbar;
 
+import java.time.Duration;
+import java.time.Instant;
 import java.time.LocalTime;
 import java.util.List;
 
@@ -59,23 +60,12 @@ public class BrowseFragment extends Fragment implements QueueAdapter.OnQueueClic
     private ChipGroup categoryGroup;
     private Chip allChip;
 
-    // null means "no filter"
     private Category selectedCategory;
-
-    /** The queues from the server's last answer; null until the first one arrives. */
-    @Nullable
-    private List<Queue> loaded;
-    /** Why the last load failed, while there's nothing to show instead; null otherwise. */
-    @Nullable
-    private ApiError loadError;
-
-    /** The "You're in line" banner follows the tickets as they sync. */
-    private final Runnable ticketsChanged = new Runnable() {
-        @Override
-        public void run() {
-            refresh();
-        }
-    };
+    private LoadingStateHelper loadingStateHelper;
+    private List<Queue> cachedQueues;
+    private boolean isRequestInFlight;
+    @Nullable private Instant lastSuccessfulRefresh;
+    @Nullable private Snackbar refreshErrorSnackbar;
 
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container,
@@ -106,12 +96,21 @@ public class BrowseFragment extends Fragment implements QueueAdapter.OnQueueClic
         categoryGroup = view.findViewById(R.id.browse_category_group);
 
         list.setLayoutManager(new LinearLayoutManager(requireContext()));
-        cardAdapter = new QueueAdapter(this);
-        openNowAdapter = new OpenNowAdapter(this);
+        cardAdapter = new QueueAdapter(this, true);
+        openNowAdapter = new OpenNowAdapter(this, () -> { });
+        // Short windows need the filters to scroll away so the results retain usable touch targets.
+        if (getResources().getConfiguration().screenHeightDp < 480) {
+            View pinned = view.findViewById(R.id.browse_pinned);
+            com.google.android.material.appbar.AppBarLayout.LayoutParams params =
+                    (com.google.android.material.appbar.AppBarLayout.LayoutParams) pinned.getLayoutParams();
+            params.setScrollFlags(com.google.android.material.appbar.AppBarLayout.LayoutParams.SCROLL_FLAG_SCROLL
+                    | com.google.android.material.appbar.AppBarLayout.LayoutParams.SCROLL_FLAG_ENTER_ALWAYS);
+            pinned.setLayoutParams(params);
+        }
 
         // The banner is a slim spotlight with small punches in its sides.
         banner.setBackground(TicketShapes.background(requireContext(),
-                TicketShapes.sidePunched(requireContext(), R.dimen.radius_md,
+                TicketShapes.sidePunched(requireContext(), R.dimen.radius_card,
                         R.dimen.punch_radius_banner, 0.5f),
                 ContextCompat.getColor(requireContext(), R.color.spotlight)));
         banner.setOnClickListener(new View.OnClickListener() {
@@ -125,21 +124,28 @@ public class BrowseFragment extends Fragment implements QueueAdapter.OnQueueClic
         setUpTownChip();
         setUpCategoryChips();
         setUpFirstVisit(view);
+
+        loadingStateHelper = new LoadingStateHelper(
+                null,
+                emptyState,
+                view.findViewById(R.id.browse_loading),
+                view.findViewById(R.id.browse_error)
+        );
+        loadingStateHelper.setOnRetryListener(new LoadingStateHelper.OnRetryListener() {
+            @Override
+            public void onRetry() {
+                refresh();
+            }
+        });
     }
 
-    /** Coming back from Queue detail, Join or the ticket screen: the lines have moved since. */
+    /** Coming back from Queue detail, Join or the ticket screen. */
     @Override
     public void onResume() {
         super.onResume();
-        ActiveTicketStore.addListener(ticketsChanged);
+        QuappMotion.buttons(requireView());
+        QuappMotion.list(list);
         refresh();
-        load();
-    }
-
-    @Override
-    public void onPause() {
-        super.onPause();
-        ActiveTicketStore.removeListener(ticketsChanged);
     }
 
     /** Coming back from another tab. */
@@ -148,36 +154,7 @@ public class BrowseFragment extends Fragment implements QueueAdapter.OnQueueClic
         super.onHiddenChanged(hidden);
         if (!hidden) {
             refresh();
-            load();
         }
-    }
-
-    /**
-     * Asks the server for every upcoming, open and paused queue. Search, town and category are
-     * applied here in the app (QueueFilter), so typing doesn't wait for the network.
-     */
-    private void load() {
-        ApiClient.api(requireContext()).queues().enqueue(new ApiCallback<List<Queue>>(requireActivity()) {
-            @Override
-            protected void onSuccess(@Nullable List<Queue> queues) {
-                Queues.putAll(queues);
-                loaded = queues;
-                loadError = null;
-                refresh();
-            }
-
-            @Override
-            protected void onError(@NonNull ApiError error) {
-                if (loaded == null) {
-                    // Nothing to show instead: the error state, with Try again
-                    loadError = error;
-                    refresh();
-                } else {
-                    // The last list stays up; say it couldn't be updated
-                    super.onError(error);
-                }
-            }
-        });
     }
 
     @Override
@@ -250,22 +227,8 @@ public class BrowseFragment extends Fragment implements QueueAdapter.OnQueueClic
         chip.setId(View.generateViewId());
         chip.setText(label);
         chip.setTag(category);
-        punchWhenChecked(chip);
         categoryGroup.addView(chip);
         return chip;
-    }
-
-    /** A selected chip becomes a punched ticket (DESIGN.md "Punched selection"). */
-    private void punchWhenChecked(final Chip chip) {
-        final ShapeAppearanceModel pill = chip.getShapeAppearanceModel();
-        final ShapeAppearanceModel punched =
-                TicketShapes.selection(requireContext(), R.dimen.radius_selection);
-        chip.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
-            @Override
-            public void onCheckedChanged(CompoundButton button, boolean isChecked) {
-                chip.setShapeAppearanceModel(isChecked ? punched : pill);
-            }
-        });
     }
 
     /** First visit: the first few towns as chips, the rest behind "N more". */
@@ -338,55 +301,57 @@ public class BrowseFragment extends Fragment implements QueueAdapter.OnQueueClic
     // ---- Rendering ----------------------------------------------------------
 
     private void refresh() {
-        if (getView() == null) {
+        if (getView() == null || isRequestInFlight) {
             return;
         }
+
+        if (cachedQueues == null) {
+            loadingStateHelper.showLoading(getString(R.string.loading_queues));
+            list.setVisibility(View.GONE);
+            emptyState.setVisibility(View.GONE);
+        }
+
+        isRequestInFlight = true;
+        FakeData.getQueuesAsync(new FakeData.Callback<List<Queue>>() {
+            @Override
+            public void onSuccess(List<Queue> all) {
+                isRequestInFlight = false;
+                if (getView() == null) {
+                    return;
+                }
+                cachedQueues = all;
+                lastSuccessfulRefresh = Instant.now();
+                dismissRefreshError();
+                renderWithData(all);
+            }
+
+            @Override
+            public void onError(Throwable error) {
+                isRequestInFlight = false;
+                if (getView() == null) {
+                    return;
+                }
+                if (cachedQueues == null) {
+                    loadingStateHelper.showError(getString(R.string.error_default_message));
+                    list.setVisibility(View.GONE);
+                    emptyState.setVisibility(View.GONE);
+                } else {
+                    renderWithData(cachedQueues);
+                    showCachedRefreshError();
+                }
+            }
+        });
+    }
+
+    private void renderWithData(List<Queue> all) {
         String town = session.getTown();
         bindGreeting(town == null);
-        if (loaded == null) {
-            renderNotLoaded();
-            return;
-        }
-        List<Queue> all = loaded;
 
         if (town == null) {
             renderFirstVisit(all);
         } else {
             renderTown(all, town);
         }
-    }
-
-    /**
-     * Before the first answer: "Loading queues…" in the count line; if it failed, the empty
-     * state says so, with Try again (CLAUDE.md: loading, empty, error and populated states).
-     */
-    private void renderNotLoaded() {
-        firstVisit.setVisibility(View.GONE);
-        banner.setVisibility(View.GONE);
-        highlight.setVisibility(View.GONE);
-        list.setVisibility(View.GONE);
-        getView().findViewById(R.id.browse_nearby_label).setVisibility(View.GONE);
-        getView().findViewById(R.id.browse_nearby_row).setVisibility(View.GONE);
-        if (loadError == null) {
-            count.setText(R.string.browse_loading);
-            emptyState.setVisibility(View.GONE);
-            return;
-        }
-        count.setText(null);
-        emptyState.setVisibility(View.VISIBLE);
-        ((TextView) getView().findViewById(R.id.browse_empty_title)).setText(R.string.browse_error_title);
-        ((TextView) getView().findViewById(R.id.browse_empty_body)).setText(
-                loadError.is(ApiError.OFFLINE) ? getString(R.string.api_offline) : loadError.message);
-        MaterialButton retry = getView().findViewById(R.id.browse_empty_button);
-        retry.setText(R.string.browse_error_retry);
-        retry.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                loadError = null;
-                refresh();
-                load();
-            }
-        });
     }
 
     /** "Good morning, Maria" by the hour, or "Welcome, Maria" on a first visit. */
@@ -404,6 +369,7 @@ public class BrowseFragment extends Fragment implements QueueAdapter.OnQueueClic
     }
 
     private void renderFirstVisit(List<Queue> all) {
+        loadingStateHelper.showContent();
         firstVisit.setVisibility(View.VISIBLE);
         banner.setVisibility(View.GONE);
         highlight.setVisibility(View.GONE);
@@ -417,7 +383,8 @@ public class BrowseFragment extends Fragment implements QueueAdapter.OnQueueClic
                 : QueueFilter.forBrowse(QueueFilter.apply(all, query, null, null));
         count.setText(getString(query.trim().isEmpty() ? R.string.browse_open_now_format
                 : R.string.browse_results_format, queues.size()));
-        list.setAdapter(openNowAdapter);
+        if (list.getAdapter() != openNowAdapter) list.setAdapter(openNowAdapter);
+        ProfilePreferences.order(requireContext(), queues);
         openNowAdapter.submitQueues(queues);
         list.setVisibility(View.VISIBLE);
     }
@@ -437,19 +404,64 @@ public class BrowseFragment extends Fragment implements QueueAdapter.OnQueueClic
 
         count.setText(searching ? getString(R.string.browse_results_format, queues.size())
                 : getString(R.string.browse_in_town_format, town, queues.size()));
-        list.setAdapter(cardAdapter);
+        if (list.getAdapter() != cardAdapter) list.setAdapter(cardAdapter);
+        ProfilePreferences.order(requireContext(), queues);
         cardAdapter.submitQueues(queues);
 
         boolean empty = queues.isEmpty();
         list.setVisibility(empty ? View.GONE : View.VISIBLE);
-        emptyState.setVisibility(empty ? View.VISIBLE : View.GONE);
         if (empty) {
             if (!searching && selectedCategory == null) {
                 bindEmptyTown(all, town);
             } else {
                 bindNoResults(query.trim());
             }
+            loadingStateHelper.showEmpty();
+        } else {
+            loadingStateHelper.showContent();
         }
+    }
+
+    private void showCachedRefreshError() {
+        if (getView() == null) {
+            return;
+        }
+        dismissRefreshError();
+        CharSequence updated = lastUpdatedText();
+        refreshErrorSnackbar = QuappMotion.snackbar(requireView(),
+                getString(R.string.browse_cached_error_format, updated),
+                Snackbar.LENGTH_INDEFINITE);
+        refreshErrorSnackbar.setTextMaxLines(6);
+        refreshErrorSnackbar.setAction(R.string.ticket_offline_retry, new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                refresh();
+            }
+        });
+        refreshErrorSnackbar.show();
+    }
+
+    private CharSequence lastUpdatedText() {
+        if (lastSuccessfulRefresh == null) {
+            return getString(R.string.ticket_offline_updated_now);
+        }
+        long minutes = Math.max(0, Duration.between(lastSuccessfulRefresh, Instant.now()).toMinutes());
+        return minutes < 1 ? getString(R.string.ticket_offline_updated_now)
+                : getResources().getQuantityString(R.plurals.ticket_offline_updated,
+                        (int) minutes, (int) minutes);
+    }
+
+    private void dismissRefreshError() {
+        if (refreshErrorSnackbar != null) {
+            refreshErrorSnackbar.dismiss();
+            refreshErrorSnackbar = null;
+        }
+    }
+
+    @Override
+    public void onDestroyView() {
+        dismissRefreshError();
+        super.onDestroyView();
     }
 
     /** One ticket opens straight to it; with several, My tickets shows them all. */

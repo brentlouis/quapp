@@ -7,7 +7,8 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/report_root"
     android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:layout_height="match_parent"
+    android:background="@color/paper">
 
     <!-- App bar -->
     <ImageButton
@@ -23,22 +24,9 @@
         app:layout_constraintTop_toTopOf="parent"
         app:tint="?attr/colorOnSurface" />
 
-    <TextView
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="@dimen/space_xs"
-        android:layout_marginEnd="@dimen/space_md"
-        android:accessibilityHeading="true"
-        android:text="@string/report_title"
-        android:textAppearance="?attr/textAppearanceTitleMedium"
-        app:layout_constraintBottom_toBottomOf="@id/report_back"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toEndOf="@id/report_back"
-        app:layout_constraintTop_toTopOf="@id/report_back" />
-
     <androidx.core.widget.NestedScrollView
-        android:layout_width="0dp"
-        android:layout_height="0dp"
+        android:layout_width="@dimen/dimension_zero"
+        android:layout_height="@dimen/dimension_zero"
         app:layout_constraintBottom_toTopOf="@id/report_tear"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
@@ -51,6 +39,14 @@
             android:paddingStart="@dimen/space_md"
             android:paddingEnd="@dimen/space_md"
             android:paddingBottom="@dimen/space_lg">
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/space_sm"
+                android:accessibilityHeading="true"
+                android:text="@string/report_title"
+                android:textAppearance="?attr/textAppearanceTitleMedium" />
 
             <!-- Which queue this is about -->
             <TextView
@@ -76,9 +72,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="@dimen/space_sm"
-                android:divider="@drawable/divider_line"
-                android:orientation="vertical"
-                android:showDividers="middle" />
+                android:orientation="vertical" />
 
             <TextView
                 android:id="@+id/report_reason_error"
@@ -118,7 +112,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="@dimen/space_md"
-                android:background="@drawable/bg_note"
+                android:background="@color/paper_sunk"
                 android:drawablePadding="@dimen/space_ms"
                 android:paddingStart="@dimen/space_md"
                 android:paddingTop="@dimen/space_ms"
@@ -134,9 +128,9 @@
 
     <!-- ===== Dock ===== -->
 
-    <com.example.quapp.TearLineView
+    <View
         android:id="@+id/report_tear"
-        android:layout_width="0dp"
+        android:layout_width="@dimen/dimension_zero"
         android:layout_height="@dimen/tear_line_width"
         android:layout_marginStart="@dimen/space_md"
         android:layout_marginEnd="@dimen/space_md"
@@ -147,7 +141,7 @@
     <LinearLayout
         android:id="@+id/report_dock"
         style="@style/Widget.Quapp.Dock"
-        android:layout_width="0dp"
+        android:layout_width="@dimen/dimension_zero"
         android:layout_height="wrap_content"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
@@ -156,7 +150,8 @@
         <com.google.android.material.button.MaterialButton
             android:id="@+id/report_send"
             android:layout_width="match_parent"
-            android:layout_height="@dimen/button_height_lg"
+            android:layout_height="wrap_content"
+            android:minHeight="@dimen/button_height_lg"
             android:text="@string/report_send"
             app:icon="@drawable/ic_flag"
             app:iconGravity="textStart" />

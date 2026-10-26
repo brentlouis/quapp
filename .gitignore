@@ -15,3 +15,6 @@
 .cxx
 local.properties
 .env
+/.gradle-test/
+/diagnostics/jvm-crashes/hs_err_pid*.log
+/hs_err_pid*.log

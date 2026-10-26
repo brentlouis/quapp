@@ -146,7 +146,8 @@
         <com.google.android.material.button.MaterialButton
             android:id="@+id/suspended_email"
             android:layout_width="match_parent"
-            android:layout_height="@dimen/button_height_lg"
+            android:layout_height="wrap_content"
+            android:minHeight="@dimen/button_height_lg"
             android:text="@string/suspended_email_action"
             app:icon="@drawable/ic_mail"
             app:iconGravity="textStart" />

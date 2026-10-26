@@ -6,6 +6,7 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/create_root"
+    android:background="@color/paper"
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
@@ -24,12 +25,13 @@
         app:tint="?attr/colorOnSurface" />
 
     <LinearLayout
-        android:layout_width="0dp"
+        android:id="@+id/create_header"
+        android:minHeight="@dimen/touch_target_min"
+        android:layout_width="@dimen/dimension_zero"
         android:layout_height="wrap_content"
         android:layout_marginStart="@dimen/space_xs"
         android:layout_marginEnd="@dimen/space_md"
         android:orientation="vertical"
-        app:layout_constraintBottom_toBottomOf="@id/create_back"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toEndOf="@id/create_back"
         app:layout_constraintTop_toTopOf="@id/create_back">
@@ -42,22 +44,18 @@
             android:text="@string/create_title"
             android:textAppearance="?attr/textAppearanceTitleMedium" />
 
-        <TextView
-            android:id="@+id/create_subtitle_text"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="@string/create_subtitle"
-            android:textAppearance="?attr/textAppearanceBodySmall" />
     </LinearLayout>
 
     <androidx.core.widget.NestedScrollView
         android:id="@+id/create_scroll"
-        android:layout_width="0dp"
-        android:layout_height="0dp"
+        android:fillViewport="true"
+        android:scrollbarStyle="insideOverlay"
+        android:layout_width="@dimen/dimension_zero"
+        android:layout_height="@dimen/dimension_zero"
         app:layout_constraintBottom_toTopOf="@id/create_tear"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/create_back">
+        app:layout_constraintTop_toBottomOf="@id/create_header">
 
         <LinearLayout
             android:layout_width="match_parent"
@@ -67,6 +65,13 @@
             android:paddingTop="@dimen/space_sm"
             android:paddingEnd="@dimen/space_md"
             android:paddingBottom="@dimen/space_lg">
+
+        <TextView
+            android:id="@+id/create_subtitle_text"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/create_subtitle"
+            android:textAppearance="?attr/textAppearanceBodySmall" />
 
             <!-- Who the queue will say it's organized by -->
             <LinearLayout
@@ -84,7 +89,8 @@
 
                 <TextView
                     android:id="@+id/create_posting_as"
-                    android:layout_width="wrap_content"
+                    android:layout_weight="1"
+                    android:layout_width="@dimen/dimension_zero"
                     android:layout_height="wrap_content"
                     android:layout_marginStart="@dimen/space_sm"
                     android:textAppearance="?attr/textAppearanceLabelMedium"
@@ -111,8 +117,11 @@
                 android:orientation="horizontal">
 
                 <TextView
-                    android:layout_width="@dimen/forgot_step_size"
-                    android:layout_height="@dimen/forgot_step_size"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:minWidth="@dimen/forgot_step_size"
+                    android:minHeight="@dimen/forgot_step_size"
+                    android:padding="@dimen/space_xs"
                     android:background="@drawable/bg_step_number"
                     android:gravity="center"
                     android:importantForAccessibility="no"
@@ -120,7 +129,7 @@
                     android:textAppearance="?attr/textAppearanceLabelSmall" />
 
                 <LinearLayout
-                    android:layout_width="0dp"
+                    android:layout_width="@dimen/dimension_zero"
                     android:layout_height="wrap_content"
                     android:layout_marginStart="@dimen/space_ms"
                     android:layout_weight="1"
@@ -136,6 +145,11 @@
                 </LinearLayout>
             </LinearLayout>
 
+            <TextView android:id="@+id/create_simplified_note"
+                android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/space_md"
+                android:text="@string/create_simplified_note"
+                android:textAppearance="?attr/textAppearanceBodySmall" />
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
@@ -187,12 +201,11 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="@dimen/space_md"
                 android:baselineAligned="false"
-                android:orientation="horizontal">
+                android:orientation="vertical">
 
                 <LinearLayout
-                    android:layout_width="0dp"
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_weight="1"
                     android:orientation="vertical">
 
                     <TextView
@@ -204,6 +217,10 @@
                     <TextView
                         android:id="@+id/create_municipality"
                         style="@style/Widget.Quapp.SelectField"
+                        android:maxLines="2147483647"
+                        android:ellipsize="none"
+                        android:paddingTop="@dimen/space_sm"
+                        android:paddingBottom="@dimen/space_sm"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="@dimen/space_sm"
@@ -213,10 +230,9 @@
                 </LinearLayout>
 
                 <LinearLayout
-                    android:layout_width="0dp"
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginStart="@dimen/space_ms"
-                    android:layout_weight="1"
+                    android:layout_marginTop="@dimen/space_md"
                     android:orientation="vertical">
 
                     <TextView
@@ -228,6 +244,10 @@
                     <TextView
                         android:id="@+id/create_category"
                         style="@style/Widget.Quapp.SelectField"
+                        android:maxLines="2147483647"
+                        android:ellipsize="none"
+                        android:paddingTop="@dimen/space_sm"
+                        android:paddingBottom="@dimen/space_sm"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="@dimen/space_sm"
@@ -334,8 +354,11 @@
                 android:orientation="horizontal">
 
                 <TextView
-                    android:layout_width="@dimen/forgot_step_size"
-                    android:layout_height="@dimen/forgot_step_size"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:minWidth="@dimen/forgot_step_size"
+                    android:minHeight="@dimen/forgot_step_size"
+                    android:padding="@dimen/space_xs"
                     android:background="@drawable/bg_step_number"
                     android:gravity="center"
                     android:importantForAccessibility="no"
@@ -343,7 +366,7 @@
                     android:textAppearance="?attr/textAppearanceLabelSmall" />
 
                 <LinearLayout
-                    android:layout_width="0dp"
+                    android:layout_width="@dimen/dimension_zero"
                     android:layout_height="wrap_content"
                     android:layout_marginStart="@dimen/space_ms"
                     android:layout_weight="1"
@@ -370,7 +393,7 @@
                 <com.google.android.material.button.MaterialButton
                     android:id="@+id/create_one_day"
                     style="@style/Widget.Quapp.Segment"
-                    android:layout_width="0dp"
+                    android:layout_width="@dimen/dimension_zero"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
                     android:text="@string/create_one_day" />
@@ -378,7 +401,7 @@
                 <com.google.android.material.button.MaterialButton
                     android:id="@+id/create_multiple_days"
                     style="@style/Widget.Quapp.Segment"
-                    android:layout_width="0dp"
+                    android:layout_width="@dimen/dimension_zero"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
                     android:text="@string/create_multiple_days" />
@@ -390,12 +413,11 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="@dimen/space_md"
                 android:baselineAligned="false"
-                android:orientation="horizontal">
+                android:orientation="vertical">
 
                 <LinearLayout
-                    android:layout_width="0dp"
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_weight="1"
                     android:orientation="vertical">
 
                     <TextView
@@ -408,6 +430,10 @@
                     <TextView
                         android:id="@+id/create_start_date"
                         style="@style/Widget.Quapp.SelectField"
+                        android:maxLines="2147483647"
+                        android:ellipsize="none"
+                        android:paddingTop="@dimen/space_sm"
+                        android:paddingBottom="@dimen/space_sm"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="@dimen/space_sm"
@@ -417,10 +443,9 @@
                 </LinearLayout>
 
                 <LinearLayout
-                    android:layout_width="0dp"
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginStart="@dimen/space_ms"
-                    android:layout_weight="1"
+                    android:layout_marginTop="@dimen/space_md"
                     android:orientation="vertical">
 
                     <TextView
@@ -432,6 +457,10 @@
                     <TextView
                         android:id="@+id/create_end_date"
                         style="@style/Widget.Quapp.SelectField"
+                        android:maxLines="2147483647"
+                        android:ellipsize="none"
+                        android:paddingTop="@dimen/space_sm"
+                        android:paddingBottom="@dimen/space_sm"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="@dimen/space_sm"
@@ -447,12 +476,11 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="@dimen/space_md"
                 android:baselineAligned="false"
-                android:orientation="horizontal">
+                android:orientation="vertical">
 
                 <LinearLayout
-                    android:layout_width="0dp"
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_weight="1"
                     android:orientation="vertical">
 
                     <TextView
@@ -464,6 +492,10 @@
                     <TextView
                         android:id="@+id/create_opens"
                         style="@style/Widget.Quapp.SelectField"
+                        android:maxLines="2147483647"
+                        android:ellipsize="none"
+                        android:paddingTop="@dimen/space_sm"
+                        android:paddingBottom="@dimen/space_sm"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="@dimen/space_sm"
@@ -473,10 +505,9 @@
                 </LinearLayout>
 
                 <LinearLayout
-                    android:layout_width="0dp"
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginStart="@dimen/space_ms"
-                    android:layout_weight="1"
+                    android:layout_marginTop="@dimen/space_md"
                     android:orientation="vertical">
 
                     <TextView
@@ -488,6 +519,10 @@
                     <TextView
                         android:id="@+id/create_closes"
                         style="@style/Widget.Quapp.SelectField"
+                        android:maxLines="2147483647"
+                        android:ellipsize="none"
+                        android:paddingTop="@dimen/space_sm"
+                        android:paddingBottom="@dimen/space_sm"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="@dimen/space_sm"
@@ -523,7 +558,7 @@
 
                 <TextView
                     android:id="@+id/create_schedule_summary"
-                    android:layout_width="0dp"
+                    android:layout_width="@dimen/dimension_zero"
                     android:layout_height="wrap_content"
                     android:layout_marginStart="@dimen/space_sm"
                     android:layout_weight="1"
@@ -542,8 +577,11 @@
                 android:orientation="horizontal">
 
                 <TextView
-                    android:layout_width="@dimen/forgot_step_size"
-                    android:layout_height="@dimen/forgot_step_size"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:minWidth="@dimen/forgot_step_size"
+                    android:minHeight="@dimen/forgot_step_size"
+                    android:padding="@dimen/space_xs"
                     android:background="@drawable/bg_step_number"
                     android:gravity="center"
                     android:importantForAccessibility="no"
@@ -551,7 +589,7 @@
                     android:textAppearance="?attr/textAppearanceLabelSmall" />
 
                 <LinearLayout
-                    android:layout_width="0dp"
+                    android:layout_width="@dimen/dimension_zero"
                     android:layout_height="wrap_content"
                     android:layout_marginStart="@dimen/space_ms"
                     android:layout_weight="1"
@@ -616,6 +654,7 @@
 
             <com.google.android.material.button.MaterialButtonToggleGroup
                 android:id="@+id/create_radius_group"
+                android:orientation="vertical"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="@dimen/space_sm"
@@ -625,33 +664,29 @@
                 <com.google.android.material.button.MaterialButton
                     android:id="@+id/create_radius_500"
                     style="@style/Widget.Quapp.Segment"
-                    android:layout_width="0dp"
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_weight="1"
                     android:text="@string/create_radius_500" />
 
                 <com.google.android.material.button.MaterialButton
                     android:id="@+id/create_radius_1000"
                     style="@style/Widget.Quapp.Segment"
-                    android:layout_width="0dp"
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_weight="1"
                     android:text="@string/create_radius_1000" />
 
                 <com.google.android.material.button.MaterialButton
                     android:id="@+id/create_radius_2000"
                     style="@style/Widget.Quapp.Segment"
-                    android:layout_width="0dp"
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_weight="1"
                     android:text="@string/create_radius_2000" />
 
                 <com.google.android.material.button.MaterialButton
                     android:id="@+id/create_radius_5000"
                     style="@style/Widget.Quapp.Segment"
-                    android:layout_width="0dp"
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_weight="1"
                     android:text="@string/create_radius_5000" />
 
             </com.google.android.material.button.MaterialButtonToggleGroup>
@@ -671,7 +706,7 @@
                         app:tint="?attr/colorOnSurfaceVariant" />
 
                     <LinearLayout
-                        android:layout_width="0dp"
+                        android:layout_width="@dimen/dimension_zero"
                         android:layout_height="wrap_content"
                         android:layout_marginStart="@dimen/space_ms"
                         android:layout_weight="1"
@@ -693,14 +728,15 @@
                 </LinearLayout>
             </LinearLayout>
 
+            <com.google.android.material.button.MaterialButton android:id="@+id/create_preview_button" style="@style/Widget.Quapp.Button.Outlined" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="@dimen/space_md" android:text="@string/preview_open" />
         </LinearLayout>
     </androidx.core.widget.NestedScrollView>
 
     <!-- ===== Dock ===== -->
 
-    <com.example.quapp.TearLineView
+    <View
         android:id="@+id/create_tear"
-        android:layout_width="0dp"
+        android:layout_width="@dimen/dimension_zero"
         android:layout_height="@dimen/tear_line_width"
         android:layout_marginStart="@dimen/space_md"
         android:layout_marginEnd="@dimen/space_md"
@@ -710,8 +746,9 @@
 
     <FrameLayout
         android:id="@+id/create_dock"
+        android:background="@color/paper"
         style="@style/Widget.Quapp.Dock"
-        android:layout_width="0dp"
+        android:layout_width="@dimen/dimension_zero"
         android:layout_height="wrap_content"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
@@ -720,7 +757,8 @@
         <com.google.android.material.button.MaterialButton
             android:id="@+id/create_submit_button"
             android:layout_width="match_parent"
-            android:layout_height="@dimen/button_height_lg"
+            android:layout_height="wrap_content"
+            android:minHeight="@dimen/button_height_lg"
             android:text="@string/create_action" />
     </FrameLayout>
 

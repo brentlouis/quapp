@@ -4,16 +4,15 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 
-import androidx.annotation.Nullable;
-
-import java.util.UUID;
+import java.util.HashSet;
+import java.util.Set;
 
 /**
- * Who's signed in and which side of the app they use. Stored in SharedPreferences so it
- * survives the app being closed — that's the "session persistence".
+ * Who's logged in and which side of the app they use. Stored in SharedPreferences
+ * so it survives the app being closed — that's the "session persistence".
  *
- * Signed in means holding a token from the server (/auth/login or /auth/register). ApiClient
- * sends it with every request. The password is never stored; only the server sees it.
+ * Passwords are never stored. With no backend yet, login accepts any valid
+ * phone and password; the real check moves to the server's auth endpoint.
  */
 public class Session {
 
@@ -23,22 +22,19 @@ public class Session {
     }
 
     private static final String PREFS_NAME = "quapp_session";
-    private static final String KEY_TOKEN = "token";
-    private static final String KEY_USER_ID = "user_id";
+    private static final String KEY_LOGGED_IN = "logged_in";
     private static final String KEY_NAME = "name";
     private static final String KEY_PHONE = "phone";
     private static final String KEY_ROLE = "role";
-    private static final String KEY_VERIFICATION = "verification";
-    private static final String KEY_ORGANIZATION = "organization";
     private static final String KEY_TOWN = "town";
     private static final String KEY_NOTIFICATIONS_ASKED = "notifications_asked";
 
     /**
-     * What this install keeps across accounts, so signing out doesn't reset it: its install
-     * id. The server allows 2 accounts per id (the device limit, canvas 56; MODELS.md "User").
+     * Existing local registration history survives sign-out. It does not enforce account
+     * eligibility; a genuine authentication service must define production policy.
      */
     private static final String DEVICE_PREFS_NAME = "quapp_device";
-    private static final String KEY_INSTALL_ID = "install_id";
+    private static final String KEY_DEVICE_ACCOUNTS = "accounts";
 
     private final SharedPreferences prefs;
     private final SharedPreferences devicePrefs;
@@ -51,22 +47,10 @@ public class Session {
     }
 
     public boolean isLoggedIn() {
-        return getToken() != null;
+        return prefs.getBoolean(KEY_LOGGED_IN, false);
     }
 
-    /** The server's token for "Authorization: Bearer …", or null when signed out. */
-    @Nullable
-    public String getToken() {
-        return prefs.getString(KEY_TOKEN, null);
-    }
-
-    @Nullable
-    public String getUserId() {
-        return prefs.getString(KEY_USER_ID, null);
-    }
-
-    /** Null before anyone has signed in on this install. */
-    @Nullable
+    /** Null if this phone never registered on this device. */
     public String getName() {
         return prefs.getString(KEY_NAME, null);
     }
@@ -76,91 +60,58 @@ public class Session {
     }
 
     /** Null until the user picks one on Role Select. */
-    @Nullable
     public Role getRole() {
         String stored = prefs.getString(KEY_ROLE, null);
         return stored == null ? null : Role.valueOf(stored);
     }
 
-    /**
-     * Signed in, by register or login: keeps the token and who it belongs to. The role is
-     * asked again (Role Select), since it may be a different person on a shared phone.
-     */
-    public void signIn(String token, User user) {
+    public void register(String name, String phone) {
+        Set<String> accounts = deviceAccounts();
+        accounts.add(phone);
+        devicePrefs.edit().putStringSet(KEY_DEVICE_ACCOUNTS, accounts).apply();
+
         prefs.edit()
-                .putString(KEY_TOKEN, token)
-                .putString(KEY_USER_ID, user.getId())
+                .putBoolean(KEY_LOGGED_IN, true)
+                .putString(KEY_NAME, name)
+                .putString(KEY_PHONE, phone)
                 .remove(KEY_ROLE)
                 .apply();
-        update(user);
     }
 
-    /**
-     * The latest copy of the account from the server (/me): the badge can change while the
-     * app is closed, when the admin approves or revokes it.
-     */
-    public void update(User user) {
-        prefs.edit()
-                .putString(KEY_NAME, user.getName())
-                .putString(KEY_PHONE, user.getPhone())
-                .putString(KEY_VERIFICATION, user.getVerificationStatus().name())
-                .putString(KEY_ORGANIZATION, user.getOrganizationName())
-                .apply();
-    }
+    /** Keeps the registered name only if it's the same phone logging back in. */
+    public void logIn(String phone) {
+        SharedPreferences.Editor editor = prefs.edit()
+                .putBoolean(KEY_LOGGED_IN, true)
+                .remove(KEY_ROLE);
 
-    public VerificationStatus getVerification() {
-        String stored = prefs.getString(KEY_VERIFICATION, null);
-        return stored == null ? VerificationStatus.NONE : VerificationStatus.valueOf(stored);
-    }
-
-    public boolean isVerified() {
-        return getVerification() == VerificationStatus.VERIFIED;
-    }
-
-    /** Set once verified: the name queues are posted under. */
-    @Nullable
-    public String getOrganizationName() {
-        return prefs.getString(KEY_ORGANIZATION, null);
-    }
-
-    /** Who a new queue is posted as: the verified organization, or the account's own name. */
-    public String postingAs() {
-        String organization = getOrganizationName();
-        return isVerified() && organization != null ? organization : getName();
-    }
-
-    /** Forgets the token. The phone number stays, so Login can offer it again. */
-    public void logOut() {
-        prefs.edit()
-                .remove(KEY_TOKEN)
-                .remove(KEY_USER_ID)
-                .remove(KEY_ROLE)
-                .remove(KEY_VERIFICATION)
-                .remove(KEY_ORGANIZATION)
-                .apply();
-    }
-
-    /**
-     * This install's id, made once and kept for good: a random UUID, so it says nothing about
-     * the phone itself. Sent with registration for the device limit.
-     */
-    public String installId() {
-        String id = devicePrefs.getString(KEY_INSTALL_ID, null);
-        if (id == null) {
-            id = UUID.randomUUID().toString();
-            devicePrefs.edit().putString(KEY_INSTALL_ID, id).apply();
+        if (!phone.equals(getPhone())) {
+            editor.remove(KEY_NAME);
         }
-        return id;
+
+        editor.putString(KEY_PHONE, phone).apply();
     }
 
     /** The town Browse is set to. Null until the first-visit question is answered. */
-    @Nullable
     public String getTown() {
         return prefs.getString(KEY_TOWN, null);
     }
 
     public void setTown(String town) {
         prefs.edit().putString(KEY_TOWN, town).apply();
+    }
+
+    /**
+     * The phone numbers that created an account on this install. A copy: Android's own set
+     * from getStringSet must never be changed in place.
+     */
+    public Set<String> deviceAccounts() {
+        Set<String> accounts = new HashSet<>(
+                devicePrefs.getStringSet(KEY_DEVICE_ACCOUNTS, new HashSet<String>()));
+        // Registered before this list existed: that account still counts.
+        if (accounts.isEmpty() && getName() != null && !getPhone().isEmpty()) {
+            accounts.add(getPhone());
+        }
+        return accounts;
     }
 
     /** The notification permission screen (canvas 20) is shown once, after the first join. */
@@ -174,6 +125,13 @@ public class Session {
 
     public void setRole(Role role) {
         prefs.edit().putString(KEY_ROLE, role.name()).apply();
+    }
+
+    public void logOut() {
+        prefs.edit()
+                .putBoolean(KEY_LOGGED_IN, false)
+                .remove(KEY_ROLE)
+                .apply();
     }
 
     /**

@@ -3,9 +3,6 @@
      It also gives the card its outline (for the shadow and for clipping). -->
 <shape xmlns:android="http://schemas.android.com/apk/res/android"
     android:shape="rectangle">
-    <solid android:color="@color/index_card" />
-    <stroke
-        android:width="@dimen/hairline"
-        android:color="@color/index_card_edge" />
-    <corners android:radius="@dimen/radius_index_card" />
+    <solid android:color="?attr/colorSurfaceContainer" />
+    <corners android:radius="@dimen/radius_card" />
 </shape>

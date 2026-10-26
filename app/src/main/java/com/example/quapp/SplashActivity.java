@@ -1,14 +1,10 @@
 package com.example.quapp;
 
 import android.os.Bundle;
-import android.os.Handler;
-import android.os.Looper;
 
 import androidx.appcompat.app.AppCompatActivity;
 
 public class SplashActivity extends AppCompatActivity {
-
-    private static final long SPLASH_DELAY_MS = 3000L;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -16,14 +12,11 @@ public class SplashActivity extends AppCompatActivity {
         setContentView(R.layout.activity_splash);
         SystemBars.applyPadding(findViewById(R.id.splash_root));
 
-        new Handler(Looper.getMainLooper()).postDelayed(new Runnable() {
-            @Override
-            public void run() {
-                // A remembered session skips Login and Role Select entirely.
-                Session session = new Session(SplashActivity.this);
-                startActivity(session.homeIntent(SplashActivity.this));
-                finish();
-            }
-        }, SPLASH_DELAY_MS);
+        Session session = new Session(this);
+        // Existing accounts retain their role and bypass first-install guidance.
+        startActivity(session.isLoggedIn() || OnboardingActivity.completed(this)
+                ? session.homeIntent(this)
+                : new android.content.Intent(this, OnboardingActivity.class));
+        finish();
     }
 }

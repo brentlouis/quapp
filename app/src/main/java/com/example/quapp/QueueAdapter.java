@@ -7,6 +7,7 @@ import android.view.ViewGroup;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.recyclerview.widget.RecyclerView;
+import androidx.recyclerview.widget.DiffUtil;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -26,9 +27,15 @@ public class QueueAdapter extends RecyclerView.Adapter<QueueAdapter.QueueViewHol
     private final List<Queue> queues = new ArrayList<>();
     private final Map<String, QueueStats> statsById = new HashMap<>();
     private final OnQueueClickListener clickListener;
+    private final boolean bookmarks;
 
     public QueueAdapter(OnQueueClickListener clickListener) {
+        this(clickListener, false);
+    }
+
+    public QueueAdapter(OnQueueClickListener clickListener, boolean bookmarks) {
         this.clickListener = clickListener;
+        this.bookmarks = bookmarks;
     }
 
     /** Browse: no stats. */
@@ -38,13 +45,26 @@ public class QueueAdapter extends RecyclerView.Adapter<QueueAdapter.QueueViewHol
 
     /** Owner: stats keyed by queue id; the adapter only shows them, never fetches them. */
     public void submitQueues(List<Queue> newQueues, @Nullable Map<String, QueueStats> newStats) {
+        final List<Queue> previous = new ArrayList<>(queues);
+        final List<Queue> next = new ArrayList<>(newQueues);
+        DiffUtil.DiffResult changes = DiffUtil.calculateDiff(new DiffUtil.Callback() {
+            @Override public int getOldListSize() { return previous.size(); }
+            @Override public int getNewListSize() { return next.size(); }
+            @Override public boolean areItemsTheSame(int oldPosition, int newPosition) {
+                return previous.get(oldPosition).getId().equals(next.get(newPosition).getId());
+            }
+            @Override public boolean areContentsTheSame(int oldPosition, int newPosition) {
+                // Queue instances can mutate in place; always rebind current values and stats.
+                return false;
+            }
+        });
         queues.clear();
-        queues.addAll(newQueues);
+        queues.addAll(next);
         statsById.clear();
         if (newStats != null) {
             statsById.putAll(newStats);
         }
-        notifyDataSetChanged();
+        changes.dispatchUpdatesTo(this);
     }
 
     @NonNull
@@ -59,6 +79,19 @@ public class QueueAdapter extends RecyclerView.Adapter<QueueAdapter.QueueViewHol
     public void onBindViewHolder(@NonNull QueueViewHolder holder, int position) {
         Queue queue = queues.get(position);
         holder.bind(queue, statsById.get(queue.getId()), clickListener);
+        android.widget.ImageButton save = holder.itemView.findViewById(R.id.card_save);
+        save.setVisibility(bookmarks ? View.VISIBLE : View.GONE);
+        if (bookmarks) {
+            boolean saved = new SavedServices(save.getContext()).contains(queue.getId());
+            save.setSelected(saved);
+            save.setImageResource(saved ? R.drawable.ic_bookmark_filled : R.drawable.ic_bookmark);
+            save.setContentDescription(save.getContext().getString(
+                    saved ? R.string.saved_remove_named : R.string.saved_save_named, queue.getName()));
+            save.setOnClickListener(v -> {
+                new SavedServices(v.getContext()).toggle(queue.getId());
+                notifyItemChanged(holder.getBindingAdapterPosition());
+            });
+        }
     }
 
     @Override
@@ -68,9 +101,6 @@ public class QueueAdapter extends RecyclerView.Adapter<QueueAdapter.QueueViewHol
 
     static class QueueViewHolder extends RecyclerView.ViewHolder {
 
-        /** Degrees; small enough that the list still reads as a straight column. */
-        private static final float[] TILTS = {-0.5f, 0.4f, -0.3f, 0.5f};
-
         QueueViewHolder(@NonNull View itemView) {
             super(itemView);
         }
@@ -78,8 +108,8 @@ public class QueueAdapter extends RecyclerView.Adapter<QueueAdapter.QueueViewHol
         void bind(final Queue queue, @Nullable QueueStats stats,
                   final OnQueueClickListener clickListener) {
             QueueCards.bind(itemView, queue, stats);
-            // Cards laid down by hand: each one a fraction of a degree off straight
-            itemView.setRotation(TILTS[getBindingAdapterPosition() % TILTS.length]);
+            // A straight column keeps the catalogue details readable in long scrolling lists.
+            itemView.setRotation(0f);
             itemView.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View view) {

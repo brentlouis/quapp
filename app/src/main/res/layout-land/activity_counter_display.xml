@@ -1,0 +1,151 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Keep the serving number and QR together; secondary text fits normally and scrolls for long fixtures. -->
+<androidx.core.widget.NestedScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/counter_root"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/paper"
+    android:fillViewport="true"
+    android:keepScreenOn="true">
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:padding="@dimen/space_md">
+
+        <com.google.android.material.card.MaterialCardView
+            android:id="@+id/counter_landscape_hero"
+            style="@style/Widget.Quapp.Card"
+            android:layout_width="@dimen/dimension_zero"
+            android:layout_height="@dimen/dimension_zero"
+            app:layout_constraintWidth_percent="0.6"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:cardBackgroundColor="@color/spotlight">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:orientation="vertical"
+                android:padding="@dimen/space_md">
+
+                <TextView
+                    android:id="@+id/counter_serving_label"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:accessibilityHeading="true"
+                    android:text="@string/counter_now_serving"
+                    android:textAppearance="?attr/textAppearanceLabelSmall"
+                    android:textColor="@color/paper_raised" />
+
+                <TextView
+                    android:id="@+id/counter_number"
+                    android:layout_width="match_parent"
+                    android:layout_height="@dimen/dimension_zero"
+                    android:layout_weight="1"
+                    android:accessibilityLiveRegion="polite"
+                    android:autoSizeMaxTextSize="@dimen/type_160_sp"
+                    android:autoSizeMinTextSize="@dimen/type_36_sp"
+                    android:autoSizeTextType="uniform"
+                    android:gravity="center_vertical"
+                    android:includeFontPadding="false"
+                    android:maxLines="1"
+                    android:textAppearance="?attr/textAppearanceTicketNumber"
+                    android:textColor="@color/paper_raised" />
+
+                <TextView
+                    android:id="@+id/counter_instruction"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:textAppearance="?attr/textAppearanceTitleLarge"
+                    android:textColor="@color/paper_raised" />
+
+                <androidx.core.widget.NestedScrollView
+                    android:layout_width="match_parent"
+                    android:layout_height="@dimen/dimension_zero"
+                    android:layout_marginTop="@dimen/space_sm"
+                    android:layout_weight="1">
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical">
+
+                        <TextView
+                            android:id="@+id/counter_queue"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:textAppearance="?attr/textAppearanceBodyLarge"
+                            android:textColor="@color/paper_raised" />
+
+                        <TextView
+                            android:id="@+id/counter_next_label"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="@dimen/space_sm"
+                            android:accessibilityHeading="true"
+                            android:text="@string/counter_up_next"
+                            android:textAppearance="?attr/textAppearanceLabelSmall"
+                            android:textColor="@color/paper_raised" />
+
+                        <TextView
+                            android:id="@+id/counter_next"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="@dimen/space_sm"
+                            android:textAppearance="?attr/textAppearanceTitleLarge"
+                            android:textColor="@color/paper_raised" />
+                    </LinearLayout>
+                </androidx.core.widget.NestedScrollView>
+            </LinearLayout>
+        </com.google.android.material.card.MaterialCardView>
+
+        <LinearLayout
+            android:layout_width="@dimen/dimension_zero"
+            android:layout_height="@dimen/dimension_zero"
+            android:layout_marginStart="@dimen/space_md"
+            app:layout_constraintStart_toEndOf="@id/counter_landscape_hero"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintBottom_toBottomOf="parent"
+            android:gravity="center_horizontal"
+            android:orientation="vertical">
+
+            <FrameLayout
+                android:id="@+id/counter_qr_plate"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:background="@drawable/bg_qr_plate"
+                android:padding="@dimen/space_ms">
+
+                <ImageView
+                    android:id="@+id/counter_qr"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:adjustViewBounds="true"
+                    android:maxWidth="@dimen/counter_qr_size"
+                    android:maxHeight="@dimen/counter_qr_size"
+                    android:contentDescription="@string/share_qr_description" />
+            </FrameLayout>
+
+            <androidx.core.widget.NestedScrollView
+                android:layout_width="match_parent"
+                android:layout_height="@dimen/dimension_zero"
+                android:layout_marginTop="@dimen/space_sm"
+                android:layout_weight="1">
+
+                <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical">
+                <TextView
+                    android:id="@+id/counter_scan"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:textAppearance="?attr/textAppearanceBodySmall"
+                    android:textColor="@color/ink_muted" />
+                <TextView android:id="@+id/counter_announcement" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="@dimen/space_md" android:textAppearance="?attr/textAppearanceBodyMedium" android:textColor="@color/ink" android:visibility="gone" />
+                </LinearLayout>
+            </androidx.core.widget.NestedScrollView>
+        </LinearLayout>
+    </androidx.constraintlayout.widget.ConstraintLayout>
+</androidx.core.widget.NestedScrollView>

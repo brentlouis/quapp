@@ -27,4 +27,5 @@
             <enum name="dotted" value="1" />
         </attr>
     </declare-styleable>
+<attr name="quappMotionSpec" format="reference" />
 </resources>

@@ -31,7 +31,7 @@ public final class Directions {
         try {
             activity.startActivity(new Intent(Intent.ACTION_VIEW, uri));
         } catch (ActivityNotFoundException e) {
-            Snackbar.make(activity.findViewById(android.R.id.content),
+            QuappMotion.snackbar(activity.findViewById(android.R.id.content),
                     R.string.ticket_no_maps_app, Snackbar.LENGTH_SHORT).show();
         }
     }

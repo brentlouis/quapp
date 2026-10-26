@@ -1,0 +1,4 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.google.android.material.textfield.TextInputLayout xmlns:android="http://schemas.android.com/apk/res/android" style="@style/Widget.Quapp.TextField" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="@dimen/space_md">
+    <com.google.android.material.textfield.TextInputEditText android:layout_width="match_parent" android:layout_height="wrap_content" android:minHeight="@dimen/touch_target_min" android:inputType="textCapSentences|textMultiLine" />
+</com.google.android.material.textfield.TextInputLayout>

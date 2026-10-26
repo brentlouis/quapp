@@ -1,5 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <!-- https://psa.gov.ph/classification/psgc/citimuni/0701200000
+         Verified 2026-10-19: 47 municipalities plus Tagbilaran City.
+         Preserve existing names/order for saved selections and first-visit shortcuts. -->
     <string-array name="bohol_municipalities">
         <item>Tagbilaran City</item>
         <item>Baclayon</item>
@@ -11,5 +14,43 @@
         <item>Cortes</item>
         <item>Sikatuna</item>
         <item>Alburquerque</item>
+        <item>Alicia</item>
+        <item>Anda</item>
+        <item>Antequera</item>
+        <item>Balilihan</item>
+        <item>Batuan</item>
+        <item>Bien Unido</item>
+        <item>Bilar</item>
+        <item>Buenavista</item>
+        <item>Calape</item>
+        <item>Candijay</item>
+        <item>Carmen</item>
+        <item>Catigbian</item>
+        <item>Clarin</item>
+        <item>Dagohoy</item>
+        <item>Danao</item>
+        <item>Dimiao</item>
+        <item>Duero</item>
+        <item>Garcia Hernandez</item>
+        <item>Getafe</item>
+        <item>Guindulman</item>
+        <item>Inabanga</item>
+        <item>Jagna</item>
+        <item>Lila</item>
+        <item>Loay</item>
+        <item>Loboc</item>
+        <item>Mabini</item>
+        <item>Pilar</item>
+        <item>President Carlos P. Garcia</item>
+        <item>Sagbayan</item>
+        <item>San Isidro</item>
+        <item>San Miguel</item>
+        <item>Sevilla</item>
+        <item>Sierra Bullones</item>
+        <item>Talibon</item>
+        <item>Trinidad</item>
+        <item>Tubigon</item>
+        <item>Ubay</item>
+        <item>Valencia</item>
     </string-array>
 </resources>
