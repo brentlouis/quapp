@@ -1480,3 +1480,27 @@ Confirmed decision: future renovation scope is Browse, My Tickets and Profile, p
 
 
 
+
+---
+
+## Build from the teammate's app (Oct 26)
+
+**Decision:** The app now builds from Brent's teammate's version (github.com/kitofu24/quapp-pull), on branch `feature/teammate-base`. It started from our `bc5036a` and adds onboarding, announcements, public organizer profiles, handover, saved services, profile settings, a counter list and loading / empty / error states, all on `FakeData`. The server (`backend/`, `BACKEND.md`, `render.yaml`) is kept from our branch unchanged, and the app gets reconnected to it.
+
+**Why:** He put weeks into it and it covers more screens. The server doesn't depend on the Android code, so nothing there is lost. His `FakeData.Callback<T>` pattern with `LoadingStateHelper` already has the shape of a network call, so the reconnect swaps the data source behind the callbacks instead of rewriting screens.
+
+**Also considered:** Keeping our branch and porting his new screens into it (both sides rewrote Browse, the Live console and the console sheets, so it would be conflict-by-conflict work). Taking his repo as-is (the app would stay on fake data for the demo).
+
+**Status:** Current. `feature/civic-paper-foundations` stays as the fallback and still holds the old API client.
+
+---
+
+## Slate & Mint replaces Civic Paper
+
+**Decision:** The teammate's "Slate & Mint" look is the app's design: mint ground `#EEF6F4`, white surfaces, ink `#0F2220`, a teal spotlight `#0B4F4A` instead of espresso, mint action `#2DBBAE`, amber `#F5B83D` for being called. `DESIGN.md` (his) is the authority; the Civic Paper section in it is history.
+
+**Why:** Brent's call (Oct 26): the teammate spent a lot of time on it, and it's a working, consistent system. The structure under it (one spotlight per screen, ticket details, the called screen as the loud moment) is the same.
+
+**Also considered:** Restoring Civic Paper's colour, theme and type files on top of his screens.
+
+**Status:** Current. Supersedes "Civic Paper direction (Sep 28)" for colour and type; the colour names in `colors.xml` (`spotlight`, `signal`, `crema`) stay as aliases so code didn't have to change.
