@@ -5,9 +5,10 @@
     <string name="welcome_body">Find local services and prepare for your visit.</string>
     <string name="welcome_browse">Browse services first</string>
     <string name="auth_sign_in">Sign in</string>
-    <string name="auth_sign_in_demo">Continue in demo</string>
-    <string name="auth_create_demo">Create demo profile</string>
-    <string name="auth_demo_error">Demo action failed. Try again.</string>
+    <string name="auth_create">Create account</string>
+    <string name="register_device_limit_title">This phone has 2 accounts</string>
+    <string name="register_device_limit_body">Quapp allows 2 accounts on one phone, so a family can share it. Sign in to one of them instead.</string>
+    <string name="register_device_limit_cancel">Not now</string>
     <string name="family_draft_hint">Prepare labels only · no group issued</string>
     <string name="family_planning_only">Planning only. No group ticket or membership will be created.</string>
 </resources>

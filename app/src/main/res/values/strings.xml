@@ -952,4 +952,11 @@
     <string name="handover_unchanged">Transfer stays disabled until an eligible recipient is available. Your queue, tickets and ownership are unchanged.</string>
     <string name="handover_retry">Retry</string>
     <string name="handover_transfer">Transfer ownership</string>
+
+    <!-- Talking to the server -->
+    <string name="login_busy">Logging in…</string>
+    <string name="login_wrong">Wrong number or password.</string>
+    <string name="register_busy">Creating account…</string>
+    <string name="register_phone_taken">That number already has an account. Log in instead.</string>
+    <string name="api_offline">Can\'t reach Quapp. Check your connection and try again.</string>
 </resources>

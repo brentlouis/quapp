@@ -3,9 +3,12 @@ package com.example.quapp;
 import android.os.Bundle;
 import android.view.View;
 
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.google.android.material.button.MaterialButton;
+import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.google.android.material.textfield.TextInputEditText;
 import com.google.android.material.textfield.TextInputLayout;
 
@@ -81,32 +84,57 @@ public class RegisterActivity extends AppCompatActivity {
             return;
         }
 
-        final MaterialButton submitButton = findViewById(R.id.register_submit_button);
-        submitButton.setEnabled(false);
-        submitButton.setText(R.string.creating_account);
+        setBusy(true);
+        Session session = new Session(this);
+        ApiClient.api(this).register(new QuappApi.RegisterBody(name, phone, password,
+                        session.installId()))
+                .enqueue(new ApiCallback<QuappApi.AuthResponse>(this) {
+                    @Override
+                    protected void onSuccess(@Nullable QuappApi.AuthResponse auth) {
+                        Session session = new Session(RegisterActivity.this);
+                        session.signIn(auth.token, auth.user);
+                        // homeIntent clears Login and Register off the stack
+                        startActivity(session.homeIntent(RegisterActivity.this));
+                    }
 
-        FakeData.registerAsync(this, name, phone, new FakeData.Callback<User>() {
-            @Override
-            public void onSuccess(User user) {
-                if (isFinishing() || isDestroyed()) {
-                    return;
-                }
-                Session session = new Session(RegisterActivity.this);
-                startActivity(session.homeIntent(RegisterActivity.this));
-            }
+                    @Override
+                    protected void onError(@NonNull ApiError error) {
+                        setBusy(false);
+                        TextInputLayout phoneLayout = findViewById(R.id.register_phone_layout);
+                        if (error.is("DEVICE_LIMIT")) {
+                            showDeviceLimit();
+                        } else if (error.is("PHONE_TAKEN")) {
+                            phoneLayout.setError(getString(R.string.register_phone_taken));
+                        } else if (error.is("INVALID_INPUT") && error.fieldMessage("phone") != null) {
+                            phoneLayout.setError(error.fieldMessage("phone"));
+                        } else {
+                            super.onError(error);
+                        }
+                    }
+                });
+    }
 
-            @Override
-            public void onError(Throwable error) {
-                if (isFinishing() || isDestroyed()) {
-                    return;
-                }
-                submitButton.setEnabled(true);
-                submitButton.setText(R.string.auth_create_demo);
-                QuappMotion.snackbar(
-                        findViewById(R.id.register_root), R.string.auth_demo_error,
-                        com.google.android.material.snackbar.Snackbar.LENGTH_SHORT).show();
-            }
-        });
+    /**
+     * Canvas 56: the server allows 2 accounts per install (routers/auth.py
+     * MAX_ACCOUNTS_PER_DEVICE) and this phone has made both. The way on is Log in.
+     */
+    private void showDeviceLimit() {
+        new MaterialAlertDialogBuilder(this)
+                .setTitle(R.string.register_device_limit_title)
+                .setMessage(R.string.register_device_limit_body)
+                .setNegativeButton(R.string.register_device_limit_cancel, null)
+                .setPositiveButton(R.string.auth_sign_in, (dialog, which) -> {
+                    startActivity(new android.content.Intent(this, LoginActivity.class));
+                    finish();
+                })
+                .show();
+    }
+
+    /** While waiting for the server: the button says so and can't be tapped twice. */
+    private void setBusy(boolean busy) {
+        MaterialButton submitButton = findViewById(R.id.register_submit_button);
+        submitButton.setEnabled(!busy);
+        submitButton.setText(busy ? R.string.creating_account : R.string.auth_create);
     }
 
     @Override protected void onStop() {

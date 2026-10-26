@@ -171,7 +171,7 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:minHeight="@dimen/button_height_lg"
-                    android:text="@string/auth_create_demo" />
+                    android:text="@string/auth_create" />
 
                 <LinearLayout
                     android:id="@+id/register_login_row"

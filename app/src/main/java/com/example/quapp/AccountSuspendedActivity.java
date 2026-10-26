@@ -1,13 +1,16 @@
 package com.example.quapp;
 
+import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.TextView;
 
+import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 
+import java.time.OffsetDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Locale;
 
@@ -18,10 +21,20 @@ import java.util.Locale;
 public class AccountSuspendedActivity extends AppCompatActivity {
 
     public static final String EXTRA_PHONE = "com.example.quapp.EXTRA_SUSPENDED_PHONE";
+    public static final String EXTRA_REASON = "com.example.quapp.EXTRA_SUSPENDED_REASON";
+    /** When, as the server sent it ("2026-09-28T09:00:00+08:00"). */
+    public static final String EXTRA_SINCE = "com.example.quapp.EXTRA_SUSPENDED_SINCE";
 
-    public static Intent intent(Context context, String phone) {
+    /** From the server's SUSPENDED error: its suspended_reason and suspended_at. */
+    public static Intent intent(Context context, String phone, @Nullable String reason,
+                                @Nullable String since) {
         Intent intent = new Intent(context, AccountSuspendedActivity.class);
         intent.putExtra(EXTRA_PHONE, phone);
+        intent.putExtra(EXTRA_REASON, reason);
+        intent.putExtra(EXTRA_SINCE, since);
+        if (!(context instanceof Activity)) {
+            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);  // started from outside a screen
+        }
         return intent;
     }
 
@@ -32,15 +45,12 @@ public class AccountSuspendedActivity extends AppCompatActivity {
         SystemBars.applyPadding(findViewById(R.id.suspended_root));
 
         final String phone = getIntent().getStringExtra(EXTRA_PHONE);
-        User user = phone == null ? null : FakeData.suspendedAccount(phone);
-        if (user == null) {
-            finish();
-            return;
-        }
+        String since = getIntent().getStringExtra(EXTRA_SINCE);
 
-        ((TextView) findViewById(R.id.suspended_reason)).setText(user.getSuspendedReason());
-        ((TextView) findViewById(R.id.suspended_since)).setText(user.getSuspendedAt() == null ? null
-                : user.getSuspendedAt().atZone(Format.MANILA).format(
+        ((TextView) findViewById(R.id.suspended_reason)).setText(
+                getIntent().getStringExtra(EXTRA_REASON));
+        ((TextView) findViewById(R.id.suspended_since)).setText(since == null ? null
+                : OffsetDateTime.parse(since).atZoneSameInstant(Format.MANILA).format(
                         DateTimeFormatter.ofPattern("MMM d, yyyy", Locale.getDefault())));
 
         findViewById(R.id.suspended_email).setOnClickListener(new View.OnClickListener() {

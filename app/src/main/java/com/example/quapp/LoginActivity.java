@@ -4,10 +4,13 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
 
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.textfield.TextInputEditText;
+import com.google.android.material.textfield.TextInputLayout;
 
 public class LoginActivity extends AppCompatActivity {
 
@@ -25,6 +28,13 @@ public class LoginActivity extends AppCompatActivity {
         findViewById(R.id.login_back).setOnClickListener(v -> finish());
         AuthForms.bind(this, new int[]{R.id.login_phone_layout, R.id.login_password_layout},
                 new int[]{R.id.login_password_input}, this::submitLogin);
+
+        // The last number used on this phone, so signing back in is just the password
+        TextInputEditText phoneInput = findViewById(R.id.login_phone_input);
+        String lastPhone = new Session(this).getPhone();
+        if (savedInstanceState == null && !lastPhone.isEmpty()) {
+            phoneInput.setText(lastPhone);
+        }
 
         forgotButton.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -66,39 +76,40 @@ public class LoginActivity extends AppCompatActivity {
             return;
         }
 
-        final MaterialButton submitButton = findViewById(R.id.login_submit_button);
-        submitButton.setEnabled(false);
-        submitButton.setText(R.string.signing_in);
-
+        setBusy(true);
         final String finalPhone = phone;
-        FakeData.loginAsync(this, phone, password, new FakeData.Callback<User>() {
-            @Override
-            public void onSuccess(User user) {
-                if (isFinishing() || isDestroyed()) {
-                    return;
-                }
-                if (user.getStatus() == User.Status.SUSPENDED) {
-                    submitButton.setEnabled(true);
-                    submitButton.setText(R.string.auth_sign_in_demo);
-                    startActivity(AccountSuspendedActivity.intent(LoginActivity.this, finalPhone));
-                    return;
-                }
-                Session session = new Session(LoginActivity.this);
-                startActivity(session.homeIntent(LoginActivity.this));
-            }
+        final TextInputLayout passwordLayout = findViewById(R.id.login_password_layout);
+        ApiClient.api(this).login(new QuappApi.LoginBody(phone, password))
+                .enqueue(new ApiCallback<QuappApi.AuthResponse>(this) {
+                    @Override
+                    protected void onSuccess(@Nullable QuappApi.AuthResponse auth) {
+                        Session session = new Session(LoginActivity.this);
+                        session.signIn(auth.token, auth.user);
+                        startActivity(session.homeIntent(LoginActivity.this));
+                    }
 
-            @Override
-            public void onError(Throwable error) {
-                if (isFinishing() || isDestroyed()) {
-                    return;
-                }
-                submitButton.setEnabled(true);
-                submitButton.setText(R.string.auth_sign_in_demo);
-                QuappMotion.snackbar(
-                        findViewById(R.id.login_root), R.string.auth_demo_error,
-                        com.google.android.material.snackbar.Snackbar.LENGTH_SHORT).show();
-            }
-        });
+                    @Override
+                    protected void onError(@NonNull ApiError error) {
+                        setBusy(false);
+                        if (error.is("WRONG_CREDENTIALS")) {
+                            passwordLayout.setError(getString(R.string.login_wrong));
+                        } else if (error.is("SUSPENDED")) {
+                            // A suspended account doesn't get in; it sees why (canvas 55)
+                            startActivity(AccountSuspendedActivity.intent(LoginActivity.this, finalPhone,
+                                    error.extraString("suspended_reason"),
+                                    error.extraString("suspended_at")));
+                        } else {
+                            super.onError(error);
+                        }
+                    }
+                });
+    }
+
+    /** While waiting for the server: the button says so and can't be tapped twice. */
+    private void setBusy(boolean busy) {
+        MaterialButton submitButton = findViewById(R.id.login_submit_button);
+        submitButton.setEnabled(!busy);
+        submitButton.setText(busy ? R.string.signing_in : R.string.auth_sign_in);
     }
 
     @Override protected void onStop() {

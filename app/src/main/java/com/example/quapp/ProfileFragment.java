@@ -12,6 +12,10 @@ import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
+
 /** The prototype's compact Profile groups, shared by both roles. */
 public class ProfileFragment extends Fragment {
     private LinearLayout content;
@@ -77,8 +81,25 @@ public class ProfileFragment extends Fragment {
             new MaterialAlertDialogBuilder(requireContext()).setTitle(R.string.profile_logout_title)
                     .setMessage(ActiveTicketStore.liveTickets().isEmpty() ? R.string.profile_logout_message : R.string.profile_logout_tickets_warning)
                     .setNegativeButton(R.string.profile_cancel, null).setPositiveButton(R.string.profile_logout_action, (d, w) -> {
-                        ActiveTicketStore.clear(); FakeData.clearHistory(); session.logOut(); startActivity(session.homeIntent(requireContext()));
+                        ActiveTicketStore.clear(); FakeData.clearHistory(); endServerSession(session); session.logOut(); startActivity(session.homeIntent(requireContext()));
                     }).show();
         });
+    }
+
+    /**
+     * Ends the token on the server too. Nothing waits for the answer: signing out on this phone
+     * happens either way, even offline.
+     */
+    private void endServerSession(Session session) {
+        ApiClient.api(requireContext()).logout("Bearer " + session.getToken())
+                .enqueue(new Callback<Void>() {
+                    @Override
+                    public void onResponse(@NonNull Call<Void> call, @NonNull Response<Void> response) {
+                    }
+
+                    @Override
+                    public void onFailure(@NonNull Call<Void> call, @NonNull Throwable failure) {
+                    }
+                });
     }
 }

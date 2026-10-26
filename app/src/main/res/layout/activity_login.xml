@@ -114,7 +114,7 @@
                 android:layout_height="wrap_content"
             android:minHeight="@dimen/button_height_lg"
                 android:layout_marginTop="@dimen/space_lg"
-                android:text="@string/auth_sign_in_demo" />
+                android:text="@string/auth_sign_in" />
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/login_google_button"
                 style="@style/Widget.Quapp.Button.Outlined"
