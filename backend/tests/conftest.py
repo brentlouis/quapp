@@ -99,3 +99,16 @@ def clock(monkeypatch) -> Clock:
     monkeypatch.setattr(timeutil, "now", fixed.now)
     monkeypatch.setattr(timeutil, "today", fixed.today)
     return fixed
+
+
+@pytest.fixture(autouse=True)
+def wait_model(tmp_path):
+    """Every test gets a fresh, untrained wait-time model saved in its own temporary folder,
+    so tests never read or overwrite ml/wait_model.joblib, and the rolling average stays the
+    estimate unless a test trains the model on purpose."""
+    from ml.wait_model import WaitModel
+    from app.services import estimator
+    fresh = WaitModel()
+    estimator.use_model(fresh, tmp_path / "wait_model.joblib")
+    yield fresh
+    estimator.use_model(None, estimator.MODEL_PATH)

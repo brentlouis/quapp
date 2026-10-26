@@ -1592,3 +1592,22 @@ What still runs on `FakeData` (kept for these only): counters, announcements, ti
 **Also considered:** Deleting his FakeData-only tools until the server has them (loses his work for the demo); faking them on the server side without a contract.
 
 **Status:** Current. Compiles and unit tests pass; not yet run on a device (Brent's PC crashed Oct 26). Supersedes the line in "App on the server, batches 3 and 4" that says FakeData is deleted.
+
+---
+
+## The wait-time model, built (Oct 26)
+
+**Decision:** Phase 9 is built as planned in "Wait-time estimation learns online", with these specifics:
+- **Data:** `backend/ml/simulate.py` makes simulated queue days (every rule written out in the file: service time by category, part of day, weekday and line length, log-normal noise, no-shows, prank joins, move-backs, a lunch break). 60 days train, 14 more are held out.
+- **Features** (`ml/features.py`): rolling average, called in the last 15 min, people in line, no-shows in the last hour, moved-backs waiting, minutes since opening, grace period, proximity, part of the day (morning, lunch, afternoon, late: one-hot, because a straight line can't learn "lunch is slower than both 10 AM and 3 PM" from an hour number), weekday and category (one-hot).
+- **Model** (`ml/wait_model.py`): `StandardScaler` + `SGDRegressor`, fixed learning rate 0.001, L2 0.0001, predictions clamped to 0.5–30 min. Warm-started once (`ml/train.py` → `ml/wait_model_warm.joblib`, committed); the server learns after every Call next and No-show (call-to-call time, breaks over 30 min skipped) and saves to `ml/wait_model.joblib` (not committed).
+- **When it's used:** the rolling average until a queue has 10 service times today, then the model. Insights shows which, with `model_samples`.
+- **Result** (`ml/evaluate.py`, predict-then-learn on the 14 held-out days): mean error per person 1.88 min for the rolling average, 1.69 trained once, **1.67 learning online (10.8% better)**, 1.69 as deployed. Chart: `ml/results/learning_curve.svg`.
+
+**Why:** The learning rate was the one real finding. At 0.005 a model learning from scratch, one noisy person at a time, swung to errors of 17 minutes; at 0.001 it stays within about 2 minutes, with the same held-out accuracy. A shrinking learning rate did about as well, but it stops adapting over time, which is the point of learning online. Part of the remaining error can't be learned away: the simulator gives every person random variation on purpose.
+
+**Also considered:** Learning only from served people, not no-shows (but the rolling average it's compared with counts every call-to-call gap, so the comparison would be unfair); one model per queue (too little data per queue); `invscaling` and `adaptive` learning rates (above).
+
+**Known limit:** Render's free disk is wiped on every deploy and restart, so the hosted server goes back to the warm start each time; what it learned in between is lost. Locally it keeps learning across restarts. For the defense, say so; a paid disk or saving the model in Postgres would fix it.
+
+**Status:** Current. 168 server tests pass (16 new). The verification comparison from the same harness (BACKEND.md step 9.4, second half) isn't done yet.

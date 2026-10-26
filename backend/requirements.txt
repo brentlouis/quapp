@@ -20,8 +20,10 @@ bcrypt==5.0.0
 jinja2==3.1.6
 python-multipart==0.0.32
 
-# The wait-time model (BACKEND.md phase 9) is deferred; its packages (scikit-learn, numpy,
-# joblib) come back with it. Leaving them out keeps the Render build small.
+# The wait-time model (BACKEND.md phase 9; backend/ml/)
+scikit-learn==1.9.1
+numpy==2.5.3
+joblib==1.6.0
 
 # Tests
 pytest==9.1.1

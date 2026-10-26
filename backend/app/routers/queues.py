@@ -181,7 +181,7 @@ def stats(queue: Queue = Depends(owned_queue), db: Session = Depends(get_db)) ->
         service_sample_count=per_person.samples,
         projected_wait_minutes=estimator.wait_minutes(per_person.minutes_per_person, waiting),
         estimate_source=per_person.source,
-        model_samples=0,  # phase 9: how many served people the learning model has seen
+        model_samples=per_person.model_samples,
     )
 
 

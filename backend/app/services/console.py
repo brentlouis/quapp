@@ -14,7 +14,7 @@ from sqlalchemy.orm import Session
 from app.enums import QueueStatus, RemovalReason, TicketStatus
 from app.errors import ApiError
 from app.models import Queue, Ticket, TicketRemoval, User
-from app.services import schedule
+from app.services import estimator, schedule
 from app.services.tickets import locked_queue, missed_call
 from app.timeutil import MANILA
 
@@ -65,6 +65,7 @@ def call_next(db: Session, queue_id: str, now: datetime) -> Queue:
     queue = locked_queue(db, queue_id)
     schedule.refresh(db, queue, now)
     check_running(queue)
+    estimator.learn_from_call(db, queue, now)
     finish_counter(db, queue, TicketStatus.SERVED, now)
     call_first(db, queue, now)
     db.commit()
@@ -79,6 +80,7 @@ def no_show(db: Session, queue_id: str, now: datetime) -> Queue:
     check_running(queue)
     if at_counter(db, queue) is None:
         raise ApiError(409, "NOBODY_CALLED", "Nobody is at the counter.")
+    estimator.learn_from_call(db, queue, now)
     finish_counter(db, queue, TicketStatus.NO_SHOW, now)
     call_first(db, queue, now)
     db.commit()
