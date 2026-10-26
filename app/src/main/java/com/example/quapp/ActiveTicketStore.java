@@ -26,9 +26,9 @@ import java.util.Set;
  * move back, leave) goes to the server first and then updates the copy. Screens that show tickets
  * {@link #addListener listen}, and redraw when the copy changes.
  *
- * Two things are shown differently from the server's word, on purpose:
- * - "I'm here" leaves the ticket CALLED on the server until the counter serves it; the queuer
- *   has done their part, so the app shows it as SERVED straight away.
+ * "I'm here" leaves the ticket CALLED, with here_at set, until the counter serves it; the
+ * Called screen and My tickets show "Arrival confirmed" meanwhile (the teammate's design: only
+ * the organizer completes service). One thing is shown differently from the server's word:
  * - When the 3-minute grace window runs out without "I'm here", the server leaves the no-show
  *   to the organizer (MODELS.md "Line"); the app shows the slot as released, as it always has.
  *   If the counter serves the person anyway, the next sync shows SERVED.
@@ -384,7 +384,7 @@ public final class ActiveTicketStore {
             return ticket;
         }
         if (ticket.getHereAt() != null) {
-            return ticket.toBuilder().setStatus(Ticket.Status.SERVED).build();
+            return ticket;  // confirmed: still called, waiting for the counter
         }
         Queue queue = Queues.get(ticket.getQueueId());
         boolean grace = queue == null || queue.isGracePeriodEnabled();
