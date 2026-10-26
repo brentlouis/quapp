@@ -3,9 +3,17 @@
 
 Tick boxes as things land. Commit this file with the work it tracks, so the git history shows when each item was done.
 
-Last reviewed: 2026-10-13.
+Last reviewed: 2026-10-26.
 
-## Current checkpoint
+## Current checkpoint (Oct 26)
+
+- Branch `feature/teammate-base`: the teammate's app (Slate & Mint) is the base, and it talks to the FastAPI server again (accounts, Browse, Queue detail, Join, My tickets, the ticket, Called, I'm here, I need more time, History, Report, owner Queues, Today, Insights, Create/Edit queue, Live console, counter display, Get verified). DECISIONS.md "Build from the teammate's app" and "Reconnecting the teammate's app".
+- Still on FakeData, on purpose: the teammate's counters, announcements, lookup, handover, appointments and staff tools (hidden for server queues).
+- Verification: compiled and unit tests passed on Oct 26. Not run on a device or emulator yet: Brent's PC crashed, so no builds or emulator runs until he says the PC is free.
+- Left for the next sitting with the PC: run it end to end (two accounts), delete the FakeData methods nothing calls (a list of 31 is ready), lint, the server's tests. Then the wait-time model (BACKEND.md phase 9).
+- Nothing below is ticked for this work until Brent confirms it runs.
+
+## Earlier checkpoint (Oct 13, teammate)
 
 - App: Java/XML Android prototype using FakeData. No production backend was connected in this chat.
 - Implemented in this chat: centered splash, prominent wait on open queuer cards, straight queue cards, state announcements, decorative error icon, cached Browse Retry/freshness feedback, visual export updates, folder guides, developer scripts, frontend agent and requested skills.

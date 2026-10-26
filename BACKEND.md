@@ -377,6 +377,8 @@ One screen at a time, in this order, each one working before the next.
 
 **Status (Sep 30):** built and emulator-tested in four batches: accounts (bc79bcf), the queuer side (7ad0feb), then the organizer side and verification together. `FakeData` and the app's own rolling average are deleted. The PROGRESS.md ticks wait for Brent's run on the phone.
 
+**Status (Oct 26):** the app is now the teammate's version (DECISIONS.md "Build from the teammate's app"), and the same three batches were replayed onto it on `feature/teammate-base` (f27572f, 2ca4f2b, 705ce6d). `Repository` answers the step 10.1 `QueueRepository` question: his screens keep FakeData's callback shape, backed by the server. FakeData stays only for his tools the server doesn't have (counters, announcements, lookup, handover, appointments, staff). Compiled and unit-tested, not yet run on a device. Render still deploys `feature/civic-paper-foundations`; the server code is the same on both branches, so nothing changes until the branch is merged.
+
 ---
 
 ## Phase 11: The demo
